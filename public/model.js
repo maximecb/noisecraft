@@ -21,6 +21,9 @@ Actions
 
 Here is a tentative list of various types of actions that can be performed on the model:
 
+// Set the project title
+set_title <new_title>
+
 create_node <type> <init_state> // Init state can be null if creating new node
 delete_node <id>
 connect <src_node> <out_port> <dst_node> <out_port>
@@ -328,7 +331,15 @@ export class Model
         self.views = [];
 
         // List of past actions tracked for undo/redo
-        self.undo_list = [];
+        self.undo_queue = [];
+    }
+
+    // Reinitialize the state for a brand new project
+    new()
+    {
+
+
+        
     }
 
     // Load the JSON state into the model
@@ -344,15 +355,13 @@ export class Model
     // Apply an action to the model
     apply(action)
     {
-
         switch (action.type)
         {
 
 
         }
 
-
-
+        // TODO: handle undo queue
     }
 
 

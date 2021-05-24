@@ -2,6 +2,14 @@
 
 Browser-based visual programming language and platform for sound synthesis.
 
+## Contributing
+
+We are more than happy to accept bug fixes. However, if you would like to
+contribute new features or larger changes to the codebase, we recommend
+that you open an issue to discuss the proposed changes first, so that we
+can share feedback on what we are likely to merge and how to go about
+implementing the changes.
+
 ## Development Setup Instructions
 
 Installing dependencies:
