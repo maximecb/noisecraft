@@ -1,6 +1,6 @@
 # NoiseCraft
 
-Programming language and platform for sound synthesis.
+Browser-based visual programming language and platform for sound synthesis.
 
 ## Development Setup Instructions
 
@@ -22,4 +22,4 @@ To start the server locally:
 node server.js
 ```
 
-App is then accessible at `http://localhost:7773/`
+NoiseCraft is then accessible at `http://localhost:7773/`

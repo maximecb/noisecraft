@@ -6,10 +6,15 @@ Each node has:
 - a node type (string)
 - node name (string)
 - global id number (integer)
-- params (list of values)
+- params (list of values, user-editable)
+  - some of these can be invisible to the user
+  - some of these are reset after playback
+- private state that is used for audio
+  - this is not persisted and not tracked by the model
 
-
-
+For example, the currently active step in the sequencer needs to
+be synced between the GUI and audio, but is not user-editable and
+also not persisted across playback.
 
 Actions
 =======
@@ -63,7 +68,7 @@ export const nodeDescs =
         ],
         outs: ['out'],
         params: [],
-        descr: 'add input waveforms',
+        description: 'add input waveforms',
     },
 
     'ADSR': {
@@ -76,7 +81,7 @@ export const nodeDescs =
         ],
         outs: ['out'],
         params: [],
-        descr: 'ADSR envelope generator',
+        description: 'ADSR envelope generator',
     },
 
     'AudioOut': {
@@ -86,7 +91,7 @@ export const nodeDescs =
         ],
         outs: [],
         params: [],
-        descr: 'stereo sound output',
+        description: 'stereo sound output',
     },
 
     'Clock': {
@@ -98,7 +103,7 @@ export const nodeDescs =
             { name: 'maxVal', default: 240 },
             { name: 'controlNo', default: null },
         ],
-        descr: 'MIDI clock signal source with tempo in BPM',
+        description: 'MIDI clock signal source with tempo in BPM',
     },
 
     /*
@@ -108,7 +113,7 @@ export const nodeDescs =
         ],
         outs: [],
         params: [],
-        descr: 'MIDI clock output',
+        description: 'MIDI clock output',
     },
     */
 
@@ -118,7 +123,7 @@ export const nodeDescs =
         params: [
             { name: 'value', default: 0 },
         ],
-        descr: 'editable constant value',
+        description: 'editable constant value',
     },
 
     'Delay': {
@@ -128,7 +133,7 @@ export const nodeDescs =
         ],
         outs: ['out'],
         params: [],
-        descr: 'delay line',
+        description: 'delay line',
     },
 
     // Used during compilation, reads from a delay line
@@ -158,7 +163,7 @@ export const nodeDescs =
         ],
         outs: ['out'],
         params: [],
-        descr: 'overdrive-style distortion',
+        description: 'overdrive-style distortion',
     },
 
     'Div': {
@@ -168,7 +173,7 @@ export const nodeDescs =
         ],
         outs: ['out'],
         params: [],
-        descr: 'divide one input by another',
+        description: 'divide one input by another',
     },
 
     'Filter': {
@@ -179,7 +184,7 @@ export const nodeDescs =
         ],
         outs: ['out'],
         params: [],
-        descr: 'low-pass filter',
+        description: 'low-pass filter',
     },
 
     'Knob': {
@@ -191,14 +196,14 @@ export const nodeDescs =
             { name: 'maxVal', default: 1 },
             { name: 'controlNo', default: null },
         ],
-        descr: 'parameter control knob',
+        description: 'parameter control knob',
     },
 
     'MidiIn': {
         ins: [],
         outs: ['freq', 'gate'],
         params: [],
-        descr: 'MIDI note input (cv/gate)',
+        description: 'MIDI note input (cv/gate)',
     },
 
     'MonoSeq': {
@@ -208,7 +213,7 @@ export const nodeDescs =
         ],
         outs: ['freq', 'gate'],
         params: [],
-        descr: 'monophonic step sequencer',
+        description: 'monophonic step sequencer',
     },
 
     'Mul': {
@@ -218,21 +223,21 @@ export const nodeDescs =
         ],
         outs: ['out'],
         params: [],
-        descr: 'multiply input waveforms',
+        description: 'multiply input waveforms',
     },
 
     'Noise': {
         ins: [],
         outs: ['out'],
         params: [],
-        descr: 'white noise source',
+        description: 'white noise source',
     },
 
     'Notes': {
         ins: [],
         outs: [],
         params: [],
-        descr: 'text notes',
+        description: 'text notes',
     },
 
     'Pulse': {
@@ -242,7 +247,7 @@ export const nodeDescs =
         ],
         outs: ['out'],
         params: [],
-        descr: 'pulse/square oscillator',
+        description: 'pulse/square oscillator',
     },
 
     'Saw': {
@@ -251,7 +256,7 @@ export const nodeDescs =
         ],
         outs: ['out'],
         params: [],
-        descr: 'sawtooth oscillator',
+        description: 'sawtooth oscillator',
     },
 
     'Scope': {
@@ -263,7 +268,7 @@ export const nodeDescs =
             { name: 'minVal', default: -1 },
             { name: 'maxVal', default: 1 },
         ],
-        descr: 'scope to plot incoming signals',
+        description: 'scope to plot incoming signals',
     },
 
     'Sine': {
@@ -276,7 +281,7 @@ export const nodeDescs =
             { name: 'minVal', default: -1 },
             { name: 'maxVal', default: 1 }
         ],
-        descr: 'sine wave oscillator',
+        description: 'sine wave oscillator',
     },
 
     'Slide': {
@@ -286,7 +291,7 @@ export const nodeDescs =
         ],
         outs: ['out'],
         params: [],
-        descr: 'simple slew-rate limiter using a running average',
+        description: 'simple slew-rate limiter using a running average',
     },
 
     'Sub': {
@@ -296,7 +301,7 @@ export const nodeDescs =
         ],
         outs: ['out'],
         params: [],
-        descr: 'subtract input waveforms',
+        description: 'subtract input waveforms',
     },
 
     'Tri': {
@@ -305,7 +310,7 @@ export const nodeDescs =
         ],
         outs: ['out'],
         params: [],
-        descr: 'triangle oscillator',
+        description: 'triangle oscillator',
     },
 };
 
@@ -321,6 +326,19 @@ export class Model
 
         // List of views subscribed to model updates
         self.views = [];
+
+        // List of past actions tracked for undo/redo
+        self.undo_list = [];
+    }
+
+    // Load the JSON state into the model
+    load(state)
+    {
+    }
+
+    // Serialize the state to JSON
+    serialize()
+    {
     }
 
     // Apply an action to the model
