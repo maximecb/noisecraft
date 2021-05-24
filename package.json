@@ -1,0 +1,31 @@
+{
+  "name": "NoiseCraft",
+  "version": "0.0.1",
+  "description": "Online IDE and programming language for sound synthesis",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maximecb/noisecraft.git"
+  },
+  "license": "Apache-2.0",
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "crc": "^3.8.0",
+    "express": "^4.17.1",
+    "sqlite3": "^4.1.0",
+    "vhost": "^3.0.2"
+  },
+  "devDependencies": {
+    "rollup": "^1.16.2",
+    "terser": "^4.4.2"
+  },
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
