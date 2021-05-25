@@ -1,0 +1,358 @@
+body {
+    margin: 0;
+    padding: 0;
+    background: #222;
+    font-family: sans-serif;
+    font-size: 16px;
+    color: white;
+
+    /* prevent two finger swipe navigating forward/back */
+    overscroll-behavior: none;
+}
+
+h1 {
+    text-align: center;
+}
+
+hr {
+    border: 0px;
+    height: 2px;
+    background: #444;
+}
+
+a:link {
+    color: #F00;
+    text-decoration: none;
+}
+a:hover {
+    color: #F00;
+    text-decoration: underline;
+}
+a:visited
+{
+    color: #A00;
+    text-decoration: none;
+}
+
+div.layout
+{
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+}
+
+div.zupiter
+{
+    display: inline-block;
+    margin: 10px;
+    text-align: center;
+    color: #F00;
+    font-size: 22;
+    font-weight: bold;
+    cursor: default;
+    user-select: none;
+    -moz-user-select: none;
+}
+
+div.top_bar
+{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    background: #333;
+}
+
+div.top_menu
+{
+    display: inline-flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+div.top_buttons
+{
+    display: inline-flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+div.menu_button, a.menu_link:link, a.menu_link:visited
+{
+    display: inline-block;
+    margin: 4px;
+    padding: 4px;
+    color: #FFF;
+    text-align: center;
+    font-size: 18;
+    font-family: sans-serif;
+    cursor: pointer;
+    user-select: none;
+    -moz-user-select: none;
+}
+
+div.menu_button:hover, a.menu_link:hover
+{
+    background: #F00;
+    text-decoration: none;
+}
+
+div.tabcontent
+{
+    flex-grow: 1;
+
+    display: none;
+    padding-left: 10px;
+    padding-right: 10px;
+    /* Limit the width of text tabs */
+    margin: auto;
+    max-width: 900;
+}
+
+/****************************************************************************/
+
+#graph_div
+{
+    font-family: monospace;
+    position:relative;
+    top: 0px;
+    left: 0px;
+    background: #222;
+}
+
+#graph_bg_text
+{
+    display: none;
+    user-select: none;
+    -moz-user-select: none;
+    color: rgb(150, 150, 150);
+    font-weight: bold;
+    font-family: sans-serif;
+    font-size: 20;
+    position: absolute;
+    margin: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#svg
+{
+    z-index: 1;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+div.node
+{
+    position:absolute;
+
+    padding-top: 2px;
+    padding-bottom: 2px;
+    z-index: 2;
+
+    background: #444;
+    border: 2px solid #666;
+
+    /* prevent the text from being selected when user clicks */
+    user-select: none;
+    -moz-user-select: none;
+}
+
+div.node_header
+{
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 14;
+    text-align: center;
+    cursor: move;
+}
+
+div.node_content
+{
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+
+div.node_in_ports
+{
+    display: inline-block;
+    vertical-align: top;
+    position: relative;
+    left: -5px;
+    min-width: 12px;
+}
+
+div.node_center
+{
+    display: inline-block;
+}
+
+div.node_out_ports
+{
+    display: inline-block;
+    vertical-align: top;
+    position: relative;
+    right: -5px;
+    min-width: 12px;
+}
+
+div.node_in_port
+{
+    display: grid;
+    grid-template-areas: "port name";
+    grid-template-columns: min-content 1fr;
+    grid-template-rows: auto;
+    text-align: left;
+}
+
+div.node_out_port
+{
+    display: grid;
+    grid-template-areas: "name port";
+    grid-template-columns: 1fr min-content;
+    grid-template-rows: auto;
+    text-align: right;
+}
+
+div.port_text
+{
+    display: inline-block;
+    grid-area: name;
+    align-self: center;
+    padding: 2px;
+    font-size: 12;
+    color: #AAA;
+}
+
+div.port_conn
+{
+    display: inline-block;
+    grid-area: port;
+    align-self: center;
+    width:8px;
+    height:8px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    background: #FA0;
+}
+
+div.patsel_btn
+{
+    display: inline-block;
+    border: 1px solid white;
+    background: #222;
+    width: 18;
+    margin-left: 2;
+    margin-right: 2;
+}
+
+div.patsel_btn_on
+{
+    display: inline-block;
+    border: 1px solid red;
+    background: #111;
+    color: red;
+    width: 18;
+    margin-left: 2;
+    margin-right: 2;
+}
+
+div.patsel_btn_queue
+{
+    display: inline-block;
+    border: 1px solid #0F0;
+    background: #131;
+    color: #0F0;
+    width: 18;
+    margin-left: 2;
+    margin-right: 2;
+}
+
+/* Track title display/edit box on the main page */
+#project_title {
+    position: fixed;
+    bottom: 18; right: 18;
+
+    font-family: monospace;
+    font-size: 16;
+    font-weight: normal;
+    text-align: right;
+    color: #777;
+
+    border: none;
+    border-color: transparent;
+    outline: none;
+    background: none;
+}
+
+/****************************************************************************/
+
+/* Modal dialog box */
+.dialog {
+    z-index:3;
+    width: 400px;
+
+    /* Center in the browser window */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    /* bring your own prefixes */
+    transform: translate(-50%, -50%);
+
+    background-color: #666;
+    border: 2px solid #AAA;
+    padding: 10px;
+    font-family: monospace
+}
+
+.dialog_title {
+    font-size: 24px;
+    font-family: sans-serif;
+    text-align: center;
+    margin-top: 4px;
+    margin-bottom: 10px;
+}
+
+/* Div to space out form elements vertically */
+.form_div {
+    margin-top: 6;
+    margin-bottom: 6;
+}
+
+.form_btn {
+    margin-top: 4;
+    margin-right: 4;
+}
+
+.form_link {
+    margin-top: 6;
+    margin-bottom: 6;
+    color: #FA0;
+}
+
+.form_error {
+    display: none;
+    margin-top: 6;
+    margin-bottom: 6;
+    padding-bottom: 2;
+    color: #F00;
+    background: #333;
+    text-align: center;
+    font-size: 18px;
+}
+
+/* Invisible overlay div to hide dialog background */
+.overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background: rgba(0,0,0,0.80);
+    z-index: 2;
+}

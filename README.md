@@ -15,8 +15,10 @@ implementing the changes.
 Installing dependencies:
 
 ```
-# Install npm and update it
+# Install nodejs and npm
 sudo apt-get install -y nodejs npm
+
+# Update npm
 sudo npm install -g npm
 
 # Install dependencies for this project

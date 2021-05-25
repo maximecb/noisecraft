@@ -1,0 +1,274 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+        <link rel="icon" type="image/x-icon" href="favicon.ico" />
+        <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+        <script src="main.js" type="module"></script>
+        <title>Zupiter Alpha</title>
+    </head>
+    <body>
+    <div class="layout">
+
+        <div class="top_bar">
+            <div class="top_menu">
+                <div class="zupiter">Zupiter</div>
+                <div class="menu_button" id="btn_new">New</div>
+                <div class="tablink menu_button" id="tablink_edit">Edit</div>
+                <div class="tablink menu_button" id="tablink_share">Share</div>
+                <div class="tablink menu_button" id="tablink_browse">Browse</div>
+                <div class="tablink menu_button" id="tablink_help">Help</div>
+                <div class="tablink menu_button" id="tablink_about">About</div>
+                <a class="menu_link" href="https://reddit.com/r/musictools", target="_blank">Reddit</a>
+            </div>
+
+            <div class="top_buttons">
+                <div class="menu_button" id="btn_play">Play</div>
+                <div class="menu_button" style="display:none" id="btn_stop">Stop</div>
+                <div id="btn_login" style="cursor: pointer; color: #FA0; margin: 4px; padding: 4px;">[Log in]</div>
+                <div id="btn_user" style="cursor: pointer; display: none; color: #FA0; margin: 4px; padding: 4px;"></div>
+            </div>
+        </div>
+
+        <!-- Edit tab, graph editing -->
+        <div class="tabcontent" id="tab_edit" style="padding:0; margin:0; max-width: unset; overflow: scroll;">
+            <div id="graph_div">
+                <div id="graph_bg_text">
+                    Click the empty space to create a new node
+                </div>
+                <svg id="graph_svg" version="1.1">
+                </svg>
+                <input type="text" id="project_title" size=50 maxlength=50 value="Untitled Project">
+            </div>
+        </div>
+
+        <div class="tabcontent" id="tab_share">
+            <h1>Share Your Creation</h1>
+
+            <p>
+            On this page you can instantly share the project you created with Zupiter.
+            Please note that one of the main goals of Zupiter is to encourage others to play,
+            edit and re-share modified versions of your creation. Hence, to share your work,
+            you must agree to renounce any rights over this work and release it into the
+            <a href="https://en.wikipedia.org/wiki/Public_domain" target=”_blank”>public domain</a>.
+            To proceed, simply log in or register, set a title for your project, and click the
+            "Share" button to upload your project to the server and make it available to
+            others online.
+            </p>
+
+            <div id="share_error_title" style="color:#F00; margin-bottom:4px; display:none">
+                You must set a title to share this project.
+            </div>
+            Title of your project:<br>
+            <input id="share_title" type="text" size=50 maxlength=50 value="Untitled Project"><br>
+            <br>
+            <div id="share_error_agree" style="color:#F00; margin-bottom:4px; display:none">
+                You must agree to release this work into the public domain in order to share it.
+            </div>
+            <input id="share_agree" type="checkbox"> <b>I agree</b> to release this work into the public domain and renounce any copyright claims over it.<br>
+            <br>
+            <button id="share_btn">Share</button>
+            <div id="share_url_div" style="display: none; justify-content: center; margin: 12px;">
+                <span style="text-align:center">
+                Copy the URL below to share your creation with friends:<br>
+                <input id="share_url" type="text" style="width:400px" value="Click the &quot;Share&quot; button to generate a shareable URL." disabled>
+                </span>
+            </div>
+        </div>
+
+        <div class="tabcontent" id="tab_browse">
+            <h1>Browse Shared Projects</h1>
+            <p>On this page you can browse projects created by other users of Zupiter. You can share your own projects,
+            or modified versions of existing projects, by going over to the Share tab.
+            </p>
+
+            <h2>Featured</h2>
+
+            <a href="#1116">FM</a> by Kaïser Clicker Clicker<br>
+            <a href="#1090">Inverted Convector V.1.5</a> by Niklaus V<br>
+            <a href="#853">Computing 2019-11-16</a> by ColonelForbin108<br>
+            <a href="#725">Aliens play violin and cello</a> by johnlois<br>
+            <a href="#503">FEPETERKOIv6WITHSYNTHv1</a> by Gamin44<br>
+            <a href="#639">Vibezzz 2.2 : Tests with bass and chords</a> by Loic68<br>
+            <a href="#348">Beat for big boys</a> by Mudd<br>
+            <a href="#347">fuzzy</a> by internetjay<br>
+            <a href="#162">Detuned Saw Synth With Sub Osc And Stereo Delay</a> by volca02<br>
+            <a href="#59">Triple oscillator + delay + overdrive pedal</a> by Max<br>
+            <a href="#640">Seals, Seagulls and a Polypad</a> by ubersquid<br>
+            <a href="#496">Noise Machine / Ocean Sounds</a> by slowtoaster<br>
+
+            <h2>Latest Creations</h2>
+            <div id="browse_div">
+            </div>
+        </div>
+
+        <!-- Help tab -->
+        <div class="tabcontent" id="tab_help">
+            <h1>Help</h1>
+
+            <h2>Introduction</h2>
+            <p>
+            Zupiter is a <a href="https://en.wikipedia.org/wiki/Modular_synthesizer" target=”_blank”>modular synthesizer</a> that runs
+            in your web browser, loosely inspired by Pure Data, Max/MSP, and other visual programming languages. Essentially,
+            it's a tool that allows you to build your own synthesizer by creating new nodes (modules) and connecting
+            them together. By connecting nodes with edges, you control how audio data and control signals flow from one
+            node to another and how sound is generated.
+            </p>
+
+            <p>
+            For those who are new to synthesizers and sound synthesis,
+            <a href="https://gizmodo.com/a-beginners-guide-to-the-synth-1736978695" target=”_blank”>A Beginner's Guide to the Synth</a>
+            is a good introduction to the basic concepts involved.
+            Please don't hesitate to ask any question,
+            offer feedback and report bugs in the
+            <a href="https://reddit.com/r/musictools" target=”_blank”>musictools subreddit</a>.
+            </p>
+
+            <h2>The Basics</h2>
+
+            <h3>Node Types</h3>
+            Each node has input ports on the left, output ports on the right, and performs some operation
+            internally. Nodes like Add and Mul will add and multiply two input signals together. Sine, Saw, Pulse
+            and Noise are oscillators (signal sources). The AudioOut node takes a left and right signal and plays
+            it back on your speakers.
+
+            <h3>Creating New Nodes</h3>
+            <p>
+            Clicking on empty space in the Edit tab will make a dialog menu pop up which allows you to select the
+            kind of node you want to create. Once the node is created, you can drag it around by clicking on the
+            node's name and holding the left mouse button as you move the mouse.
+            </p>
+
+            <h3>Connecting Nodes</h3>
+            <p>
+            Nodes can have input and output ports, represented by orange boxes. By convention, the input ports of
+            a node are always on the left side, and the output ports are on the right. You can only connect output
+            ports to input ports. One output can be connected to multiple inputs, but each in put can only be
+            connected to one output. To make a connection, simply click on the first port to connect, and then
+            on the second. A white line (edge) representing the connection will appear.
+            </p>
+
+            <h3>Moving Nodes</h3>
+            <p>
+            To move a node, click on the node's name and hold down the mouse button while moving the mouse.
+            </p>
+
+            <h3>Deleting Nodes</h3>
+            <p>
+            You can delete nodes by holding down the shift key while clicking on a node's name.
+            </p>
+
+            <h3>Removing Connections</h3>
+            <p>
+            To break connections, you can click on the input-side port
+            associated with that connection. This will break the connection, and leave you holding a dangling
+            wire which you can then reconnect to an input port on another node. You can also drop the
+            dangling connection by clicking on an empty part of the canvas.
+            <p>
+
+            <p>
+            It's also possible to override existing connections. In Zupiter, output-side ports can be
+            connected to multiple inputs, but input-side ports can can only be connected to one thing.
+            When you try to connect an output port to an input port that already is connected to something,
+            this will remove the previous connection on that input port and override it with the new
+            connection you just made.
+            </p>
+
+            <h3>Editing Node Parameters</h3>
+            <p>
+            Double-clicking on a node's name will make a Node Parameters menu specific to this node pop up.
+            This allows you to edit advanced parameters, such as the minimum and maximum value a knob can output,
+            or the output range of a sine oscillator.
+            </p>
+
+            <h2>Examples</h2>
+
+            This section contains some simple example synth graphs which can serve as mini tutorials to
+            help you get started.
+
+            <h3>Producing Sound</h3>
+            <p>
+            In order to produce a sound, we need to connect an audio signal source to an audio output. The
+            <a href="#28" target="_blank">simplest possible graph</a>
+            that you could make to do this involves connecting a Noise node directly to an AudioOut
+            node. Try creating this simple graph, and then press the Play button in the top-right corner.
+            </p>
+
+            <h3>Playing Some Notes</h3>
+            <p>
+            The MidiIn node allows you to get pitch and gate inputs for notes played on a computer keyboard
+            or MIDI input device. The pitch value is the frequency of the note played. The gate value is one
+            when a key is held down, or zero otherwise.
+            </p>
+
+            <p>
+            This <a href="#31" target="_blank">example graph</a> uses the pitch value to directly control
+            a sawtooth wave oscillator. The gate value is then multiplied by the oscillator's output, so
+            that you only hear a sound when a note is playing.
+            </p>
+
+            <p>Press the play button in the top-right corner, and then try pressing the A to L keys on
+            your keyboard to produce sound. You can also shift one octave up or down with the Z and X keys.
+            If you want to use a MIDI input device, you should connect this device to your computer
+            before loading up Zupiter (or refresh the page).
+            </p>
+
+            <h3>Volume Knob</h3>
+            <p>
+            It's useful to be able to change the amplitude (intensity) of a signal. An easy way to do this
+            is to multiply that signal by some number. In <a href="#32" target="_blank">this example</a>,
+            we multiply the output of a noise source by some factor that is controlled by a knob. You can
+            change the value that the knob produces by clicking on the knob, holding the mouse button
+            down and moving your mouse up and down. Knobs, by default, produce values between 0 and 1.
+            However, you can change the output range of a knob by double clicking on its name (where it
+            says "Knob") and editing the node's parameters.
+            </p>
+
+            <h2>MIDI Support</h2>
+            <p>
+            Zupiter can receive input from MIDI keyboards, sequencers and other types of MIDI devices. The
+            MidiIn note, by default, will connect to every MIDI device on your system and receive notes. You
+            can also map virtual knobs in Zupiter to physical knobs on a MIDI device by double-clicking on
+            the virtual knob and then wiggling the physical knob you want to map to. If input from
+            your device is not detected, try refreshing the Zupiter page.
+            </p>
+
+            <p>
+            Most MIDI controllers should work with Zupiter out of the box, but if you are looking to purchase
+            new equipment, I have personally tested the Novation Launch Control, which has multiple mappable knobs,
+            the M-Audio KeyStation 88, and the Akai MPK Mini.
+            </p>
+
+            <h2>Troubleshooting</h2>
+            <p>
+            Please don't hesitate to ask any question, offer feedback and report bugs in the
+            <a href="https://reddit.com/r/musictools" target=”_blank”>musictools subreddit</a>.
+            However, please note that at the moment, I do not own a tablet. I only have access to Mac and Linux PCs.
+            As such, Zupiter is only tested on Chrome and Firefox on those two platforms. Support for tablets,
+            Windows computers and other platforms is not guaranteed.
+            </p>
+        </div>
+
+        <!-- About tab -->
+        <div class="tabcontent" id="tab_about">
+            <h1>Zupiter - Online Modular Synthesizer and Synthesizer</h1>
+
+            <h2>Creating Zupiter</h2>
+            I wanted to build a music creation tool that is easy to use, accessible and free. Zupiter is a synthesizer and
+            step-sequencer that runs in a browser,
+            meaning you don't even need to download and install any software to use it. Its interface is designed to be
+            minimalistic and simple, so as not to put off beginners. The sharing feature gives you the ability to instantly
+            put your work online. My hope is that this will enable the sharing of creative ideas and encourage cooperation between
+            people, producing a positive feedback loop.
+
+            <h2>The Author</h2>
+
+            My name is Maxime Chevalier-Boisvert. I was borned and raised in Montreal, Canada and am passionate about
+            computers, technology and electronic music. You can reach me via
+            twitter, my handle is <a href="https://twitter.com/Love2Code" target=”_blank”>@Love2Code</a>.
+
+            <p style="color: white; text-align:center; font-size: 14px;">Copyright © 2019 - Maxime Chevalier-Boisvert</p>
+        </div>
+
+    </div>
+    </body>
+</html>

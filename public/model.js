@@ -337,9 +337,15 @@ export class Model
     // Reinitialize the state for a brand new project
     new()
     {
+        // TODO: broadcast delete/clear actions?
 
+        let state = {
+            title: 'New Project',
+            nodes: {}
+        };
 
-        
+        // TODO: broadcast load actions
+        this.load(state);
     }
 
     // Load the JSON state into the model
@@ -350,6 +356,7 @@ export class Model
     // Serialize the state to JSON
     serialize()
     {
+        return this.state;
     }
 
     // Apply an action to the model
@@ -363,9 +370,4 @@ export class Model
 
         // TODO: handle undo queue
     }
-
-
-
-
-
 }
