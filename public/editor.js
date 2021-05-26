@@ -1,14 +1,24 @@
 export class Editor
 {
-    constructor()
+    constructor(model)
     {
-        // Map of node ids to graph node objects
+        this.model = model;
+        model.addView(this);
+
+        // Map of node ids to UI node objects
         this.nodes = new WeakMap();
 
 
 
         
     }
+
+    // Apply an action to the view
+    apply(action)
+    {
+        
+    }
+
 
 
 

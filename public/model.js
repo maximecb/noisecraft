@@ -9,6 +9,8 @@ Each node has:
 - params (list of values, user-editable)
   - some of these can be invisible to the user
   - some of these are reset after playback
+- a map of input connections for each input port
+  - pairs of (node_id, out_port_name), no property if no connection
 - private state that is used for audio
   - this is not persisted and not tracked by the model
 
@@ -320,37 +322,51 @@ export const nodeDescs =
 /** Graph of nodes model, operates on internal state data */
 export class Model
 {
-    constructor(state)
+    constructor()
     {
-        self.state = state;
-
-        // Next node id to be allocated
-        this.nextId = 0;
-
         // List of views subscribed to model updates
-        self.views = [];
+        this.views = [];
 
         // List of past actions tracked for undo/redo
-        self.undo_queue = [];
+        this.undoQueue = [];
+
+        this.new();
+    }
+
+    // Register a view
+    addView(view)
+    {
+        this.views.push(view);
     }
 
     // Reinitialize the state for a brand new project
     new()
     {
-        // TODO: broadcast delete/clear actions?
-
-        let state = {
+        // Persistent state
+        this.state = {
             title: 'New Project',
             nodes: {}
         };
 
-        // TODO: broadcast load actions
-        this.load(state);
+        this.load(this.state);
     }
 
     // Load the JSON state into the model
     load(state)
     {
+        // Current playback position
+        this.play_pos = 0;
+
+        // Next node id to be allocated
+        this.nextId = 0;
+
+
+
+
+
+
+
+        // TODO: broadcast load state action(s)
     }
 
     // Serialize the state to JSON

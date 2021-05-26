@@ -1,5 +1,6 @@
 import { Model } from './model.js';
 import { Editor } from './editor.js';
+import { AudioView } from './audioview.js';
 
 // New, play, stop buttons
 let btnNew = document.getElementById('btn_new');
@@ -9,13 +10,16 @@ let btnStop = document.getElementById('btn_stop');
 // Playing/stopped flag
 let playing = false;
 
-// TODO: Project model/state
+// Project model/state
 let model = new Model();
 
 // Graph editor view
-let editor = new Editor();
+let editor = new Editor(model);
 
-// TODO: Audio view
+// Audio view of the model
+let audioView = new AudioView(model);
+
+
 
 
 /*
