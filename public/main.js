@@ -1,14 +1,16 @@
+import { Model } from './model.js';
 import { Editor } from './editor.js';
 
 // New, play, stop buttons
-//let btnNew = document.getElementById('btn_new');
-//let btnPlay = document.getElementById('btn_play');
-//let btnStop = document.getElementById('btn_stop');
+let btnNew = document.getElementById('btn_new');
+let btnPlay = document.getElementById('btn_play');
+let btnStop = document.getElementById('btn_stop');
 
 // Playing/stopped flag
 let playing = false;
 
 // TODO: Project model/state
+let model = new Model();
 
 // Graph editor view
 let editor = new Editor();

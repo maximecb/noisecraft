@@ -1,4 +1,4 @@
-class Editor
+export class Editor
 {
     constructor()
     {
