@@ -64,7 +64,7 @@ on a clock input node.
 */
 
 /** Prototypes/descriptors for each type of node */
-export const nodeDescs =
+export const NODE_DESCR =
 {
     'Add': {
         ins: [
@@ -204,12 +204,14 @@ export const nodeDescs =
         description: 'parameter control knob',
     },
 
+    /*
     'MidiIn': {
         ins: [],
         outs: ['freq', 'gate'],
         params: [],
         description: 'MIDI note input (cv/gate)',
     },
+    */
 
     'MonoSeq': {
         ins: [
@@ -360,17 +362,23 @@ export class Model
         // Next node id to be allocated
         this.nextId = 0;
 
+        // Compute the next available id
+        for (let id in state.nodes)
+        {
+            id = Number(id);
+            if (id >= this.nextId)
+                this.nextId = id + 1;
+        }
 
-
-
+        this.state = state;
 
 
 
         // TODO: broadcast load state action(s)
     }
 
-    // Serialize the state to JSON
-    serialize()
+    // Get a copy of the state as pure JSON
+    getState()
     {
         return this.state;
     }
@@ -378,12 +386,34 @@ export class Model
     // Apply an action to the model
     apply(action)
     {
-        switch (action.type)
+        switch (action.action)
         {
+            case 'create_node':
+            break;
 
-
+            default:
+            throw TypeError('unknown action');
         }
 
         // TODO: handle undo queue
     }
+
+    /** Check if the graph contains a specific type of node */
+    hasNode(nodeType)
+    {
+        // Compute the next available id
+        for (let id in this.state.nodes)
+        {
+            let node = this.state.nodes[id];
+            if (node.type == nodeType)
+                return true;
+        }
+
+        return false;
+    }
+
+
+
+
+
 }
