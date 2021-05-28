@@ -213,6 +213,7 @@ export const NODE_DESCR =
     },
     */
 
+    /*
     'MonoSeq': {
         ins: [
             { name: 'clock', default: 0 },
@@ -222,6 +223,7 @@ export const NODE_DESCR =
         params: [],
         description: 'monophonic step sequencer',
     },
+    */
 
     'Mul': {
         ins: [
@@ -266,6 +268,7 @@ export const NODE_DESCR =
         description: 'sawtooth oscillator',
     },
 
+    /*
     'Scope': {
         ins: [
             { name: '', default: 0 }
@@ -277,6 +280,7 @@ export const NODE_DESCR =
         ],
         description: 'scope to plot incoming signals',
     },
+    */
 
     'Sine': {
         ins: [
@@ -383,19 +387,35 @@ export class Model
         return this.state;
     }
 
+    // Broadcast an action to all views
+    broadcast(action)
+    {
+        for (let view of this.views)
+            view.apply(action);
+    }
+
     // Apply an action to the model
     apply(action)
     {
         switch (action.action)
         {
             case 'create_node':
+            this.createNode(action.nodeType, action.x, action.y);
             break;
 
             default:
             throw TypeError('unknown action');
         }
 
-        // TODO: handle undo queue
+        // TODO: combine redundant actions
+        this.undoQueue.push(action);
+    }
+
+    // Create a new node
+    createNode(nodeType, x, y)
+    {
+
+
     }
 
     /** Check if the graph contains a specific type of node */
@@ -411,9 +431,4 @@ export class Model
 
         return false;
     }
-
-
-
-
-
 }

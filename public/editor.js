@@ -146,9 +146,15 @@ export class Editor
 
             function subDivClick(evt)
             {
-                this.newNode(nodeType, mousePos.x, mousePos.y);
                 dialog.close();
                 evt.stopPropagation();
+
+                this.model.apply({
+                    action: 'create_node',
+                    nodeType: nodeType,
+                    x: mousePos.x,
+                    y: mousePos.y
+                });
             }
 
             // TODO: migrate this to CSS
@@ -179,12 +185,270 @@ export class Editor
 
 
 
+}
+
+/** Represent a node in the UI */
+class Node
+{
+    constructor(editor, state)
+    {
+        // Graph editor
+        this.editor = editor;
+
+        // Descriptor for this node type
+        let desc = nodeDescs[state.type];
+
+        this.id = state.id;
+        this.type = state.type;
+        this.numIns = desc.ins.length;
+        this.numOuts = desc.outs.length;
+
+        // DOM div wrapping the whole node
+        this.nodeDiv = null;
+
+        // DOM div for the node header
+        this.headerDiv = null;
+
+        // DOM div wrapping center elements
+        this.centerDiv = null;
+
+        // DOM divs for port connectors, mapped by port name
+        this.inPorts = {};
+        this.outPorts = {};
+
+        // Input and output edges, mapped by port names
+        this.inEdges = {};
+        this.outEdges = {};
+
+        // There can be multiple output edges per output port
+        for (let portName in this.outEdges)
+            this.outEdges[portName] = [];
+
+        this.genNodeDOM();
+    }
+
+    // Setup DOM elements for this node
+    genNodeDOM()
+    {
+        /*
+        function startDrag(evt)
+        {
+            // Shift+click is delete node
+            if (evt.shiftKey)
+                return;
+
+            // Can't drag a node while connecting a port
+            if (this.port)
+                return;
+
+            console.log('start drag node:', this.type);
+
+            this.editor.drag = this;
+            this.startMousePos = this.editor.getMousePos(evt);
+            this.startX = this.data.x;
+            this.startY = this.data.y;
+
+            evt.stopPropagation();
+        }
+
+        function endDrag(evt)
+        {
+            if (this.editor.drag)
+            {
+                console.log('end drag');
+                this.editor.drag = null;
+            }
+        }
+
+        function delNode(evt)
+        {
+            // Only delete on shift+click
+            if (evt.shiftKey && !this.editor.port)
+                this.editor.delNode(this);
+
+            evt.preventDefault();
+            evt.stopPropagation();
+        }
+
+        // Top-level element for this node
+        this.nodeDiv = document.createElement('div');
+        this.nodeDiv.className = 'node';
+        this.nodeDiv.style.left = this.data.x;
+        this.nodeDiv.style.top = this.data.y;
+        this.nodeDiv.onmousedown = startDrag.bind(this);
+        this.nodeDiv.ontouchstart = startDrag.bind(this);
+        this.nodeDiv.onmouseup = endDrag.bind(this);
+        this.nodeDiv.ontouchend = endDrag.bind(this);
+        this.nodeDiv.onclick = delNode.bind(this);
+        this.nodeDiv.ondblclick = this.paramsDialog.bind(this);
+
+        // Node header text
+        this.headerDiv = document.createElement('div');
+        this.headerDiv.className = 'node_header';
+        this.headerDiv.textContent = this.data.name;
+        this.headerDiv.title = this.data.type;
+        this.nodeDiv.appendChild(this.headerDiv);
+
+        let contentDiv = document.createElement('div');
+        contentDiv.className = 'node_content';
+        this.nodeDiv.appendChild(contentDiv);
+
+        let inPortsDiv = document.createElement('div');
+        inPortsDiv.className = 'node_in_ports';
+        contentDiv.appendChild(inPortsDiv);
+
+        // Create a div to contain center display elements (if any)
+        this.centerDiv = document.createElement('div');
+        this.centerDiv.className = 'node_center';
+        contentDiv.appendChild(this.centerDiv);
+
+        let outPortsDiv = document.createElement('div');
+        outPortsDiv.className = 'node_out_ports';
+        contentDiv.appendChild(outPortsDiv);
+
+        // Create the inputs
+        for (var i = 0; i < this.numIns; ++i)
+        {
+            this.genPortDOM(
+                inPortsDiv,
+                i,
+                'input'
+            );
+        }
+
+        // Create the outputs
+        for (var i = 0; i < this.numOuts; ++i)
+        {
+            this.genPortDOM(
+                outPortsDiv,
+                i,
+                'output'
+            );
+        }
+
+        // TODO: move this to GraphEditor class
+        this.editor.div.appendChild(this.nodeDiv);
+        */
+    }
+
+    // Setup DOM nodes for a connection port
+    genPortDOM(parentDiv, portIdx, side)
+    {
+        /*
+        let editor = this.editor;
+
+        function portClick(evt)
+        {
+            evt.stopPropagation();
+
+            console.log('port click');
+
+            let [cx, cy] = this.getPortPos(portIdx, side);
+
+            if (!editor.port)
+            {
+                // If this is an input port, remove previous connections
+                if (side == 'input')
+                {
+                    this.disconnect(portIdx);
+                    editor.onGraphChange(editor.graph, editor.nodes);
+                }
+
+                var line = makeSvg('line');
+                setSvg(line, 'x1', this.data.x + cx);
+                setSvg(line, 'y1', this.data.y + cy);
+                setSvg(line, 'x2', this.data.x + cx);
+                setSvg(line, 'y2', this.data.y + cy);
+                setSvg(line, 'stroke', '#FFF');
+                setSvg(line, 'stroke-width', '2');
+                editor.svg.appendChild(line);
+
+                editor.port = {
+                    node: this,
+                    portIdx: portIdx,
+                    side: side,
+                    line: line,
+                    cx: cx,
+                    cy: cy
+                };
+
+                return;
+            }
+
+            // Must connect in to out
+            if (editor.port.side == side)
+                return;
+
+            if (side == 'input')
+            {
+                // Remove previous connections on this input port
+                this.disconnect(portIdx);
+
+                this.connect(
+                    editor.port.node,
+                    editor.port.portIdx,
+                    this,
+                    portIdx,
+                    editor.port.line,
+                );
+            }
+            else
+            {
+                this.connect(
+                    this,
+                    portIdx,
+                    editor.port.node,
+                    editor.port.portIdx,
+                    editor.port.line
+                );
+            }
+
+            // Connected
+            editor.port = null;
+
+            editor.onGraphChange(editor.graph, editor.nodes);
+        }
+
+        let portDiv = document.createElement('div');
+        portDiv.className = (side == 'input')? 'node_in_port':'node_out_port';
+        portDiv.onclick = portClick.bind(this);
+        parentDiv.appendChild(portDiv);
+
+        // Port name text
+        let portName = (side == 'input')? this.desc.ins[portIdx].name:this.desc.outs[portIdx];
+        let textDiv = document.createElement('div');
+        textDiv.className = 'port_text';
+        textDiv.appendChild(document.createTextNode(portName));
+        portDiv.appendChild(textDiv);
+
+        let connDiv = document.createElement('div');
+        connDiv.className = 'port_conn';
+        portDiv.appendChild(connDiv);
+
+        if (side == 'input')
+        {
+            this.inPorts[portIdx] = connDiv;
+        }
+        else
+        {
+            this.outPorts[portIdx] = connDiv;
+        }
+        */
+    }
 
 
 
 
 
 
+}
+
+/** Represent a connection between UI nodes */
+class Edge
+{
+    constructor()
+    {
+    }
 
 
 
