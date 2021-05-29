@@ -10,7 +10,7 @@ export class Editor
         model.addView(this);
 
         // Map of node ids to UI node objects
-        this.nodes = new WeakMap();
+        this.nodes = new Map();
 
         // Graph editing tab
         // This is used to scroll and to resize the editor
@@ -90,7 +90,15 @@ export class Editor
     // Apply an action to the GUI view
     apply(action)
     {
-        // TODO
+        switch (action.action)
+        {
+            case 'create_node':
+            this.createNode(action.id, action.state);
+            break;
+
+            default:
+            throw TypeError(`unknown action received by editor ${action.action}`);
+        }
     }
 
     // Resize the graph to fit all nodes
@@ -151,7 +159,7 @@ export class Editor
 
                 this.model.apply({
                     action: 'create_node',
-                    nodeType: nodeType,
+                    type: nodeType,
                     x: mousePos.x,
                     y: mousePos.y
                 });
@@ -183,25 +191,36 @@ export class Editor
         }
     }
 
+    // Create a new node
+    createNode(id, state)
+    {
+        console.log(`Editor.createNode, id=${id}`);
 
+        let node = new Node(id, state, this);
+        this.nodes.set(id, node);
 
+        this.div.appendChild(node.nodeDiv);
+    }
 }
 
 /** Represent a node in the UI */
 class Node
 {
-    constructor(editor, state)
+    constructor(id, state, editor)
     {
         // Graph editor
         this.editor = editor;
 
         // Descriptor for this node type
-        let desc = nodeDescs[state.type];
+        this.desc = NODE_DESCR[state.type];
 
-        this.id = state.id;
-        this.type = state.type;
-        this.numIns = desc.ins.length;
-        this.numOuts = desc.outs.length;
+        this.id = id;
+        this.nodeType = state.type;
+        this.nodeName = state.name;
+        this.x = state.x;
+        this.y = state.y;
+        this.numIns = this.desc.ins.length;
+        this.numOuts = this.desc.outs.length;
 
         // DOM div wrapping the whole node
         this.nodeDiv = null;
@@ -224,16 +243,15 @@ class Node
         for (let portName in this.outEdges)
             this.outEdges[portName] = [];
 
-        this.genNodeDOM();
+        this.genNodeDOM(state.name);
     }
 
     // Setup DOM elements for this node
     genNodeDOM()
     {
-        /*
         function startDrag(evt)
         {
-            // Shift+click is delete node
+            // Shift + click is delete node
             if (evt.shiftKey)
                 return;
 
@@ -245,8 +263,8 @@ class Node
 
             this.editor.drag = this;
             this.startMousePos = this.editor.getMousePos(evt);
-            this.startX = this.data.x;
-            this.startY = this.data.y;
+            this.startX = this.x;
+            this.startY = this.y;
 
             evt.stopPropagation();
         }
@@ -273,20 +291,20 @@ class Node
         // Top-level element for this node
         this.nodeDiv = document.createElement('div');
         this.nodeDiv.className = 'node';
-        this.nodeDiv.style.left = this.data.x;
-        this.nodeDiv.style.top = this.data.y;
+        this.nodeDiv.style.left = this.x;
+        this.nodeDiv.style.top = this.y;
         this.nodeDiv.onmousedown = startDrag.bind(this);
         this.nodeDiv.ontouchstart = startDrag.bind(this);
         this.nodeDiv.onmouseup = endDrag.bind(this);
         this.nodeDiv.ontouchend = endDrag.bind(this);
         this.nodeDiv.onclick = delNode.bind(this);
-        this.nodeDiv.ondblclick = this.paramsDialog.bind(this);
+        //this.nodeDiv.ondblclick = this.paramsDialog.bind(this);
 
         // Node header text
         this.headerDiv = document.createElement('div');
         this.headerDiv.className = 'node_header';
-        this.headerDiv.textContent = this.data.name;
-        this.headerDiv.title = this.data.type;
+        this.headerDiv.textContent = this.nodeName;
+        this.headerDiv.title = this.nodeType;
         this.nodeDiv.appendChild(this.headerDiv);
 
         let contentDiv = document.createElement('div');
@@ -312,6 +330,7 @@ class Node
             this.genPortDOM(
                 inPortsDiv,
                 i,
+                this.desc.ins[i].name,
                 'input'
             );
         }
@@ -322,19 +341,15 @@ class Node
             this.genPortDOM(
                 outPortsDiv,
                 i,
+                this.desc.outs[i],
                 'output'
             );
         }
-
-        // TODO: move this to GraphEditor class
-        this.editor.div.appendChild(this.nodeDiv);
-        */
     }
 
     // Setup DOM nodes for a connection port
-    genPortDOM(parentDiv, portIdx, side)
+    genPortDOM(parentDiv, portIdx, portName, side)
     {
-        /*
         let editor = this.editor;
 
         function portClick(evt)
@@ -355,10 +370,10 @@ class Node
                 }
 
                 var line = makeSvg('line');
-                setSvg(line, 'x1', this.data.x + cx);
-                setSvg(line, 'y1', this.data.y + cy);
-                setSvg(line, 'x2', this.data.x + cx);
-                setSvg(line, 'y2', this.data.y + cy);
+                setSvg(line, 'x1', this.x + cx);
+                setSvg(line, 'y1', this.y + cy);
+                setSvg(line, 'x2', this.x + cx);
+                setSvg(line, 'y2', this.y + cy);
                 setSvg(line, 'stroke', '#FFF');
                 setSvg(line, 'stroke-width', '2');
                 editor.svg.appendChild(line);
@@ -406,7 +421,7 @@ class Node
             // Connected
             editor.port = null;
 
-            editor.onGraphChange(editor.graph, editor.nodes);
+            //editor.onGraphChange(editor.graph, editor.nodes);
         }
 
         let portDiv = document.createElement('div');
@@ -415,7 +430,6 @@ class Node
         parentDiv.appendChild(portDiv);
 
         // Port name text
-        let portName = (side == 'input')? this.desc.ins[portIdx].name:this.desc.outs[portIdx];
         let textDiv = document.createElement('div');
         textDiv.className = 'port_text';
         textDiv.appendChild(document.createTextNode(portName));
@@ -425,6 +439,7 @@ class Node
         connDiv.className = 'port_conn';
         portDiv.appendChild(connDiv);
 
+        /*
         if (side == 'input')
         {
             this.inPorts[portIdx] = connDiv;

@@ -15,12 +15,19 @@ export class AudioView
     // Apply an action to the view
     apply(action)
     {
-        
+        // TODO: the audio view can use this.model.getState()
+        // to recompile the graph when necessary
+
+        switch (action.action)
+        {
+            case 'create_node':
+            //this.createNode(action.state);
+            break;
+
+            default:
+            throw TypeError(`unknown action received by audio view ${action.action}`);
+        }
     }
-
-
-
-
 
     /** Start audio playback */
     async playAudio(unit)
@@ -51,13 +58,16 @@ export class AudioView
         this.audioWorklet.disconnect();
         this.audioWorklet = null;
     }
-}
 
-function setControl(ctrlId, value)
-{
-    audioWorklet.port.postMessage({
-        type: 'CTRL_CHANGE',
-        ctrlId: ctrlId,
-        value: value
-    });
+    // TODO: interface with audio worklet
+    /*
+    setControl(ctrlId, value)
+    {
+        audioWorklet.port.postMessage({
+            type: 'CTRL_CHANGE',
+            ctrlId: ctrlId,
+            value: value
+        });
+    }
+    */
 }

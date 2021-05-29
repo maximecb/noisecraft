@@ -63,6 +63,8 @@ set the current position of MonoSeqs, because this is dependent
 on a clock input node.
 */
 
+import { assert } from './utils.js';
+
 /** Prototypes/descriptors for each type of node */
 export const NODE_DESCR =
 {
@@ -376,8 +378,6 @@ export class Model
 
         this.state = state;
 
-
-
         // TODO: broadcast load state action(s)
     }
 
@@ -391,31 +391,104 @@ export class Model
     broadcast(action)
     {
         for (let view of this.views)
+        {
             view.apply(action);
+        }
+
+        return action;
+    }
+
+    // Get the last action performed
+    lastAction(action)
+    {
+        if (this.undoQueue.length == 0)
+        {
+            return null;
+        }
+
+        return this.undoQueue[this.undoQueue.length-1];
     }
 
     // Apply an action to the model
     apply(action)
     {
+        assert (!('id' in action) || id in this.state.nodes);
+
         switch (action.action)
         {
             case 'create_node':
-            this.createNode(action.nodeType, action.x, action.y);
+            this.createNode(action.type, action.x, action.y);
+            break;
+
+            case 'move_node':
+            this.moveNode(action.id, action.x, action.y);
             break;
 
             default:
-            throw TypeError('unknown action');
+            throw TypeError(`unknown action received by model ${action.action}`);
         }
 
-        // TODO: combine redundant actions
+        // FIXME: some actions like undo/redo don't go here
+        // Therefore, each action should push itself into the queue if appropriate
+
+        // Add the action to the undo queue
         this.undoQueue.push(action);
     }
 
     // Create a new node
     createNode(nodeType, x, y)
     {
+        let desc = NODE_DESCR[nodeType];
 
+        let nodeState = {
+            type: nodeType,
+            name: nodeType,
+            x: x,
+            y: y,
+            params: {}
+        };
 
+        // Initialize parameters to default values
+        for (let param of desc.params)
+        {
+            nodeState.params[param.name] = param.default;
+        }
+
+        // Add the node to the state
+        let nodeId = this.nextId++;
+        assert (!this.state[nodeId]);
+        this.state.nodes[nodeId] = nodeState;
+
+        // Add this action to the undo queue, store the id so we can undo
+        this.undoQueue.push({
+            action: 'create_node',
+            type: nodeType,
+            x: x,
+            y: y,
+            id: nodeId  
+        });
+
+        // Broadcast the node creation
+        this.broadcast({ action: 'create_node', id: nodeId, state: nodeState });
+    }
+
+    moveNode(nodeId, x, y)
+    {
+        let node = this.state[nodeId];
+        node.x = action.x;
+        node.y = action.y;
+
+        // If the previous action is the same and applies to the same node,
+        // remove the previous action from the undo queue
+        let prev = this.lastAction();
+        if (prev && prev.action == action.action && prev.id == action.id)
+        {
+            this.undoQueue.pop()
+        }
+
+        let action = { action: 'move_node', id: nodeId, x: x, y: y };
+        this.undoQueue.push(action);
+        this.broadcast(action);
     }
 
     /** Check if the graph contains a specific type of node */

@@ -85,6 +85,8 @@ window.onkeydown = function (event)
         document.activeElement.nodeName.toLowerCase() == "input")
         return;
 
+    // TODO: bindings for undo/redo
+
     // Spacebar triggers play/stop
     if (event.keyCode == 0x20)
     {
