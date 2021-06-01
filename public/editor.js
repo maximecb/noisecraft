@@ -25,10 +25,16 @@ export class Editor
         // Text instructing the user on how to create the first node
         this.bgText = document.getElementById('graph_bg_text');
 
-        // Node object currently being dragged
-        this.drag = null;
+        // List of currently selected nodes
+        this.selected = [];
 
-        // Port being connected
+        // Mouse position at the start of a group selection
+        this.startMousePos = null;
+
+        // Last mouse position during node movement
+        this.lastMousePos = null;
+
+        // Port in the process of being connected
         this.port = null;
 
         // Mouse movement callback
@@ -37,9 +43,9 @@ export class Editor
             var curPos = this.getMousePos(evt);
     
             // If currently dragging a node
-            if (this.drag)
+            if (this.selected.length > 0)
             {
-                this.drag.dragNode(curPos);
+                this.moveNodes(curPos);
             }
     
             // If currently connecting a port
@@ -76,8 +82,8 @@ export class Editor
             }
         }
 
-        //this.div.onmousemove = mouseMove.bind(this);
-        //this.div.ontouchmove = mouseMove.bind(this);
+        this.div.onmousemove = mouseMove.bind(this);
+        this.div.ontouchmove = mouseMove.bind(this);
         this.div.onclick = mouseClick.bind(this);
 
         // If the window is resized, adjust the graph size
@@ -94,6 +100,19 @@ export class Editor
         {
             case 'create_node':
             this.createNode(action.id, action.state);
+            break;
+
+            case 'select_nodes':
+            this.selected = action.ids;
+            break;
+
+            case 'deselect':
+            this.selected = [];
+            break;
+
+            case 'move_node':
+            let node = this.nodes.get(action.id);
+            node.moveTo(action.x, action.y);
             break;
 
             default:
@@ -201,6 +220,21 @@ export class Editor
 
         this.div.appendChild(node.nodeDiv);
     }
+
+    // Move selected nodes to a new position
+    moveNodes(mousePos)
+    {
+        assert (this.lastMousePos);
+        let dx = mousePos.x - this.lastMousePos.x;
+        let dy = mousePos.y - this.lastMousePos.y;
+        this.lastMousePos = mousePos;
+
+        this.model.apply({
+            action: 'move_selected',
+            dx: dx,
+            dy: dy
+        });
+    }
 }
 
 /** Represent a node in the UI */
@@ -214,7 +248,7 @@ class Node
         // Descriptor for this node type
         this.desc = NODE_DESCR[state.type];
 
-        this.id = id;
+        this.nodeId = id;
         this.nodeType = state.type;
         this.nodeName = state.name;
         this.x = state.x;
@@ -259,10 +293,10 @@ class Node
             if (this.port)
                 return;
 
-            console.log('start drag node:', this.type);
+            console.log('start drag node:', this.nodeType);
 
-            this.editor.drag = this;
-            this.startMousePos = this.editor.getMousePos(evt);
+            this.editor.model.apply({ action: 'select_node', id: this.nodeId });
+            this.editor.lastMousePos = this.editor.getMousePos(evt);
             this.startX = this.x;
             this.startY = this.y;
 
@@ -271,10 +305,11 @@ class Node
 
         function endDrag(evt)
         {
-            if (this.editor.drag)
+            if (this.editor.selected)
             {
                 console.log('end drag');
-                this.editor.drag = null;
+                this.editor.model.apply({ action: 'deselect' });
+                this.editor.lastMousePos = null;
             }
         }
 
@@ -451,11 +486,49 @@ class Node
         */
     }
 
+    moveTo(x, y)
+    {
+        //console.log(`moving node to x=${x}, y=${y}`);
 
+        // Move the node
+        this.nodeDiv.style.left = x;
+        this.nodeDiv.style.top = y;
 
+        /*
+        for (var i = 0; i < this.inLines.length; ++i)
+        {
+            var line = this.inLines[i];
+            if (line)
+            {
+                var x2 = Number(getSvg(line, 'x2'));
+                var y2 = Number(getSvg(line, 'y2'));
+                setSvg(line, 'x2', x2 + dx);
+                setSvg(line, 'y2', y2 + dy);
+            }
+        }
 
+        for (var i = 0; i < this.outLines.length; ++i)
+        {
+            var lines = this.outLines[i];
 
+            for (var j = 0; j < lines.length; ++j)
+            {
+                var line = lines[j];
 
+                if (line)
+                {
+                    var x1 = Number(getSvg(line, 'x1'));
+                    var y1 = Number(getSvg(line, 'y1'));
+                    setSvg(line, 'x1', x1 + dx);
+                    setSvg(line, 'y1', y1 + dy);
+                }
+            }
+        }
+        */
+
+        // Adjust the graph to fit this node
+        //this.editor.fitNode(this, true);
+    }
 }
 
 /** Represent a connection between UI nodes */

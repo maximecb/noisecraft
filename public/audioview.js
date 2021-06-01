@@ -25,7 +25,8 @@ export class AudioView
             break;
 
             default:
-            throw TypeError(`unknown action received by audio view ${action.action}`);
+            //throw TypeError(`unknown action received by audio view ${action.action}`);
+            break;
         }
     }
 

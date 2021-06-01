@@ -85,7 +85,8 @@ window.onkeydown = function (event)
         document.activeElement.nodeName.toLowerCase() == "input")
         return;
 
-    // TODO: bindings for undo/redo
+    // TODO: key bindings for undo/redo
+    // undo is the most important
 
     // Spacebar triggers play/stop
     if (event.keyCode == 0x20)
