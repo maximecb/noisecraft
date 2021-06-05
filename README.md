@@ -2,6 +2,35 @@
 
 Browser-based visual programming language and platform for sound synthesis.
 
+When the app is deployed it will be live at https://noisecraft.app.
+
+## Design
+
+Design principles:
+- NoiseCraft follows a minimalistic philosophy:
+  - No web frameworks, just bare JS/HTML/CSS
+  - Intentionally keep dependencies to a minimum
+  - Prioritize features the users need
+  - Avoid redundant features and feature creep
+- In terms of user interface design:
+  - Minimize the learning curve and reduce friction
+  - Keep the user interface simple and uncluttered
+  - Avoid drop-down menus and hidden options if possible
+  - Use keys and controls that will likely seem familiar to most users
+  - Avoid ambiguity, use known/existing terminology wherever possible
+
+The user-interface uses an immediate-mode GUI. That is, the UI gets redrawn every time
+an action is performed on the model. This makes it trivial to implement features such
+as undo/redo, because we can simply store copies of previous states. It also reduces
+the coupling between the UI and the model. In practice, caching will be used to avoid
+redrawing the entire user interface for every single state change.
+
+The audio is produced by the `AudioView` class, which is updated when state changes
+occur in the model. This compiles the audio graph into JavaScript code that can then
+be run in a background process (an `AudioWorklet`). We only use the web audio API
+to output sound, not for sound synthesis. This helps guarantee that the sound
+produced for a given project will be the same on any browser or device.
+
 ## Contributing
 
 We are more than happy to accept bug fixes. However, NoiseCraft follows
