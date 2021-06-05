@@ -208,11 +208,10 @@ export class Editor
         let dy = mousePos.y - this.lastMousePos.y;
         this.lastMousePos = mousePos;
 
-        this.model.update({
-            action: 'move_selected',
-            dx: dx,
-            dy: dy
-        });
+        this.model.update(new model.MoveSelected(
+            dx,
+            dy
+        ));
     }
 }
 
@@ -274,7 +273,7 @@ class Node
 
             console.log('start drag node:', this.nodeType);
 
-            this.editor.model.update({ action: 'select_node', id: this.nodeId });
+            this.editor.model.update(new model.SelectNodes([this.nodeId]));
             this.editor.lastMousePos = this.editor.getMousePos(evt);
             this.startX = this.x;
             this.startY = this.y;
@@ -287,7 +286,7 @@ class Node
             if (this.editor.selected)
             {
                 console.log('end drag');
-                this.editor.model.update({ action: 'deselect' });
+                this.editor.model.update(new model.Deselect([this.nodeId]));
                 this.editor.lastMousePos = null;
             }
         }

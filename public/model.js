@@ -445,7 +445,7 @@ export class MoveSelected extends Action
     }
 }
 
-// Copy a JSON tree data structure
+// Recursively copy a JSON tree data structure
 function treeCopy(obj)
 {
     switch (typeof obj)
@@ -471,13 +471,74 @@ function treeCopy(obj)
             return newObj;
         }
         break;
-    
+
         case "number":
         case "string":
         return obj;
 
         default:
         throw TypeError("unsupported type in treeCopy");
+    }
+}
+
+// Recursively compare two JSON tree data structures for equality
+function treeEq(a, b)
+{
+    let typeA = typeof a;
+    let typeB = typeof b;
+
+    if (typeA !== typeB)
+    {
+        return false;
+    }
+
+    switch (typeA)
+    {
+        case "object":
+        {
+            // Compare all entries
+            for (let k in a)
+            {
+                if (!(k in b))
+                    return false;
+
+                if (!treeEq(a[k], b[k]))
+                    return false;
+            }
+
+            // a and b must have the same keys
+            for (let k in b)
+            {
+                if (!(k in a))
+                    return false;
+            }
+
+            return true;
+        }
+        break;
+
+        case "array":
+        {
+            if (a.length !== b.length)
+                return false;
+
+
+            for (let i = 0; i < a.length; ++i)
+            {
+                if (!treeEq(a[i], b[i]))
+                    return false;
+            }
+
+            return true;
+        }
+        break;
+
+        case "number":
+        case "string":
+        return a === b;
+
+        default:
+        throw TypeError("unsupported type in treeEq");
     }
 }
 
