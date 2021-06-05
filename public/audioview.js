@@ -12,22 +12,10 @@ export class AudioView
         this.audioWorklet = null;
     }
 
-    // Apply an action to the view
-    apply(action)
+    // Update the audio view
+    update(newState, action)
     {
-        // TODO: the audio view can use this.model.getState()
-        // to recompile the graph when necessary
-
-        switch (action.action)
-        {
-            case 'create_node':
-            //this.createNode(action.state);
-            break;
-
-            default:
-            //throw TypeError(`unknown action received by audio view ${action.action}`);
-            break;
-        }
+        // TODO
     }
 
     /** Start audio playback */

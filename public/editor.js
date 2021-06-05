@@ -1,5 +1,6 @@
 import { Dialog, assert, setSvg } from './utils.js';
 import { NODE_DESCR } from './model.js';
+import * as model from './model.js';
 
 export class Editor
 {
@@ -14,10 +15,10 @@ export class Editor
 
         // Graph editing tab
         // This is used to scroll and to resize the editor
-        this.editTab = document.getElementById('tab_edit');
+        this.editorDiv = document.getElementById('editor_div');
 
         // Div that will contain graph nodes
-        this.div = document.getElementById('graph_div');
+        this.graphDiv = document.getElementById('graph_div');
 
         // SVG element to draw edges into
         this.svg = document.getElementById('graph_svg');
@@ -82,9 +83,9 @@ export class Editor
             }
         }
 
-        this.div.onmousemove = mouseMove.bind(this);
-        this.div.ontouchmove = mouseMove.bind(this);
-        this.div.onclick = mouseClick.bind(this);
+        this.graphDiv.onmousemove = mouseMove.bind(this);
+        this.graphDiv.ontouchmove = mouseMove.bind(this);
+        this.graphDiv.onclick = mouseClick.bind(this);
 
         // If the window is resized, adjust the graph size
         window.onresize = this.resize.bind(this);
@@ -93,39 +94,18 @@ export class Editor
         this.resize();
     }
 
-    // Apply an action to the GUI view
-    apply(action)
+    // Update the GUI view
+    update(newState, action)
     {
-        switch (action.action)
-        {
-            case 'create_node':
-            this.createNode(action.id, action.state);
-            break;
-
-            case 'select_nodes':
-            this.selected = action.ids;
-            break;
-
-            case 'deselect':
-            this.selected = [];
-            break;
-
-            case 'move_node':
-            let node = this.nodes.get(action.id);
-            node.moveTo(action.x, action.y);
-            break;
-
-            default:
-            throw TypeError(`unknown action received by editor ${action.action}`);
-        }
+        // TODO
     }
 
     // Resize the graph to fit all nodes
     resize()
     {
         // Initialize the graph size to the edit tab size
-        setSvg(this.svg, 'width', this.editTab.clientWidth);
-        setSvg(this.svg, 'height', this.editTab.clientHeight);
+        setSvg(this.svg, 'width', this.editorDiv.clientWidth);
+        setSvg(this.svg, 'height', this.editorDiv.clientHeight);
 
         /*
         // Make sure the div fits all the nodes
@@ -176,12 +156,11 @@ export class Editor
                 dialog.close();
                 evt.stopPropagation();
 
-                this.model.apply({
-                    action: 'create_node',
-                    type: nodeType,
-                    x: mousePos.x,
-                    y: mousePos.y
-                });
+                this.model.update(new model.CreateNode(
+                    nodeType,
+                    mousePos.x,
+                    mousePos.y
+                ));
             }
 
             // TODO: migrate this to CSS
@@ -218,7 +197,7 @@ export class Editor
         let node = new Node(id, state, this);
         this.nodes.set(id, node);
 
-        this.div.appendChild(node.nodeDiv);
+        this.graphDiv.appendChild(node.nodeDiv);
     }
 
     // Move selected nodes to a new position
@@ -229,7 +208,7 @@ export class Editor
         let dy = mousePos.y - this.lastMousePos.y;
         this.lastMousePos = mousePos;
 
-        this.model.apply({
+        this.model.update({
             action: 'move_selected',
             dx: dx,
             dy: dy
@@ -295,7 +274,7 @@ class Node
 
             console.log('start drag node:', this.nodeType);
 
-            this.editor.model.apply({ action: 'select_node', id: this.nodeId });
+            this.editor.model.update({ action: 'select_node', id: this.nodeId });
             this.editor.lastMousePos = this.editor.getMousePos(evt);
             this.startX = this.x;
             this.startY = this.y;
@@ -308,7 +287,7 @@ class Node
             if (this.editor.selected)
             {
                 console.log('end drag');
-                this.editor.model.apply({ action: 'deselect' });
+                this.editor.model.update({ action: 'deselect' });
                 this.editor.lastMousePos = null;
             }
         }

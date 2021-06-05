@@ -327,6 +327,160 @@ export const NODE_DESCR =
     },
 };
 
+// Base class for all model update actions
+export class Action
+{
+    // Try to combine this action with a previous action
+    // This is used to simplify the undo queue
+    combine(prev)
+    {
+        // Action can't be combined
+        return null;
+    }
+
+    // Update the model based on this action
+    update(model)
+    {
+        throw TypeError("unimplemented");
+    }
+}
+
+// Create a new node
+export class CreateNode extends Action
+{
+    constructor(nodeType, x, y)
+    {
+        super();
+        this.nodeType = nodeType;
+        this.x = x;
+        this.y = y;
+    }
+
+    update(model)
+    {
+        let desc = NODE_DESCR[this.nodeType];
+
+        let nodeState = {
+            type: this.nodeType,
+            name: this.nodeType,
+            x: this.x,
+            y: this.y,
+            params: {}
+        };
+
+        // Initialize parameters to default values
+        for (let param of desc.params)
+        {
+            nodeState.params[param.name] = param.default;
+        }
+
+        // Add the node to the state
+        let nodeId = model.nextId++;
+        assert (!model.state[nodeId]);
+        model.state.nodes[nodeId] = nodeState;
+    }
+}
+
+// Select one or mode nodes
+export class SelectNodes extends Action
+{
+    constructor(nodeIds)
+    {
+        this.nodeIds = nodeIds;
+    }
+
+    update(model)
+    {
+        model.state.selected = this.nodeIds;
+    }
+}
+
+// Select one or mode nodes
+export class Deselect extends Action
+{
+    constructor()
+    {
+    }
+
+    update(model)
+    {
+        model.state.selected = []
+    }
+}
+
+// Move the selected nodes
+export class MoveSelected extends Action
+{
+    constructor(dx, dy)
+    {
+        this.dx = dx;
+        this.dy = dy;
+    }
+
+    combine(prev)
+    {
+        if (this.prototype != prev.prototype)
+            return null;
+
+        return new MoveSelected(
+            this.dx + prev.dx,
+            this.dy + prev.dy,
+        );
+    }
+
+    // Move selected nodes
+    update(model)
+    {
+        if (model.selected.length == 0)
+        {
+            return;
+        }
+
+        for (let nodeId of model.state.selected)
+        {
+            let node = model.state.nodes[nodeId];
+            node.x += this.dx;
+            node.y += this.dy;
+        }
+    }
+}
+
+// Copy a JSON tree data structure
+function treeCopy(obj)
+{
+    switch (typeof obj)
+    {
+        case "object":
+        {
+            let newObj = {...obj};
+
+            for (let k in obj)
+                newObj[k] = treeCopy(newObj[k]);
+
+            return newObj;
+        }
+        break;
+
+        case "array":
+        {
+            let newObj = Array(obj.length);
+
+            for (let i = 0; i < obj.length; ++i)
+                newObj[i] = treeCopy(obj[i]);
+
+            return newObj;
+        }
+        break;
+    
+        case "number":
+        case "string":
+        return obj;
+
+        default:
+        throw TypeError("unsupported type in treeCopy");
+    }
+}
+
 /** Graph of nodes model, operates on internal state data */
 export class Model
 {
@@ -335,14 +489,11 @@ export class Model
         // List of views subscribed to model updates
         this.views = [];
 
-        // List of past actions tracked for undo/redo
-        this.undoQueue = [];
-
         // Persistent state
         this.state = null;
 
-        // Currently selected node ids
-        this.selected = [];
+        // List of past states tracked for undo/redo
+        this.undoQueue = [];
 
         this.new();
     }
@@ -359,7 +510,8 @@ export class Model
         // Persistent state
         this.state = {
             title: 'New Project',
-            nodes: {}
+            nodes: {},
+            selected: [],
         };
 
         this.load(this.state);
@@ -369,7 +521,7 @@ export class Model
     load(state)
     {
         // Current playback position
-        this.play_pos = 0;
+        this.playPos = 0;
 
         // Next node id to be allocated
         this.nextId = 0;
@@ -384,10 +536,8 @@ export class Model
 
         this.state = state;
 
-        // Currently selected node ids
-        this.selected = [];
-
-        // TODO: broadcast load state action(s)
+        // Broadcast state update
+        this.broadcast(this.state, null);
     }
 
     /** Check if the graph contains a specific type of node */
@@ -404,177 +554,55 @@ export class Model
         return false;
     }
 
-    // Get a copy of the state as pure JSON
-    getState()
-    {
-        return this.state;
-    }
-
-    // Broadcast an action to all views
-    broadcast(action)
+    // Broadcast an update to all views
+    broadcast(newState, action)
     {
         for (let view of this.views)
         {
-            view.apply(action);
+            view.update(newState, action);
         }
-
-        return action;
-    }
-
-    // Get the last action performed
-    lastAction(action)
-    {
-        if (this.undoQueue.length == 0)
-        {
-            return null;
-        }
-
-        return this.undoQueue[this.undoQueue.length-1];
     }
 
     // Apply an action to the model
-    apply(action)
+    update(action)
     {
         //console.log(action);
 
         assert (!('id' in action) || action.id in this.state.nodes);
 
-        switch (action.action)
-        {
-            case 'create_node':
-            this.createNode(action.type, action.x, action.y);
-            break;
+        this.addUndo(action);
 
-            case 'select_node':
-            this.selectNode(action.id);
-            break;
+        // Update the model based on the action
+        action.update(this);
 
-            case 'deselect':
-            this.deselect();
-            break;
-
-            case 'move_selected':
-            this.moveSelected(action.dx, action.dy);
-            break;
-
-            default:
-            throw TypeError(`unknown action received by model ${action.action}`);
-        }
+        // Broadcast the new state and action
+        this.broadcast(this.state, action);
     }
 
-    // Create a new node
-    createNode(nodeType, x, y)
+    // Add an action to the undo queue
+    addUndo(action)
     {
-        let desc = NODE_DESCR[nodeType];
-
-        let nodeState = {
-            type: nodeType,
-            name: nodeType,
-            x: x,
-            y: y,
-            params: {}
-        };
-
-        // Initialize parameters to default values
-        for (let param of desc.params)
+        if (this.undoQueue.length > 0)
         {
-            nodeState.params[param.name] = param.default;
+            let prev = this.undoQueue[this.undoQueue.length-1];
+            let combined = action.combine(prev.action);
+
+            // If this action can be combined with the previous
+            if (combined)
+            {
+                this.undoQueue.pop();
+                this.undoQueue.push({
+                    action: combined,
+                    state: prev.state
+                });
+
+                return;
+            }
         }
 
-        // Add the node to the state
-        let nodeId = this.nextId++;
-        assert (!this.state[nodeId]);
-        this.state.nodes[nodeId] = nodeState;
-
-        // Add this action to the undo queue
-        // store the id so we can undo
         this.undoQueue.push({
-            action: 'create_node',
-            type: nodeType,
-            x: x,
-            y: y,
-            id: nodeId  
+            action: action,
+            state: treeCopy(this.state)
         });
-
-        // Broadcast the node creation
-        this.broadcast({ action: 'create_node', id: nodeId, state: nodeState });
-    }
-
-    selectNode(nodeId)
-    {
-        this.selected = [nodeId];
-
-        // Add this action to the undo queue
-        this.undoQueue.push({
-            action: 'select_node',
-            id: nodeId
-        });
-
-        // Broadcast the node creation
-        this.broadcast({ action: 'select_nodes', ids: [nodeId] });
-    }
-
-    deselect()
-    {
-        if (this.selected.length == 0)
-        {
-            return;
-        }
-
-        // Add this action to the undo queue,
-        // store the selected ids so we can undo
-        this.undoQueue.push({
-            action: 'deselect',
-            ids: this.selected
-        });
-
-        this.selected = [];
-
-        console.log('BROADCASTING DESELECT');
-
-        // Broadcast the node creation
-        this.broadcast({ action: 'deselect' });
-    }
-
-    // Move selected nodes
-    moveSelected(dx, dy)
-    {
-        if (this.selected.length == 0)
-        {
-            return;
-        }
-
-        for (let nodeId of this.selected)
-        {
-            console.log('nodeId=', nodeId);
-
-            let node = this.state.nodes[nodeId];
-            node.x += dx;
-            node.y += dy;
-
-            this.broadcast({ action: 'move_node', id: nodeId, x: node.x, y: node.y });
-        }
-
-        // If the previous action is the same
-        // remove the previous action from the undo queue
-        let prev = this.lastAction();
-        if (prev && prev.action == 'move_selected')
-        {
-            this.undoQueue.pop();
-
-            this.undoQueue.push({
-                action: 'move_selected', 
-                x: prev.dx + dx,
-                y: prev.dy + dy
-            });
-        }
-        else
-        {
-            this.undoQueue.push({
-                action: 'move_selected', 
-                x: dx,
-                y: dy
-            });
-        }
     }
 }
