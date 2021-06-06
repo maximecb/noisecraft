@@ -110,12 +110,15 @@ export class Editor
         let graphEmpty = (Object.keys(newState.nodes).length == 0);
         this.bgText.style.display = graphEmpty? 'block':'none';
 
+        // Store the list of selected node ids
+        this.selected = newState.selected;
+
+        // Create the nodes
         for (let nodeId in newState.nodes)
         {
             let nodeState = newState.nodes[nodeId];
             let node = new Node(nodeId, nodeState, this);
             this.nodes.set(nodeId, node);
-
             this.graphDiv.appendChild(node.nodeDiv);
         }
     }
@@ -297,7 +300,7 @@ class Node
             if (this.editor.selected)
             {
                 console.log('end drag');
-                this.editor.model.update(new model.Deselect([this.nodeId]));
+                this.editor.model.update(new model.SelectNodes([]));
                 this.editor.lastMousePos = null;
             }
         }

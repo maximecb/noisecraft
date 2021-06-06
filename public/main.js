@@ -22,7 +22,6 @@ let audioView = new AudioView(model);
 // Create a new project
 model.new();
 
-
 /*
 export function importData(jsonData)
 {
@@ -86,9 +85,6 @@ window.onkeydown = function (event)
         document.activeElement.nodeName.toLowerCase() == "input")
         return;
 
-    // TODO: key bindings for undo/redo
-    // undo is the most important
-
     // Spacebar triggers play/stop
     if (event.keyCode == 0x20)
     {
@@ -100,6 +96,19 @@ window.onkeydown = function (event)
         {
             btnPlay.onclick();
         }
+    }
+
+    // Ctrl/Command
+    if (event.ctrlKey || event.metaKey)
+    {
+        // Ctrl+Z
+        if (event.keyCode == 90)
+        {
+            console.log('undo');
+            model.undo();
+        }
+
+        return;
     }
 }
 

@@ -396,20 +396,6 @@ export class SelectNodes extends Action
     }
 }
 
-// Select one or mode nodes
-export class Deselect extends Action
-{
-    constructor()
-    {
-        super();
-    }
-
-    update(model)
-    {
-        model.state.selected = []
-    }
-}
-
 // Move the selected nodes
 export class MoveSelected extends Action
 {
@@ -434,7 +420,7 @@ export class MoveSelected extends Action
     // Move selected nodes
     update(model)
     {
-        if (model.selected.length == 0)
+        if (model.state.selected.length == 0)
         {
             return;
         }
@@ -666,5 +652,17 @@ export class Model
             action: action,
             state: treeCopy(this.state)
         });
+    }
+
+    // Undo the last action performed
+    undo()
+    {
+        if (this.undoQueue.length == 0)
+            return;
+
+        let prev = this.undoQueue.pop()
+
+        // Broadcast the new state and action
+        this.broadcast(prev.state, null);
     }
 }
