@@ -101,8 +101,7 @@ export class Editor
     {
         while (this.graphDiv.firstChild)
         {
-            console.log(this.graphDiv.firstChild);
-            this.graphDiv.removeChild(this.graphDiv);
+            this.graphDiv.removeChild(this.graphDiv.firstChild);
         }
 
         this.nodes.clear();
@@ -111,19 +110,14 @@ export class Editor
         let graphEmpty = (Object.keys(newState.nodes).length == 0);
         this.bgText.style.display = graphEmpty? 'block':'none';
 
+        for (let nodeId in newState.nodes)
+        {
+            let nodeState = newState.nodes[nodeId];
+            let node = new Node(nodeId, nodeState, this);
+            this.nodes.set(nodeId, node);
 
-        /*
-        let node = new Node(id, state, this);
-        this.nodes.set(id, node);
-
-        this.graphDiv.appendChild(node.nodeDiv);
-        */
-
-
-
-
-
-
+            this.graphDiv.appendChild(node.nodeDiv);
+        }
     }
 
     // Resize the graph to fit all nodes

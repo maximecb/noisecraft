@@ -386,6 +386,7 @@ export class SelectNodes extends Action
 {
     constructor(nodeIds)
     {
+        super();
         this.nodeIds = nodeIds;
     }
 
@@ -400,6 +401,7 @@ export class Deselect extends Action
 {
     constructor()
     {
+        super();
     }
 
     update(model)
@@ -413,6 +415,7 @@ export class MoveSelected extends Action
 {
     constructor(dx, dy)
     {
+        super();
         this.dx = dx;
         this.dy = dy;
     }
