@@ -74,8 +74,10 @@ export class Editor
             }
             */
     
+            console.log('click');
+
             // This event may get triggered while dragging knob controls
-            if (evt.target === this.svg)
+            if (evt.target === this.graphDiv)
             {
                 this.createNodeDialog(this.getMousePos(evt));
                 evt.stopPropagation();
@@ -97,7 +99,31 @@ export class Editor
     // Update the GUI view
     update(newState, action)
     {
-        // TODO
+        while (this.graphDiv.firstChild)
+        {
+            console.log(this.graphDiv.firstChild);
+            this.graphDiv.removeChild(this.graphDiv);
+        }
+
+        this.nodes.clear();
+
+        // Show/hide node creation instructions
+        let graphEmpty = (Object.keys(newState.nodes).length == 0);
+        this.bgText.style.display = graphEmpty? 'block':'none';
+
+
+        /*
+        let node = new Node(id, state, this);
+        this.nodes.set(id, node);
+
+        this.graphDiv.appendChild(node.nodeDiv);
+        */
+
+
+
+
+
+
     }
 
     // Resize the graph to fit all nodes
@@ -106,6 +132,8 @@ export class Editor
         // Initialize the graph size to the edit tab size
         setSvg(this.svg, 'width', this.editorDiv.clientWidth);
         setSvg(this.svg, 'height', this.editorDiv.clientHeight);
+        this.graphDiv.style.width = this.editorDiv.clientWidth;
+        this.graphDiv.style.height = this.editorDiv.clientHeight;
 
         /*
         // Make sure the div fits all the nodes
@@ -187,17 +215,6 @@ export class Editor
 
             div.appendChild(subDiv);
         }
-    }
-
-    // Create a new node
-    createNode(id, state)
-    {
-        console.log(`Editor.createNode, id=${id}`);
-
-        let node = new Node(id, state, this);
-        this.nodes.set(id, node);
-
-        this.graphDiv.appendChild(node.nodeDiv);
     }
 
     // Move selected nodes to a new position

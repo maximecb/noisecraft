@@ -111,17 +111,38 @@ div.tabcontent
 
 /****************************************************************************/
 
-#graph_div
+#editor_div
 {
     font-family: monospace;
-    position:relative;
+    position: relative;
     top: 0px;
     left: 0px;
     background: #222;
 }
 
+#graph_div
+{
+    z-index: 1;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+#graph_svg
+{
+    z-index: -1;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
 #graph_bg_text
 {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
     display: none;
     user-select: none;
     -moz-user-select: none;
@@ -129,19 +150,7 @@ div.tabcontent
     font-weight: bold;
     font-family: sans-serif;
     font-size: 20;
-    position: absolute;
     margin: 0;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-#svg
-{
-    z-index: 1;
-    position: absolute;
-    top: 0px;
-    left: 0px;
 }
 
 div.node

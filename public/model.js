@@ -555,8 +555,6 @@ export class Model
 
         // List of past states tracked for undo/redo
         this.undoQueue = [];
-
-        this.new();
     }
 
     // Register a view

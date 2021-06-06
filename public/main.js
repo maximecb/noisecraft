@@ -19,7 +19,8 @@ let editor = new Editor(model);
 // Audio view of the model
 let audioView = new AudioView(model);
 
-
+// Create a new project
+model.new();
 
 
 /*
