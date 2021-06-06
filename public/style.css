@@ -117,12 +117,10 @@ div.tabcontent
     position: relative;
     top: 0px;
     left: 0px;
-    background: #222;
 }
 
 #graph_div
 {
-    z-index: 1;
     position: absolute;
     top: 0px;
     left: 0px;
@@ -130,7 +128,7 @@ div.tabcontent
 
 #graph_svg
 {
-    z-index: -1;
+    z-index: -2;
     position: absolute;
     top: 0px;
     left: 0px;
@@ -138,6 +136,7 @@ div.tabcontent
 
 #graph_bg_text
 {
+    z-index: -1;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -145,7 +144,7 @@ div.tabcontent
 
     display: none;
     user-select: none;
-    -moz-user-select: none;
+
     color: rgb(150, 150, 150);
     font-weight: bold;
     font-family: sans-serif;
@@ -153,9 +152,27 @@ div.tabcontent
     margin: 0;
 }
 
+/* Track title display/edit box on the main page */
+#project_title {
+    position: fixed;
+    bottom: 18; 
+    right: 18;
+
+    font-family: monospace;
+    font-size: 16;
+    font-weight: normal;
+    text-align: right;
+    color: #777;
+
+    border: none;
+    border-color: transparent;
+    outline: none;
+    background: none;
+}
+
 div.node
 {
-    position:absolute;
+    position: absolute;
 
     padding-top: 2px;
     padding-bottom: 2px;
@@ -280,23 +297,6 @@ div.patsel_btn_queue
     width: 18;
     margin-left: 2;
     margin-right: 2;
-}
-
-/* Track title display/edit box on the main page */
-#project_title {
-    position: fixed;
-    bottom: 18; right: 18;
-
-    font-family: monospace;
-    font-size: 16;
-    font-weight: normal;
-    text-align: right;
-    color: #777;
-
-    border: none;
-    border-color: transparent;
-    outline: none;
-    background: none;
 }
 
 /****************************************************************************/

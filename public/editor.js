@@ -26,6 +26,9 @@ export class Editor
         // Text instructing the user on how to create the first node
         this.bgText = document.getElementById('graph_bg_text');
 
+        // Group selection div
+        this.selectDiv = null;
+
         // List of currently selected nodes
         this.selected = [];
 
@@ -38,23 +41,89 @@ export class Editor
         // Port in the process of being connected
         this.port = null;
 
+        // Mouse down callback
+        function mouseDown(evt)
+        {
+            console.log('mouseDown');
+
+            let mousePos = this.getMousePos(evt);
+            this.startMousePos = mousePos;
+        }
+
         // Mouse movement callback
         function mouseMove(evt)
         {
-            var curPos = this.getMousePos(evt);
+            // Avoids selecting the project title in Chrome
+            evt.preventDefault();
+
+            var mousePos = this.getMousePos(evt);
     
-            // If currently dragging a node
+            // If currently moving one or more nodes
             if (this.selected.length > 0)
             {
-                this.moveNodes(curPos);
+                this.moveNodes(mousePos);
+                return;
             }
     
+            /*
             // If currently connecting a port
             if (this.port)
             {
-                setSvg(this.port.line, 'x2', curPos.x);
-                setSvg(this.port.line, 'y2', curPos.y);
+                setSvg(this.port.line, 'x2', mousePos.x);
+                setSvg(this.port.line, 'y2', mousePos.y);
+                return;
             }
+            */
+
+            if (this.startMousePos)
+            {
+                let dx = Math.max(0, mousePos.x - this.startMousePos.x);
+                let dy = Math.max(0, mousePos.y - this.startMousePos.y);
+
+                if (this.selectDiv)
+                {
+                    console.log('update select div');
+
+                    // TODO: handle negative dx, dy
+
+                    // Update group selection outline
+                    this.selectDiv.style.width = dx;
+                    this.selectDiv.style.height = dy;
+                    return;
+                }
+            
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5)
+                {
+                    // Create group selection outline
+                    this.selectDiv = document.createElement('div');
+                    this.selectDiv.style.border = '1px solid red';
+                    this.selectDiv.style.position = 'absolute';
+                    this.selectDiv.style['z-index'] = 3;
+                    this.selectDiv.style.left = mousePos.x;
+                    this.selectDiv.style.top = mousePos.y;
+                    this.selectDiv.style.width = dx;
+                    this.selectDiv.style.height = dx;
+
+                    this.editorDiv.appendChild(this.selectDiv);
+                }
+            }
+
+
+
+
+
+        }
+
+        // Mouse up callback
+        function mouseUp(evt)
+        {
+            if (this.selectDiv)
+            {
+                this.editorDiv.removeChild(this.selectDiv);
+                this.selectDiv = null;
+            }
+
+            this.startMousePos = null;
         }
     
         // Mouse click callback
@@ -85,9 +154,11 @@ export class Editor
             }
         }
 
-        this.graphDiv.onmousemove = mouseMove.bind(this);
-        this.graphDiv.ontouchmove = mouseMove.bind(this);
-        this.graphDiv.onclick = mouseClick.bind(this);
+        this.editorDiv.onmousedown = mouseDown.bind(this);
+        this.editorDiv.onmouseup = mouseUp.bind(this);
+        this.editorDiv.onclick = mouseClick.bind(this);
+        this.editorDiv.onmousemove = mouseMove.bind(this);
+        this.editorDiv.ontouchmove = mouseMove.bind(this);
 
         // If the window is resized, adjust the graph size
         window.onresize = this.resize.bind(this);
@@ -99,23 +170,23 @@ export class Editor
     // Update the GUI view
     update(newState, action)
     {
-        while (this.graphDiv.firstChild)
-        {
-            this.graphDiv.removeChild(this.graphDiv.firstChild);
-        }
+        // TODO: we can optimize this method based on the action
+        // For example, MoveNodes is trivial to implement without
+        // recreating all the nodes.
 
+        // Remove existing nodes
+        while (this.graphDiv.firstChild)
+            this.graphDiv.removeChild(this.graphDiv.firstChild);
         this.nodes.clear();
 
         // Show/hide node creation instructions
         let graphEmpty = (Object.keys(newState.nodes).length == 0);
         this.bgText.style.display = graphEmpty? 'block':'none';
 
-        // Store the list of selected node ids
-        this.selected = newState.selected;
-
         // Create the nodes
         for (let nodeId in newState.nodes)
         {
+            console.log(`creating node with id=${nodeId}`);
             let nodeState = newState.nodes[nodeId];
             let node = new Node(nodeId, nodeState, this);
             this.nodes.set(nodeId, node);
@@ -222,7 +293,8 @@ export class Editor
         let dy = mousePos.y - this.lastMousePos.y;
         this.lastMousePos = mousePos;
 
-        this.model.update(new model.MoveSelected(
+        this.model.update(new model.MoveNodes(
+            this.selected,
             dx,
             dy
         ));
@@ -287,7 +359,7 @@ class Node
 
             console.log('start drag node:', this.nodeType);
 
-            this.editor.model.update(new model.SelectNodes([this.nodeId]));
+            this.editor.selected = [this.nodeId];
             this.editor.lastMousePos = this.editor.getMousePos(evt);
             this.startX = this.x;
             this.startY = this.y;
@@ -297,10 +369,10 @@ class Node
 
         function endDrag(evt)
         {
-            if (this.editor.selected)
+            if (this.editor.selected.length > 0)
             {
                 console.log('end drag');
-                this.editor.model.update(new model.SelectNodes([]));
+                this.editor.selected = [];
                 this.editor.lastMousePos = null;
             }
         }

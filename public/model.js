@@ -381,27 +381,13 @@ export class CreateNode extends Action
     }
 }
 
-// Select one or mode nodes
-export class SelectNodes extends Action
+// Move one or more nodes
+export class MoveNodes extends Action
 {
-    constructor(nodeIds)
+    constructor(nodeIds, dx, dy)
     {
         super();
         this.nodeIds = nodeIds;
-    }
-
-    update(model)
-    {
-        model.state.selected = this.nodeIds;
-    }
-}
-
-// Move the selected nodes
-export class MoveSelected extends Action
-{
-    constructor(dx, dy)
-    {
-        super();
         this.dx = dx;
         this.dy = dy;
     }
@@ -411,21 +397,19 @@ export class MoveSelected extends Action
         if (this.prototype != prev.prototype)
             return null;
 
-        return new MoveSelected(
+        if (!treeEq(this.nodeIds, prev.nodeIds))
+            return null;
+
+        return new MoveNodes(
+            this.nodeIds,
             this.dx + prev.dx,
             this.dy + prev.dy,
         );
     }
 
-    // Move selected nodes
     update(model)
     {
-        if (model.state.selected.length == 0)
-        {
-            return;
-        }
-
-        for (let nodeId of model.state.selected)
+        for (let nodeId of this.nodeIds)
         {
             let node = model.state.nodes[nodeId];
             node.x += this.dx;
@@ -559,7 +543,6 @@ export class Model
         this.state = {
             title: 'New Project',
             nodes: {},
-            selected: [],
         };
 
         this.load(this.state);
@@ -648,6 +631,7 @@ export class Model
             }
         }
 
+        // Store a copy of the state for undo
         this.undoQueue.push({
             action: action,
             state: treeCopy(this.state)
@@ -662,7 +646,10 @@ export class Model
 
         let prev = this.undoQueue.pop()
 
-        // Broadcast the new state and action
-        this.broadcast(prev.state, null);
+        // Restore the old state
+        this.state = prev.state;
+
+        // Broadcast the state update
+        this.broadcast(this.state, null);
     }
 }
