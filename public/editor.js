@@ -58,12 +58,14 @@ export class Editor
 
             var mousePos = this.getMousePos(evt);
     
+            /*
             // If currently moving one or more nodes
             if (this.selected.length > 0)
             {
                 this.moveNodes(mousePos);
                 return;
             }
+            */
     
             /*
             // If currently connecting a port
@@ -75,43 +77,12 @@ export class Editor
             }
             */
 
+            // If a selection is in progress
             if (this.startMousePos)
             {
-                let dx = Math.max(0, mousePos.x - this.startMousePos.x);
-                let dy = Math.max(0, mousePos.y - this.startMousePos.y);
-
-                if (this.selectDiv)
-                {
-                    console.log('update select div');
-
-                    // TODO: handle negative dx, dy
-
-                    // Update group selection outline
-                    this.selectDiv.style.width = dx;
-                    this.selectDiv.style.height = dy;
-                    return;
-                }
-            
-                if (Math.abs(dx) > 5 || Math.abs(dy) > 5)
-                {
-                    // Create group selection outline
-                    this.selectDiv = document.createElement('div');
-                    this.selectDiv.style.border = '1px solid red';
-                    this.selectDiv.style.position = 'absolute';
-                    this.selectDiv.style['z-index'] = 3;
-                    this.selectDiv.style.left = mousePos.x;
-                    this.selectDiv.style.top = mousePos.y;
-                    this.selectDiv.style.width = dx;
-                    this.selectDiv.style.height = dx;
-
-                    this.editorDiv.appendChild(this.selectDiv);
-                }
+                this.updateSelect(this.startMousePos, mousePos);
+                return;
             }
-
-
-
-
-
         }
 
         // Mouse up callback
@@ -191,6 +162,61 @@ export class Editor
             let node = new Node(nodeId, nodeState, this);
             this.nodes.set(nodeId, node);
             this.graphDiv.appendChild(node.nodeDiv);
+        }
+    }
+
+    // Update an in progress selection
+    updateSelect(startPos, curPos)
+    {
+        let xMin = Math.min(startPos.x, curPos.x);
+        let yMin = Math.min(startPos.y, curPos.y);
+        let xMax = Math.max(startPos.x, curPos.x);
+        let yMax = Math.max(startPos.y, curPos.y);
+        let dx = xMax - xMin;
+        let dy = yMax - yMin;
+
+        if (this.selectDiv)
+        {
+            // Update group selection outline
+            this.selectDiv.style.left = xMin;
+            this.selectDiv.style.top = yMin;
+            this.selectDiv.style.width = dx;
+            this.selectDiv.style.height = dy;
+        }
+        else if (Math.abs(dx) > 5 || Math.abs(dy) > 5)
+        {
+            // Create group selection outline
+            this.selectDiv = document.createElement('div');
+            this.selectDiv.style.border = '1px solid red';
+            this.selectDiv.style.position = 'absolute';
+            this.selectDiv.style['z-index'] = 3;
+            this.selectDiv.style.left = xMin;
+            this.selectDiv.style.top = yMin;
+            this.selectDiv.style.width = dx;
+            this.selectDiv.style.height = dx;
+            this.editorDiv.appendChild(this.selectDiv);
+        }
+
+        this.selected = [];
+
+        // For each node
+        for (let [nodeId, node] of this.nodes)
+        {
+            let left = node.nodeDiv.offsetLeft;
+            let top = node.nodeDiv.offsetTop;
+            let width = node.nodeDiv.offsetWidth;
+            let height = node.nodeDiv.offsetHeight;
+
+            if (left < xMin)
+                continue;
+            if (left + width > xMax)
+                continue;
+            if (top < yMin)
+                continue;
+            if (top + height > yMax)
+                continue;
+
+            this.selected.push(nodeId);
         }
     }
 

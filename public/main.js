@@ -110,6 +110,13 @@ window.onkeydown = function (event)
 
         return;
     }
+
+    // Delete or backspace key
+    if (event.keyCode == 46 || event.keyCode == 8)
+    {
+        console.log('delete key');
+        //editor.deleteSelected();
+    }
 }
 
 export function startPlayback()
