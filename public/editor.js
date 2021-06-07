@@ -29,7 +29,9 @@ export class Editor
         // Group selection div
         this.selectDiv = null;
 
-        // List of currently selected nodes
+        // List of currently selected nodes ids
+        // We keep track of this in the editor/GUI because
+        // This is not persistent and the audio view doesn't care.
         this.selected = [];
 
         // Mouse position at the start of a group selection
@@ -187,9 +189,7 @@ export class Editor
         {
             // Create group selection outline
             this.selectDiv = document.createElement('div');
-            this.selectDiv.style.border = '1px solid red';
-            this.selectDiv.style.position = 'absolute';
-            this.selectDiv.style['z-index'] = 3;
+            this.selectDiv.id = "select_div";
             this.selectDiv.style.left = xMin;
             this.selectDiv.style.top = yMin;
             this.selectDiv.style.width = dx;
@@ -214,6 +214,7 @@ export class Editor
                 top + height < yMax
             );
 
+            // TODO: maybe we should have a setSelection method?
             if (nodeInside)
             {
                 this.selected.push(nodeId);

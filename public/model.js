@@ -30,17 +30,11 @@ create_node <type> <init_state> // Init state can be null if creating new node
 delete_node <id>
 connect <src_node> <out_port> <dst_node> <out_port>
 disconnect <src_node> <out_port> <dst_node> <out_port>
-move_node <id> <new_x> <new_y>
 
 // Creating a module will cause the model to
 // Move nodes inside the module
 create_module <list_of_node_ids>
 split_module <node_id>
-
-// Copying and pasting actions are necessary
-// Because we can modify the graph after copying
-copy <list_of_node_ids>
-paste <min_x> <min_y>
 
 // Sent by the play/stop buttons
 play 
@@ -49,23 +43,27 @@ stop
 // Sent by the audio thread so the UI can reflect playback position 
 set_play_pos <time>
 
-// The model keeps an internal queue of events for undo/redo
-undo
-redo
-
-// Actions to edit the contents of nodes
+// Actions to edit the settings/parameters of nodes
 set_name <node_id> <name>
 set_param <node_id> <param_name> <new_val>
-send_audio_data <node_id> <float array> // To visualize audio data in the UI
+
+// To visualize audio data in the UI
+// Maybe this needs to be updated without an action
+// because it's not something we can undo.
+send_audio_data <node_id> <float array>
 
 We may also need to send a set_param from the audio thread to
 set the current position of MonoSeqs, because this is dependent
-on a clock input node.
+on a clock input node. Again this isn't something people can
+undo, however. It could be more of a direct state update,
+or it's a special undoable action.
 */
 
 import { assert } from './utils.js';
 
-/** Prototypes/descriptors for each type of node */
+/**
+ * High-level description/scheme for each type of node
+*/
 export const NODE_DESCR =
 {
     'Add': {
@@ -113,6 +111,7 @@ export const NODE_DESCR =
         description: 'MIDI clock signal source with tempo in BPM',
     },
 
+    // Commented out because we'll start without MIDI output support
     /*
     'ClockOut': {
         ins: [
@@ -206,6 +205,7 @@ export const NODE_DESCR =
         description: 'parameter control knob',
     },
 
+    // Commented out because we'll start without MIDI input support
     /*
     'MidiIn': {
         ins: [],
@@ -219,7 +219,6 @@ export const NODE_DESCR =
     'MonoSeq': {
         ins: [
             { name: 'clock', default: 0 },
-            { name: 'gateTime', default: 0.1 },
         ],
         outs: ['freq', 'gate'],
         params: [],
@@ -327,7 +326,11 @@ export const NODE_DESCR =
     },
 };
 
-// Base class for all model update actions
+/**
+ * Base class for all model update actions.
+ * As a general rule, we only create actions for things we can undo.
+ * Moving nodes is an action, but selecting or copying nodes is not.
+*/
 export class Action
 {
     // Try to combine this action with a previous action

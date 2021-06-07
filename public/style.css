@@ -134,6 +134,13 @@ div.tabcontent
     left: 0px;
 }
 
+#select_div
+{
+    z-index: 3;
+    position: absolute;
+    border: 1px solid red;
+}
+
 #graph_bg_text
 {
     z-index: -1;
