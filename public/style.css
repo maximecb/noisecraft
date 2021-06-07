@@ -179,7 +179,9 @@ div.node
     z-index: 2;
 
     background: #444;
-    border: 2px solid #666;
+    border-width: 2px;
+    border-style: solid;
+    border-color: #666;
 
     /* prevent the text from being selected when user clicks */
     user-select: none;

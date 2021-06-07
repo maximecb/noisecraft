@@ -207,16 +207,22 @@ export class Editor
             let width = node.nodeDiv.offsetWidth;
             let height = node.nodeDiv.offsetHeight;
 
-            if (left < xMin)
-                continue;
-            if (left + width > xMax)
-                continue;
-            if (top < yMin)
-                continue;
-            if (top + height > yMax)
-                continue;
+            let nodeInside = (
+                left > xMin &&
+                left + width < xMax &&
+                top > yMin &&
+                top + height < yMax
+            );
 
-            this.selected.push(nodeId);
+            if (nodeInside)
+            {
+                this.selected.push(nodeId);
+                node.nodeDiv.style['border-color'] = '#F00';
+            }
+            else
+            {
+                node.nodeDiv.style.removeProperty('border-color');
+            }
         }
     }
 
