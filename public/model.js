@@ -64,7 +64,7 @@ import { assert, treeCopy, treeEq } from './utils.js';
 /**
  * High-level description/scheme for each type of node
 */
-export const NODE_DESCR =
+export const NODE_SCHEMA =
 {
     'Add': {
         ins: [
@@ -361,7 +361,7 @@ export class CreateNode extends Action
 
     update(model)
     {
-        let desc = NODE_DESCR[this.nodeType];
+        let desc = NODE_SCHEMA[this.nodeType];
 
         let nodeState = {
             type: this.nodeType,

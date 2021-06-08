@@ -1,5 +1,5 @@
 import { Dialog, assert, setSvg } from './utils.js';
-import { NODE_DESCR } from './model.js';
+import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
 
 export class Editor
@@ -278,12 +278,12 @@ export class Editor
         div.style['text-align'] = 'center';
 
         // Display the possible node types to create
-        for (let nodeType in NODE_DESCR)
+        for (let nodeType in NODE_SCHEMA)
         {
-            let descr = NODE_DESCR[nodeType];
+            let schema = NODE_SCHEMA[nodeType];
 
             // Don't show internal node types
-            if (descr.internal)
+            if (schema.internal)
                 continue;
 
             function subDivClick(evt)
@@ -300,7 +300,7 @@ export class Editor
 
             // TODO: migrate this to CSS
             var subDiv = document.createElement('div');
-            subDiv.title = descr.description;
+            subDiv.title = schema.description;
             subDiv.style.border = "2px solid #AAA";
             subDiv.style.display = 'inline-block';
             subDiv.style.color = '#FFF';
@@ -384,15 +384,15 @@ class Node
         this.editor = editor;
 
         // Descriptor for this node type
-        this.desc = NODE_DESCR[state.type];
+        this.schema = NODE_SCHEMA[state.type];
 
         this.nodeId = id;
         this.nodeType = state.type;
         this.nodeName = state.name;
         this.x = state.x;
         this.y = state.y;
-        this.numIns = this.desc.ins.length;
-        this.numOuts = this.desc.outs.length;
+        this.numIns = this.schema.ins.length;
+        this.numOuts = this.schema.outs.length;
 
         // DOM div wrapping the whole node
         this.nodeDiv = null;
@@ -494,7 +494,7 @@ class Node
             this.genPortDOM(
                 inPortsDiv,
                 i,
-                this.desc.ins[i].name,
+                this.schema.ins[i].name,
                 'input'
             );
         }
@@ -505,7 +505,7 @@ class Node
             this.genPortDOM(
                 outPortsDiv,
                 i,
-                this.desc.outs[i],
+                this.schema.outs[i],
                 'output'
             );
         }
