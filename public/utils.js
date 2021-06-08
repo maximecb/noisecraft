@@ -85,6 +85,118 @@ export function assert(condition, errorText)
     }
 }
 
+export function makeSvg(elName)
+{
+    return document.createElementNS("http://www.w3.org/2000/svg", elName);
+}
+
+export function getSvg(element, key)
+{
+    return element.getAttributeNS(null, key);
+}
+
+export function setSvg(element, key, val)
+{
+    element.setAttributeNS(null, key, val);
+}
+
+// Recursively copy a JSON tree data structure
+export function treeCopy(obj)
+{
+    switch (typeof obj)
+    {
+        case "object":
+        {
+            let newObj = {...obj};
+
+            for (let k in obj)
+                newObj[k] = treeCopy(newObj[k]);
+
+            return newObj;
+        }
+        break;
+
+        case "array":
+        {
+            let newObj = Array(obj.length);
+
+            for (let i = 0; i < obj.length; ++i)
+                newObj[i] = treeCopy(obj[i]);
+
+            return newObj;
+        }
+        break;
+
+        case "number":
+        case "string":
+        return obj;
+
+        default:
+        throw TypeError("unsupported type in treeCopy");
+    }
+}
+
+// Recursively compare two JSON tree data structures for equality
+export function treeEq(a, b)
+{
+    let typeA = typeof a;
+    let typeB = typeof b;
+
+    if (typeA !== typeB)
+    {
+        return false;
+    }
+
+    switch (typeA)
+    {
+        case "object":
+        {
+            // Compare all entries
+            for (let k in a)
+            {
+                if (!(k in b))
+                    return false;
+
+                if (!treeEq(a[k], b[k]))
+                    return false;
+            }
+
+            // a and b must have the same keys
+            for (let k in b)
+            {
+                if (!(k in a))
+                    return false;
+            }
+
+            return true;
+        }
+        break;
+
+        case "array":
+        {
+            if (a.length !== b.length)
+                return false;
+
+
+            for (let i = 0; i < a.length; ++i)
+            {
+                if (!treeEq(a[i], b[i]))
+                    return false;
+            }
+
+            return true;
+        }
+        break;
+
+        case "number":
+        case "string":
+        return a === b;
+
+        default:
+        throw TypeError("unsupported type in treeEq");
+    }
+}
+
 /**
 Test that a value is integer
 */
@@ -264,25 +376,4 @@ export function plotFn(fn, xMin, xMax, canvasId)
             ctx.stroke();
         }
     }
-}
-
-export function makeSvg(elName)
-{
-    return document.createElementNS("http://www.w3.org/2000/svg", elName);
-}
-
-export function getSvg(element, key)
-{
-    return element.getAttributeNS(null, key);
-}
-
-export function setSvg(element, key, val)
-{
-    element.setAttributeNS(null, key, val);
-}
-
-/// Test if we are running on the Windows platform
-export function isWindows()
-{
-    return navigator.userAgent.indexOf("Win") != -1;
 }

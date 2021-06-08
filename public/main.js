@@ -115,7 +115,7 @@ window.onkeydown = function (event)
     if (event.keyCode == 46 || event.keyCode == 8)
     {
         console.log('delete key');
-        //editor.deleteSelected();
+        editor.deleteSelected();
     }
 }
 

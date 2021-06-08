@@ -34,6 +34,9 @@ export class Editor
         // This is not persistent and the audio view doesn't care.
         this.selected = [];
 
+        // List of nodes ids for nodes being dragged
+        this.dragNodes = [];
+
         // Mouse position at the start of a group selection
         this.startMousePos = null;
 
@@ -60,14 +63,12 @@ export class Editor
 
             var mousePos = this.getMousePos(evt);
     
-            /*
             // If currently moving one or more nodes
-            if (this.selected.length > 0)
+            if (this.dragNodes.length > 0)
             {
                 this.moveNodes(mousePos);
                 return;
             }
-            */
     
             /*
             // If currently connecting a port
@@ -146,6 +147,11 @@ export class Editor
         // TODO: we can optimize this method based on the action
         // For example, MoveNodes is trivial to implement without
         // recreating all the nodes.
+
+        // FIXME: we probably want to avoid this if possible
+        // Filter selected nodes based on whether they still exist
+        // Reset the selection
+        this.selected = [];
 
         // Remove existing nodes
         while (this.graphDiv.firstChild)
@@ -318,18 +324,53 @@ export class Editor
         }
     }
 
-    // Move selected nodes to a new position
+    // Start dragging/moving nodes
+    startDrag(nodeId, mousePos)
+    {
+        console.log('starting drag');
+
+        if (this.selected.length > 0)
+        {
+            this.dragNodes = this.selected;
+        }
+        else
+        {
+            this.dragNodes = [nodeId];
+        }
+
+        this.lastMousePos = mousePos;
+    }
+
+    // Stop dragging/moving nodes
+    endDrag()
+    {
+        console.log('end drag');
+        this.dragNodes = [];
+        this.lastMousePos = null;
+    }
+
+    // Move nodes currently being dragged to a new position
     moveNodes(mousePos)
     {
+        //console.log('dragging nodes', this.dragNodes);
+
         assert (this.lastMousePos);
         let dx = mousePos.x - this.lastMousePos.x;
         let dy = mousePos.y - this.lastMousePos.y;
         this.lastMousePos = mousePos;
 
         this.model.update(new model.MoveNodes(
-            this.selected,
+            this.dragNodes,
             dx,
             dy
+        ));
+    }
+
+    // Delete the currently selected nodes
+    deleteSelected()
+    {
+        this.model.update(new model.DeleteNodes(
+            this.selected
         ));
     }
 }
@@ -390,24 +431,15 @@ class Node
             if (this.port)
                 return;
 
-            console.log('start drag node:', this.nodeType);
-
-            this.editor.selected = [this.nodeId];
-            this.editor.lastMousePos = this.editor.getMousePos(evt);
-            this.startX = this.x;
-            this.startY = this.y;
+            let mousePos = this.editor.getMousePos(evt);
+            this.editor.startDrag(this.nodeId, mousePos);
 
             evt.stopPropagation();
         }
 
         function endDrag(evt)
         {
-            if (this.editor.selected.length > 0)
-            {
-                console.log('end drag');
-                this.editor.selected = [];
-                this.editor.lastMousePos = null;
-            }
+            this.editor.endDrag();
         }
 
         function delNode(evt)
