@@ -375,7 +375,61 @@ export class Editor
     }
 }
 
-/** Represent a node in the UI */
+/**
+ * Connection between two UI nodes
+ * */
+class Edge
+{
+    constructor()
+    {
+        this.line = makeSvg('line');
+        setSvg(this.line, 'stroke', '#FFF');
+        setSvg(this.line, 'stroke-width', '2');
+
+        this.srcNode = null;
+        this.dstNode = null;
+    }
+
+    setSrc(srcNode, x, y)
+    {
+
+    }
+
+    setDst(dstNode, x, y)
+    {
+
+    }
+
+    moveSrc(dx, dy)
+    {
+        
+    }
+
+    moveDst(dx, dy)
+    {
+
+    }
+
+    // Drag the unconnected side of the edge
+    dragEdge(mousePos)
+    {
+        assert (this.srcNode || this.dstNode);
+        assert (!this.srcNode || !this.dstNode);
+
+        if (this.srcNode)
+        {
+
+        }
+        else
+        {
+
+        }
+    }
+}
+
+/**
+ * Represent a node in the UI
+ * */
 class Node
 {
     constructor(id, state, editor)
@@ -493,7 +547,6 @@ class Node
         {
             this.genPortDOM(
                 inPortsDiv,
-                i,
                 this.schema.ins[i].name,
                 'input'
             );
@@ -504,7 +557,6 @@ class Node
         {
             this.genPortDOM(
                 outPortsDiv,
-                i,
                 this.schema.outs[i],
                 'output'
             );
@@ -512,7 +564,7 @@ class Node
     }
 
     // Setup DOM nodes for a connection port
-    genPortDOM(parentDiv, portIdx, portName, side)
+    genPortDOM(parentDiv, portName, side)
     {
         let editor = this.editor;
 
@@ -522,7 +574,7 @@ class Node
 
             console.log('port click');
 
-            let [cx, cy] = this.getPortPos(portIdx, side);
+            let [cx, cy] = this.getPortPos(portName, side);
 
             if (!editor.port)
             {
@@ -560,6 +612,7 @@ class Node
 
             if (side == 'input')
             {
+                /*
                 // Remove previous connections on this input port
                 this.disconnect(portIdx);
 
@@ -570,9 +623,11 @@ class Node
                     portIdx,
                     editor.port.line,
                 );
+                */
             }
             else
             {
+                /*
                 this.connect(
                     this,
                     portIdx,
@@ -580,12 +635,11 @@ class Node
                     editor.port.portIdx,
                     editor.port.line
                 );
+                */
             }
 
             // Connected
             editor.port = null;
-
-            //editor.onGraphChange(editor.graph, editor.nodes);
         }
 
         let portDiv = document.createElement('div');
@@ -603,16 +657,30 @@ class Node
         connDiv.className = 'port_conn';
         portDiv.appendChild(connDiv);
 
-        /*
         if (side == 'input')
         {
-            this.inPorts[portIdx] = connDiv;
+            this.inPorts[portName] = connDiv;
         }
         else
         {
-            this.outPorts[portIdx] = connDiv;
+            this.outPorts[portName] = connDiv;
         }
-        */
+    }
+
+    /**
+     * Get the position of the center of a port connector
+     */
+    getPortPos(portName, side)
+    {
+        let connDiv = (side == 'input')? this.inPorts[portName]:this.outPorts[portName];
+
+        let nodeRect = this.nodeDiv.getBoundingClientRect();
+
+        let rect = connDiv.getBoundingClientRect();
+        let x = rect.left + (rect.width / 2) - nodeRect.left;
+        let y = rect.top + (rect.height / 2) - nodeRect.top;
+
+        return [x, y];
     }
 
     moveTo(x, y)
@@ -660,14 +728,3 @@ class Node
     }
 }
 
-/** Represent a connection between UI nodes */
-class Edge
-{
-    constructor()
-    {
-    }
-
-
-
-
-}
