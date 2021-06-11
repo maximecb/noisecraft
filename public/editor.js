@@ -1,4 +1,4 @@
-import { Dialog, assert, setSvg } from './utils.js';
+import { Dialog, assert, makeSvg, setSvg, getSvg } from './utils.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
 
@@ -43,8 +43,8 @@ export class Editor
         // Last mouse position during node movement
         this.lastMousePos = null;
 
-        // Port in the process of being connected
-        this.port = null;
+        // Edge in the process of being connected
+        this.edge = null;
 
         // Mouse down callback
         function mouseDown(evt)
@@ -70,15 +70,12 @@ export class Editor
                 return;
             }
     
-            /*
             // If currently connecting a port
-            if (this.port)
+            if (this.edge)
             {
-                setSvg(this.port.line, 'x2', mousePos.x);
-                setSvg(this.port.line, 'y2', mousePos.y);
+                this.edge.dragEdge(mousePos);
                 return;
             }
-            */
 
             // If a selection is in progress
             if (this.startMousePos)
@@ -105,17 +102,15 @@ export class Editor
         {
             console.log('mouseClick');
 
-            /*
             // If in the process of connecting an edge, and there's a
             // click anywhere that's not another port, cancel the connection
-            if (this.port)
+            if (this.edge)
             {
                 console.log('abort edge connection');
-                this.svg.removeChild(this.port.line);
-                this.port = null;
+                this.svg.removeChild(this.edge.line);
+                this.edge = null;
                 return;
             }
-            */
     
             console.log('click');
 
@@ -392,37 +387,51 @@ class Edge
 
     setSrc(srcNode, x, y)
     {
-
+        this.srcNode = srcNode;
+        setSvg(this.line, 'x1', x);
+        setSvg(this.line, 'y1', y);
     }
 
     setDst(dstNode, x, y)
     {
-
+        this.srcNode = srcNode;
+        setSvg(this.line, 'x2', x);
+        setSvg(this.line, 'y2', y);
     }
 
     moveSrc(dx, dy)
     {
-        
     }
 
     moveDst(dx, dy)
     {
+    }
 
+    // Find out which side of the edge is unconnected
+    get openSide()
+    {
+        if (this.srcNode === null)
+            return 'src';
+        else if (this.dstNode === null)
+            return 'dst';
+        return null;
     }
 
     // Drag the unconnected side of the edge
     dragEdge(mousePos)
     {
-        assert (this.srcNode || this.dstNode);
-        assert (!this.srcNode || !this.dstNode);
+        let openSide = this.openSide;
+        assert (openSide !== null);
 
-        if (this.srcNode)
+        if (openSide == 'src')
         {
-
+            setSvg(this.line, 'x1', mousePos.x);
+            setSvg(this.line, 'y1', mousePos.y);
         }
         else
         {
-
+            setSvg(this.line, 'x2', mousePos.x);
+            setSvg(this.line, 'y2', mousePos.y);
         }
     }
 }
@@ -482,7 +491,7 @@ class Node
                 return;
 
             // Can't drag a node while connecting a port
-            if (this.port)
+            if (this.editor.edge)
                 return;
 
             let mousePos = this.editor.getMousePos(evt);
@@ -499,7 +508,7 @@ class Node
         function delNode(evt)
         {
             // Only delete on shift+click
-            if (evt.shiftKey && !this.editor.port)
+            if (evt.shiftKey && !this.editor.edge)
                 this.editor.delNode(this);
 
             evt.preventDefault();
@@ -548,7 +557,7 @@ class Node
             this.genPortDOM(
                 inPortsDiv,
                 this.schema.ins[i].name,
-                'input'
+                'dst'
             );
         }
 
@@ -558,7 +567,7 @@ class Node
             this.genPortDOM(
                 outPortsDiv,
                 this.schema.outs[i],
-                'output'
+                'src'
             );
         }
     }
@@ -572,50 +581,43 @@ class Node
         {
             evt.stopPropagation();
 
-            console.log('port click');
+            console.log(`port click ${portName}`);
 
             let [cx, cy] = this.getPortPos(portName, side);
 
-            if (!editor.port)
+            // If no connection is in progress
+            if (!editor.edge)
             {
-                // If this is an input port, remove previous connections
-                if (side == 'input')
+                let edge = new Edge();
+
+                // If this is an input port, remove previous connection
+                if (side == 'dst')
                 {
-                    this.disconnect(portIdx);
-                    editor.onGraphChange(editor.graph, editor.nodes);
+                    // TODO:
+                    // Remove previous connection on this port, if any
+                    //this.disconnect(portIdx);
+
+                    edge.setDst(this, cx, cy);
+                }
+                else
+                {
+                    edge.setSrc(this, cx, cy);
                 }
 
-                var line = makeSvg('line');
-                setSvg(line, 'x1', this.x + cx);
-                setSvg(line, 'y1', this.y + cy);
-                setSvg(line, 'x2', this.x + cx);
-                setSvg(line, 'y2', this.y + cy);
-                setSvg(line, 'stroke', '#FFF');
-                setSvg(line, 'stroke-width', '2');
-                editor.svg.appendChild(line);
-
-                editor.port = {
-                    node: this,
-                    portIdx: portIdx,
-                    side: side,
-                    line: line,
-                    cx: cx,
-                    cy: cy
-                };
+                editor.edge = edge;
+                editor.svg.appendChild(edge.line);
 
                 return;
             }
 
             // Must connect in to out
-            if (editor.port.side == side)
+            if (editor.edge.openSide != side)
                 return;
 
-            if (side == 'input')
+            if (side == 'dst')
             {
+                // TODO: send message to model
                 /*
-                // Remove previous connections on this input port
-                this.disconnect(portIdx);
-
                 this.connect(
                     editor.port.node,
                     editor.port.portIdx,
@@ -627,6 +629,7 @@ class Node
             }
             else
             {
+                // TODO: send message to model
                 /*
                 this.connect(
                     this,
@@ -638,12 +641,12 @@ class Node
                 */
             }
 
-            // Connected
-            editor.port = null;
+            // Done connecting
+            editor.edge = null;
         }
 
         let portDiv = document.createElement('div');
-        portDiv.className = (side == 'input')? 'node_in_port':'node_out_port';
+        portDiv.className = (side == 'dst')? 'node_in_port':'node_out_port';
         portDiv.onclick = portClick.bind(this);
         parentDiv.appendChild(portDiv);
 
@@ -657,7 +660,7 @@ class Node
         connDiv.className = 'port_conn';
         portDiv.appendChild(connDiv);
 
-        if (side == 'input')
+        if (side == 'dst')
         {
             this.inPorts[portName] = connDiv;
         }
@@ -672,7 +675,7 @@ class Node
      */
     getPortPos(portName, side)
     {
-        let connDiv = (side == 'input')? this.inPorts[portName]:this.outPorts[portName];
+        let connDiv = (side == 'dst')? this.inPorts[portName]:this.outPorts[portName];
 
         let nodeRect = this.nodeDiv.getBoundingClientRect();
 
@@ -683,13 +686,11 @@ class Node
         return [x, y];
     }
 
-    moveTo(x, y)
+    move(dx, dy)
     {
-        //console.log(`moving node to x=${x}, y=${y}`);
-
         // Move the node
-        this.nodeDiv.style.left = x;
-        this.nodeDiv.style.top = y;
+        this.nodeDiv.style.left += x;
+        this.nodeDiv.style.top += y;
 
         /*
         for (var i = 0; i < this.inLines.length; ++i)
@@ -727,4 +728,3 @@ class Node
         //this.editor.fitNode(this, true);
     }
 }
-
