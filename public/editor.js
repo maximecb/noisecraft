@@ -148,9 +148,11 @@ export class Editor
         // Reset the selection
         this.selected = [];
 
-        // Remove existing nodes
+        // Remove existing nodes and edges
         while (this.graphDiv.firstChild)
             this.graphDiv.removeChild(this.graphDiv.firstChild);
+        while (this.svg.firstChild)
+            this.svg.removeChild(this.svg.firstChild);
         this.nodes.clear();
 
         // Show/hide node creation instructions
@@ -165,6 +167,28 @@ export class Editor
             let node = new Node(nodeId, nodeState, this);
             this.nodes.set(nodeId, node);
             this.graphDiv.appendChild(node.nodeDiv);
+        }
+
+        // For each node
+        for (let dstId in newState.nodes)
+        {
+            let dstState = newState.nodes[dstId];
+            let dstNode = this.nodes.get(dstId);
+
+            // For each input-side connection
+            for (let dstPort in dstState.ins)
+            {
+                let [srcId, srcPort] = dstState.ins[dstPort];
+                let srcNode = this.nodes.get(srcId);
+
+                let [sx, sy] = srcNode.getPortPos(srcPort, 'src');
+                let [dx, dy] = dstNode.getPortPos(dstPort, 'dst');
+
+                let edge = new Edge();
+                edge.setSrc(srcId, srcPort, sx, sy);
+                edge.setDst(dstId, dstPort, dx, dy);
+                this.svg.appendChild(edge.line);
+            }
         }
     }
 
@@ -381,22 +405,41 @@ class Edge
         setSvg(this.line, 'stroke', '#FFF');
         setSvg(this.line, 'stroke-width', '2');
 
-        this.srcNode = null;
-        this.dstNode = null;
+        // Source and destination node ids
+        this.srcId = null;
+        this.dstId = null;
+
+        // Source and destination port names
+        this.srcPort = null;
+        this.dstPort = null;
     }
 
-    setSrc(srcNode, x, y)
+    setSrc(srcNode, srcPort, x, y)
     {
-        this.srcNode = srcNode;
+        this.srcId = srcNode;
+        this.srcPort = srcPort;
         setSvg(this.line, 'x1', x);
         setSvg(this.line, 'y1', y);
+
+        if (!this.dstId)
+        {
+            setSvg(this.line, 'x2', x);
+            setSvg(this.line, 'y2', y);
+        }
     }
 
-    setDst(dstNode, x, y)
+    setDst(dstNode, dstPort, x, y)
     {
-        this.srcNode = srcNode;
+        this.dstId = dstNode;
+        this.dstPort = dstPort;
         setSvg(this.line, 'x2', x);
         setSvg(this.line, 'y2', y);
+
+        if (!this.srcId)
+        {
+            setSvg(this.line, 'x1', x);
+            setSvg(this.line, 'y1', y);
+        }
     }
 
     moveSrc(dx, dy)
@@ -410,9 +453,9 @@ class Edge
     // Find out which side of the edge is unconnected
     get openSide()
     {
-        if (this.srcNode === null)
+        if (this.srcId === null)
             return 'src';
-        else if (this.dstNode === null)
+        else if (this.dstId === null)
             return 'dst';
         return null;
     }
@@ -585,6 +628,8 @@ class Node
 
             let [cx, cy] = this.getPortPos(portName, side);
 
+            console.log(`cx=${cx}, cy=${cy}`);
+
             // If no connection is in progress
             if (!editor.edge)
             {
@@ -597,11 +642,11 @@ class Node
                     // Remove previous connection on this port, if any
                     //this.disconnect(portIdx);
 
-                    edge.setDst(this, cx, cy);
+                    edge.setDst(this.nodeId, portName, cx, cy);
                 }
                 else
                 {
-                    edge.setSrc(this, cx, cy);
+                    edge.setSrc(this.nodeId, portName, cx, cy);
                 }
 
                 editor.edge = edge;
@@ -616,29 +661,21 @@ class Node
 
             if (side == 'dst')
             {
-                // TODO: send message to model
-                /*
-                this.connect(
-                    editor.port.node,
-                    editor.port.portIdx,
-                    this,
-                    portIdx,
-                    editor.port.line,
-                );
-                */
+                editor.model.update(new model.ConnectNodes(
+                    editor.edge.srcId,
+                    editor.edge.srcPort,
+                    this.nodeId,
+                    portName
+                ));
             }
             else
             {
-                // TODO: send message to model
-                /*
-                this.connect(
-                    this,
-                    portIdx,
-                    editor.port.node,
-                    editor.port.portIdx,
-                    editor.port.line
-                );
-                */
+                editor.model.update(new model.ConnectNodes(
+                    this.nodeId,
+                    portName,
+                    editor.edge.dstId,
+                    editor.edge.dstPort
+                ));
             }
 
             // Done connecting
@@ -671,17 +708,18 @@ class Node
     }
 
     /**
-     * Get the position of the center of a port connector
+     * Get the position of the center of a port connector relative
+     * to the editor canvas.
      */
     getPortPos(portName, side)
     {
         let connDiv = (side == 'dst')? this.inPorts[portName]:this.outPorts[portName];
 
-        let nodeRect = this.nodeDiv.getBoundingClientRect();
+        let graphRect = this.editor.graphDiv.getBoundingClientRect();
 
         let rect = connDiv.getBoundingClientRect();
-        let x = rect.left + (rect.width / 2) - nodeRect.left;
-        let y = rect.top + (rect.height / 2) - nodeRect.top;
+        let x = rect.left + (rect.width / 2) - graphRect.left;
+        let y = rect.top + (rect.height / 2) - graphRect.top;
 
         return [x, y];
     }

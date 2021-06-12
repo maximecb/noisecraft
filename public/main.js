@@ -96,16 +96,27 @@ window.onkeydown = function (event)
         {
             btnPlay.onclick();
         }
+
+        event.preventDefault();
     }
 
-    // Ctrl/Command
+    // Ctrl / Command
     if (event.ctrlKey || event.metaKey)
     {
-        // Ctrl+Z
+        // Ctrl + Z (undo)
         if (event.keyCode == 90)
         {
             console.log('undo');
             model.undo();
+            event.preventDefault();
+        }
+
+        // Ctrl + G (group)
+        if (event.keyCode == 71)
+        {
+            console.log('group nodes');
+            model.groupSelected();
+            event.preventDefault();
         }
 
         return;
@@ -116,6 +127,8 @@ window.onkeydown = function (event)
     {
         console.log('delete key');
         editor.deleteSelected();
+        event.preventDefault();
+        return;
     }
 }
 

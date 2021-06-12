@@ -103,98 +103,69 @@ export function setSvg(element, key, val)
 // Recursively copy a JSON tree data structure
 export function treeCopy(obj)
 {
-    switch (typeof obj)
+    if (obj instanceof Array)
     {
-        case "object":
-        {
-            let newObj = {...obj};
+        let newObj = new Array(obj.length);
 
-            for (let k in obj)
-                newObj[k] = treeCopy(newObj[k]);
+        for (let i = 0; i < obj.length; ++i)
+            newObj[i] = treeCopy(obj[i]);
 
-            return newObj;
-        }
-        break;
-
-        case "array":
-        {
-            let newObj = Array(obj.length);
-
-            for (let i = 0; i < obj.length; ++i)
-                newObj[i] = treeCopy(obj[i]);
-
-            return newObj;
-        }
-        break;
-
-        case "number":
-        case "string":
-        return obj;
-
-        default:
-        throw TypeError("unsupported type in treeCopy");
+        return newObj;
     }
+
+    if (obj instanceof Object)
+    {
+        let newObj = {...obj};
+
+        for (let k in obj)
+            newObj[k] = treeCopy(obj[k]);
+
+        return newObj;
+    }
+
+    return obj;
 }
 
 // Recursively compare two JSON tree data structures for equality
 export function treeEq(a, b)
 {
-    let typeA = typeof a;
-    let typeB = typeof b;
-
-    if (typeA !== typeB)
+    if (a instanceof Array && b instanceof Array)
     {
-        return false;
+        if (a.length !== b.length)
+            return false;
+
+        for (let i = 0; i < a.length; ++i)
+        {
+            if (!treeEq(a[i], b[i]))
+                return false;
+        }
+
+        return true;
     }
 
-    switch (typeA)
+    if (a instanceof Object && b instanceof Object)
     {
-        case "object":
+        // Compare all entries
+        for (let k in a)
         {
-            // Compare all entries
-            for (let k in a)
-            {
-                if (!(k in b))
-                    return false;
-
-                if (!treeEq(a[k], b[k]))
-                    return false;
-            }
-
-            // a and b must have the same keys
-            for (let k in b)
-            {
-                if (!(k in a))
-                    return false;
-            }
-
-            return true;
-        }
-        break;
-
-        case "array":
-        {
-            if (a.length !== b.length)
+            if (!(k in b))
                 return false;
 
-
-            for (let i = 0; i < a.length; ++i)
-            {
-                if (!treeEq(a[i], b[i]))
-                    return false;
-            }
-
-            return true;
+            if (!treeEq(a[k], b[k]))
+                return false;
         }
-        break;
 
-        case "number":
-        case "string":
-        return a === b;
+        // a and b must have the same keys
+        for (let k in b)
+        {
+            if (!(k in a))
+                return false;
+        }
 
-        default:
-        throw TypeError("unsupported type in treeEq");
+        return true;
     }
+
+    return a === b;
 }
 
 /**

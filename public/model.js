@@ -368,7 +368,9 @@ export class CreateNode extends Action
             name: this.nodeType,
             x: this.x,
             y: this.y,
-            params: {}
+            ins: {},
+            outs: {},
+            params: {},
         };
 
         // Initialize parameters to default values
@@ -432,10 +434,56 @@ export class DeleteNodes extends Action
 
     update(model)
     {
+        console.log('deleting nodes');
+
+        // For each node to be deleted
         for (let nodeId of this.nodeIds)
         {
             delete model.state.nodes[nodeId];
         }
+
+        // For each node in the model
+        for (let nodeId in model.state.nodes)
+        {
+            let nodeState = model.state.nodes[nodeId];
+
+            // For each input-side connection
+            for (let dstPort in nodeState.ins)
+            {
+                let [srcId, srcPort] = nodeState.ins[dstPort];
+
+                // If the source node is being deleted
+                if (this.nodeIds.indexOf(srcId) != -1)
+                {
+                    delete nodeState.ins[dstPort];
+                }
+            }
+        }
+    }
+}
+
+// Connect two nodes with an edge
+export class ConnectNodes extends Action
+{
+    constructor(srcId, srcPort, dstId, dstPort)
+    {
+        super();
+        this.srcId = srcId;
+        this.srcPort = srcPort;
+        this.dstId = dstId;
+        this.dstPort = dstPort;
+    }
+
+    update(model)
+    {
+        assert (this.srcId != this.dstId);
+        let srcNode = model.state.nodes[this.srcId];
+        let dstNode = model.state.nodes[this.dstId];
+        assert (srcNode);
+        assert (dstNode);
+
+        // An input can only have one connection
+        dstNode.ins[this.dstPort] = [this.srcId, this.srcPort];
     }
 }
 
@@ -525,6 +573,7 @@ export class Model
 
         assert (!('id' in action) || action.id in this.state.nodes);
 
+        // Save the state and action in the undo queue
         this.addUndo(action);
 
         // Update the model based on the action
