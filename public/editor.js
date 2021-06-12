@@ -143,11 +143,6 @@ export class Editor
         // For example, MoveNodes is trivial to implement without
         // recreating all the nodes.
 
-        // FIXME: we probably want to avoid this if possible
-        // Filter selected nodes based on whether they still exist
-        // Reset the selection
-        this.selected = [];
-
         // Remove existing nodes and edges
         while (this.graphDiv.firstChild)
             this.graphDiv.removeChild(this.graphDiv.firstChild);
@@ -189,6 +184,18 @@ export class Editor
                 edge.setDst(dstId, dstPort, dx, dy);
                 this.svg.appendChild(edge.line);
             }
+        }
+
+        // Filter out selected nodes that don't exist anymore
+        this.selected = this.selected.filter(
+            nodeId => this.nodes.has(nodeId)
+        );
+
+        // Highlight selected nodes
+        for (let nodeId of this.selected)
+        {
+            let node = this.nodes.get(nodeId);
+            node.nodeDiv.style['border-color'] = '#F00';
         }
     }
 
@@ -239,7 +246,6 @@ export class Editor
                 top + height < yMax
             );
 
-            // TODO: maybe we should have a setSelection method?
             if (nodeInside)
             {
                 this.selected.push(nodeId);
