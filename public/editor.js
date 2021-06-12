@@ -37,7 +37,7 @@ export class Editor
         // List of nodes ids for nodes being dragged
         this.dragNodes = [];
 
-        // Mouse position at the start of a group selection
+        // Mouse position at the start of a group selection or node movement
         this.startMousePos = null;
 
         // Last mouse position during node movement
@@ -88,6 +88,7 @@ export class Editor
         // Mouse up callback
         function mouseUp(evt)
         {
+            // If we were in the process of selecting nodes
             if (this.selectDiv)
             {
                 this.editorDiv.removeChild(this.selectDiv);
@@ -363,32 +364,47 @@ export class Editor
             this.dragNodes = [nodeId];
         }
 
+        this.startMousePos = mousePos;
         this.lastMousePos = mousePos;
     }
 
     // Stop dragging/moving nodes
-    endDrag()
+    endDrag(mousePos)
     {
         console.log('end drag');
+
+        let dx = mousePos.x - this.startMousePos.x;
+        let dy = mousePos.y - this.startMousePos.y;
+
+        // Send the update to the model to actually move the nodes
+        if (dx != 0 || dy != 0)
+        {
+            this.model.update(new model.MoveNodes(
+                this.dragNodes,
+                dx,
+                dy
+            ));
+        }
+
         this.dragNodes = [];
+        this.startMousePos = null;
         this.lastMousePos = null;
     }
 
     // Move nodes currently being dragged to a new position
     moveNodes(mousePos)
     {
-        //console.log('dragging nodes', this.dragNodes);
-
         assert (this.lastMousePos);
         let dx = mousePos.x - this.lastMousePos.x;
         let dy = mousePos.y - this.lastMousePos.y;
         this.lastMousePos = mousePos;
 
-        this.model.update(new model.MoveNodes(
-            this.dragNodes,
-            dx,
-            dy
-        ));
+        // Move the nodes
+        for (let nodeId of this.dragNodes)
+        {
+            let node = this.nodes.get(nodeId);
+            node.move(dx, dy);
+        }
     }
 
     // Delete the currently selected nodes
@@ -422,7 +438,12 @@ class Edge
 
     setSrc(srcNode, srcPort, x, y)
     {
-        srcNode.outEdges[srcPort] = this;
+        console.log(srcNode.outEdges);
+
+        if (srcNode.outEdges[srcPort].indexOf(this) == -1)
+        {
+            srcNode.outEdges[srcPort].push(this);
+        }
 
         this.srcNode = srcNode;
         this.srcPort = srcPort;
@@ -454,18 +475,18 @@ class Edge
 
     moveSrc(dx, dy)
     {
-        var x1 = Number(getSvg(line, 'x1'));
-        var y1 = Number(getSvg(line, 'y1'));
+        var x1 = Number(getSvg(this.line, 'x1'));
+        var y1 = Number(getSvg(this.line, 'y1'));
         setSvg(this.line, 'x1', x1 + dx);
         setSvg(this.line, 'y1', y1 + dy);
     }
 
     moveDst(dx, dy)
     {
-        var x2 = Number(getSvg(line, 'x2'));
-        var y2 = Number(getSvg(line, 'y2'));
-        setSvg(line, 'x2', x2 + dx);
-        setSvg(line, 'y2', y2 + dy);
+        var x2 = Number(getSvg(this.line, 'x2'));
+        var y2 = Number(getSvg(this.line, 'y2'));
+        setSvg(this.line, 'x2', x2 + dx);
+        setSvg(this.line, 'y2', y2 + dy);
     }
 
     // Find out which side of the edge is unconnected
@@ -536,7 +557,7 @@ class Node
         this.outEdges = {};
 
         // There can be multiple output edges per output port
-        for (let portName in this.outEdges)
+        for (let portName of this.schema.outs)
             this.outEdges[portName] = [];
 
         this.genNodeDOM(state.name);
@@ -563,7 +584,8 @@ class Node
 
         function endDrag(evt)
         {
-            this.editor.endDrag();
+            let mousePos = this.editor.getMousePos(evt);
+            this.editor.endDrag(mousePos);
         }
 
         function delNode(evt)
@@ -585,7 +607,7 @@ class Node
         this.nodeDiv.ontouchstart = startDrag.bind(this);
         this.nodeDiv.onmouseup = endDrag.bind(this);
         this.nodeDiv.ontouchend = endDrag.bind(this);
-        this.nodeDiv.onclick = delNode.bind(this);
+        //this.nodeDiv.onclick = delNode.bind(this);
         //this.nodeDiv.ondblclick = this.paramsDialog.bind(this);
 
         // Node header text
@@ -640,13 +662,11 @@ class Node
 
         function portClick(evt)
         {
-            evt.stopPropagation();
-
             console.log(`port click ${portName}`);
 
-            let [cx, cy] = this.getPortPos(portName, side);
+            evt.stopPropagation();
 
-            console.log(`cx=${cx}, cy=${cy}`);
+            let [cx, cy] = this.getPortPos(portName, side);
 
             // If no connection is in progress
             if (!editor.edge)
@@ -693,7 +713,7 @@ class Node
                 editor.model.update(new model.ConnectNodes(
                     this.nodeId,
                     portName,
-                    editor.edge.srcNode.nodeId,
+                    editor.edge.dstNode.nodeId,
                     editor.edge.dstPort
                 ));
             }
@@ -747,8 +767,10 @@ class Node
     move(dx, dy)
     {
         // Move the node
-        this.nodeDiv.style.left += x;
-        this.nodeDiv.style.top += y;
+        this.x += dx;
+        this.y += dy;
+        this.nodeDiv.style.left = this.x;
+        this.nodeDiv.style.top = this.y;
 
         for (let dstPort in this.inEdges)
         {
@@ -758,8 +780,10 @@ class Node
 
         for (let srcPort in this.outEdges)
         {
-            let edge = this.outEdges[srcPort];
-            edge.moveSrc(dx, dy);
+            for (let edge of this.outEdges[srcPort])
+            {
+                edge.moveSrc(dx, dy);
+            }
         }
 
         // TODO: move this into the Editor class
