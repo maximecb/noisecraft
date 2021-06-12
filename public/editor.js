@@ -180,8 +180,8 @@ export class Editor
                 let [dx, dy] = dstNode.getPortPos(dstPort, 'dst');
 
                 let edge = new Edge();
-                edge.setSrc(srcId, srcPort, sx, sy);
-                edge.setDst(dstId, dstPort, dx, dy);
+                edge.setSrc(srcNode, srcPort, sx, sy);
+                edge.setDst(dstNode, dstPort, dx, dy);
                 this.svg.appendChild(edge.line);
             }
         }
@@ -411,9 +411,9 @@ class Edge
         setSvg(this.line, 'stroke', '#FFF');
         setSvg(this.line, 'stroke-width', '2');
 
-        // Source and destination node ids
-        this.srcId = null;
-        this.dstId = null;
+        // Source and destination nodes
+        this.srcNode = null;
+        this.dstNode = null;
 
         // Source and destination port names
         this.srcPort = null;
@@ -422,12 +422,14 @@ class Edge
 
     setSrc(srcNode, srcPort, x, y)
     {
-        this.srcId = srcNode;
+        srcNode.outEdges[srcPort] = this;
+
+        this.srcNode = srcNode;
         this.srcPort = srcPort;
         setSvg(this.line, 'x1', x);
         setSvg(this.line, 'y1', y);
 
-        if (!this.dstId)
+        if (!this.dstNode)
         {
             setSvg(this.line, 'x2', x);
             setSvg(this.line, 'y2', y);
@@ -436,12 +438,14 @@ class Edge
 
     setDst(dstNode, dstPort, x, y)
     {
-        this.dstId = dstNode;
+        dstNode.inEdges[dstPort] = this;
+
+        this.dstNode = dstNode;
         this.dstPort = dstPort;
         setSvg(this.line, 'x2', x);
         setSvg(this.line, 'y2', y);
 
-        if (!this.srcId)
+        if (!this.srcNode)
         {
             setSvg(this.line, 'x1', x);
             setSvg(this.line, 'y1', y);
@@ -450,18 +454,26 @@ class Edge
 
     moveSrc(dx, dy)
     {
+        var x1 = Number(getSvg(line, 'x1'));
+        var y1 = Number(getSvg(line, 'y1'));
+        setSvg(this.line, 'x1', x1 + dx);
+        setSvg(this.line, 'y1', y1 + dy);
     }
 
     moveDst(dx, dy)
     {
+        var x2 = Number(getSvg(line, 'x2'));
+        var y2 = Number(getSvg(line, 'y2'));
+        setSvg(line, 'x2', x2 + dx);
+        setSvg(line, 'y2', y2 + dy);
     }
 
     // Find out which side of the edge is unconnected
     get openSide()
     {
-        if (this.srcId === null)
+        if (this.srcNode === null)
             return 'src';
-        else if (this.dstId === null)
+        else if (this.dstNode === null)
             return 'dst';
         return null;
     }
@@ -600,7 +612,7 @@ class Node
         outPortsDiv.className = 'node_out_ports';
         contentDiv.appendChild(outPortsDiv);
 
-        // Create the inputs
+        // Create the destination (inputs) ports
         for (var i = 0; i < this.numIns; ++i)
         {
             this.genPortDOM(
@@ -610,7 +622,7 @@ class Node
             );
         }
 
-        // Create the outputs
+        // Create the source (output) ports
         for (var i = 0; i < this.numOuts; ++i)
         {
             this.genPortDOM(
@@ -650,11 +662,11 @@ class Node
                         portName,
                     ));
 
-                    edge.setDst(this.nodeId, portName, cx, cy);
+                    edge.setDst(this, portName, cx, cy);
                 }
                 else
                 {
-                    edge.setSrc(this.nodeId, portName, cx, cy);
+                    edge.setSrc(this, portName, cx, cy);
                 }
 
                 editor.edge = edge;
@@ -670,7 +682,7 @@ class Node
             if (side == 'dst')
             {
                 editor.model.update(new model.ConnectNodes(
-                    editor.edge.srcId,
+                    editor.edge.srcNode.nodeId,
                     editor.edge.srcPort,
                     this.nodeId,
                     portName
@@ -681,7 +693,7 @@ class Node
                 editor.model.update(new model.ConnectNodes(
                     this.nodeId,
                     portName,
-                    editor.edge.dstId,
+                    editor.edge.srcNode.nodeId,
                     editor.edge.dstPort
                 ));
             }
@@ -738,38 +750,19 @@ class Node
         this.nodeDiv.style.left += x;
         this.nodeDiv.style.top += y;
 
-        /*
-        for (var i = 0; i < this.inLines.length; ++i)
+        for (let dstPort in this.inEdges)
         {
-            var line = this.inLines[i];
-            if (line)
-            {
-                var x2 = Number(getSvg(line, 'x2'));
-                var y2 = Number(getSvg(line, 'y2'));
-                setSvg(line, 'x2', x2 + dx);
-                setSvg(line, 'y2', y2 + dy);
-            }
+            let edge = this.inEdges[dstPort];
+            edge.moveDst(dx, dy);
         }
 
-        for (var i = 0; i < this.outLines.length; ++i)
+        for (let srcPort in this.outEdges)
         {
-            var lines = this.outLines[i];
-
-            for (var j = 0; j < lines.length; ++j)
-            {
-                var line = lines[j];
-
-                if (line)
-                {
-                    var x1 = Number(getSvg(line, 'x1'));
-                    var y1 = Number(getSvg(line, 'y1'));
-                    setSvg(line, 'x1', x1 + dx);
-                    setSvg(line, 'y1', y1 + dy);
-                }
-            }
+            let edge = this.outEdges[srcPort];
+            edge.moveSrc(dx, dy);
         }
-        */
 
+        // TODO: move this into the Editor class
         // Adjust the graph to fit this node
         //this.editor.fitNode(this, true);
     }
