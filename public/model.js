@@ -487,6 +487,24 @@ export class ConnectNodes extends Action
     }
 }
 
+// Remove a connection between two nodes
+export class Disconnect extends Action
+{
+    constructor(dstId, dstPort)
+    {
+        super();
+        this.dstId = dstId;
+        this.dstPort = dstPort;
+    }
+
+    update(model)
+    {
+        let dstNode = model.state.nodes[this.dstId];
+        assert (dstNode);
+        delete dstNode.ins[this.dstPort];
+    }
+}
+
 /** Graph of nodes model, operates on internal state data */
 export class Model
 {

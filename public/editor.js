@@ -638,9 +638,11 @@ class Node
                 // If this is an input port, remove previous connection
                 if (side == 'dst')
                 {
-                    // TODO:
                     // Remove previous connection on this port, if any
-                    //this.disconnect(portIdx);
+                    editor.model.update(new model.Disconnect(
+                        this.nodeId,
+                        portName,
+                    ));
 
                     edge.setDst(this.nodeId, portName, cx, cy);
                 }
