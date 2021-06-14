@@ -324,6 +324,14 @@ export const NODE_SCHEMA =
         params: [],
         description: 'triangle oscillator',
     },
+
+    'Module': {
+        internal: true,
+        ins: [],
+        outs: [],
+        params: [],
+        description: 'user-created module (node grouping)',
+    },
 };
 
 /**
@@ -369,7 +377,6 @@ export class CreateNode extends Action
             x: this.x,
             y: this.y,
             ins: {},
-            outs: {},
             params: {},
         };
 
@@ -459,6 +466,102 @@ export class DeleteNodes extends Action
                 }
             }
         }
+    }
+}
+
+// Group the selected nodes into a module
+export class GroupNodes extends Action
+{
+    constructor(nodeIds)
+    {
+        super();
+        this.nodeIds = nodeIds;
+    }
+
+    update(model)
+    {
+        // Create a set from the node ids so we can test membership quickly
+        let groupSet = new Set(this.nodeIds)
+
+
+        console.log('grouping nodes');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // Create a module node
+        let module = {
+            type: 'Module',
+            name: 'Module',
+            x: Infinity,
+            y: Infinity,
+            ins: {},
+            params: {},
+            nodes: {}
+        };
+
+        // Add the new module node to the state
+        let nodeId = model.nextId++;
+        assert (!model.state[nodeId]);
+        model.state.nodes[nodeId] = module;
+
+        // Add the nodes to the module and remove them from the global graph
+        for (let nodeId of this.nodeIds)
+        {
+            let node = model.state.nodes[nodeId];
+            module.nodes[nodeId] = node;
+            delete model.state.nodes[nodeId];
+        }
+
+        // Compute the position of the group node
+        for (let nodeId of this.nodeIds)
+        {
+            let node = module.nodes[nodeId];
+            module.x = Math.min(module.x, node.x);
+            module.y = Math.min(module.y, node.y);
+        }
+
+
+        // TODO: update connections exiting the group
+
+        // TODO: update connections leaving the group
+
+
+
+        /*
+        // For each node in the model
+        for (let nodeId in model.state.nodes)
+        {
+            let nodeState = model.state.nodes[nodeId];
+
+            // For each input-side connection
+            for (let dstPort in nodeState.ins)
+            {
+                let [srcId, srcPort] = nodeState.ins[dstPort];
+
+                // If the source node is being deleted
+                if (this.nodeIds.indexOf(srcId) != -1)
+                {
+                    delete nodeState.ins[dstPort];
+                }
+            }
+        }
+        */
     }
 }
 

@@ -115,7 +115,7 @@ window.onkeydown = function (event)
         if (event.keyCode == 71)
         {
             console.log('group nodes');
-            model.groupSelected();
+            editor.groupSelected();
             event.preventDefault();
         }
 

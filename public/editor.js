@@ -410,7 +410,21 @@ export class Editor
     // Delete the currently selected nodes
     deleteSelected()
     {
+        if (this.selected.length == 0)
+            return;
+
         this.model.update(new model.DeleteNodes(
+            this.selected
+        ));
+    }
+
+    // Group the currently selected nodes
+    groupSelected()
+    {
+        if (this.selected.length == 0)
+            return;
+
+        this.model.update(new model.GroupNodes(
             this.selected
         ));
     }
