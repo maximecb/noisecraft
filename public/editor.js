@@ -158,7 +158,6 @@ export class Editor
         // Create the nodes
         for (let nodeId in newState.nodes)
         {
-            console.log(`creating node with id=${nodeId}`);
             let nodeState = newState.nodes[nodeId];
             let node = new Node(nodeId, nodeState, this);
             this.nodes.set(nodeId, node);

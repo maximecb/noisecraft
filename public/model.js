@@ -483,17 +483,47 @@ export class GroupNodes extends Action
 
     update(model)
     {
+        console.log('grouping nodes');
+
         // Create a set from the node ids so we can test membership quickly
         let groupSet = new Set(this.nodeIds)
 
+        function tupleInList(list, tuple)
+        {
+            for (let tuple of list)
+            {
+                if (treeEq(tupleB, tupleA))
+                    return true;
+            }
 
-        console.log('grouping nodes');
+            return false;
+        }
 
+        // List of source ports we are connected to
+        let srcPorts = [];
 
+        // For each node in the group
+        for (let nodeId of this.nodeIds)
+        {
+            let node = model.state.nodes[nodeId];
 
+            // For each input port
+            for (let dstPort in node.ins)
+            {
+                if (!node.ins[dstPort])
+                    continue;
 
+                let srcPort = node.ins[dstPort];
+                let [srcNode, portIdx] = srcPort;
 
+                if (!groupSet.has(srcNode) && !tupleInList(srcPorts, srcPort))
+                {
+                    srcPorts.push(srcPort);
+                }
+            }
+        }
 
+        console.log(`num group ins: ${srcPorts.length}`);
 
 
 
