@@ -13,6 +13,15 @@ let playing = false;
 // Project model/state
 let model = new Model();
 
+model.on('loading', () => {
+    // Stop playback to avoid glitching
+    stopPlayback();
+
+    // Show the Edit tab before loading the graph,
+    // so it can resize itself correctly
+    /* showTab('edit'); */
+});
+
 // Graph editor view
 let editor = new Editor(model);
 

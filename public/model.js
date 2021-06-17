@@ -60,6 +60,7 @@ or it's a special undoable action.
 */
 
 import { assert, treeCopy, treeEq, isString, isObject } from './utils.js';
+import { Eventable } from './eventable.js';
 
 /**
  * High-level description/scheme for each type of node
@@ -638,10 +639,12 @@ export class Disconnect extends Action
 }
 
 /** Graph of nodes model, operates on internal state data */
-export class Model
+export class Model extends Eventable
 {
     constructor()
     {
+        super();
+
         // List of views subscribed to model updates
         this.views = [];
 
@@ -673,6 +676,8 @@ export class Model
     // Load the JSON state into the model
     load(state)
     {
+        this.emit('loading');
+
         // Current playback position
         this.playPos = 0;
 
