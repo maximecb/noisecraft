@@ -369,19 +369,19 @@ export class CreateNode extends Action
 
     update(model)
     {
-        let desc = NODE_SCHEMA[this.nodeType];
+        let schema = NODE_SCHEMA[this.nodeType];
 
         let nodeState = {
             type: this.nodeType,
             name: this.nodeType,
             x: this.x,
             y: this.y,
-            ins: {},
+            ins: Array(schema.ins.length).fill(null),
             params: {},
         };
 
-        // Initialize parameters to default values
-        for (let param of desc.params)
+        // Initialize node parameters to default values
+        for (let param of schema.params)
         {
             nodeState.params[param.name] = param.default;
         }
@@ -454,9 +454,12 @@ export class DeleteNodes extends Action
         {
             let nodeState = model.state.nodes[nodeId];
 
-            // For each input-side connection
-            for (let dstPort in nodeState.ins)
+            // For each input-side port
+            for (let dstPort = 0; dstPort < nodeState.ins.length; ++dstPort)
             {
+                if (!nodeState.ins[dstPort])
+                    continue;
+
                 let [srcId, srcPort] = nodeState.ins[dstPort];
 
                 // If the source node is being deleted
@@ -585,12 +588,12 @@ export class ConnectNodes extends Action
         assert (srcNode);
         assert (dstNode);
 
-        // An input can only have one connection
+        // An input port can only have one incoming connection
         dstNode.ins[this.dstPort] = [this.srcId, this.srcPort];
     }
 }
 
-// Remove a connection between two nodes
+// Remove the connection attached to an input port
 export class Disconnect extends Action
 {
     constructor(dstId, dstPort)
@@ -604,7 +607,7 @@ export class Disconnect extends Action
     {
         let dstNode = model.state.nodes[this.dstId];
         assert (dstNode);
-        delete dstNode.ins[this.dstPort];
+        dstNode.ins[this.dstPort] = null;
     }
 }
 

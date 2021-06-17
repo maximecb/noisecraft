@@ -174,6 +174,9 @@ export class Editor
             // For each input-side connection
             for (let dstPort in dstState.ins)
             {
+                if (!dstState.ins[dstPort])
+                    continue;
+
                 let [srcId, srcPort] = dstState.ins[dstPort];
                 let srcNode = this.nodes.get(srcId);
 
@@ -445,15 +448,13 @@ class Edge
         this.srcNode = null;
         this.dstNode = null;
 
-        // Source and destination port names
+        // Source and destination port indices
         this.srcPort = null;
         this.dstPort = null;
     }
 
     setSrc(srcNode, srcPort, x, y)
     {
-        console.log(srcNode.outEdges);
-
         if (srcNode.outEdges[srcPort].indexOf(this) == -1)
         {
             srcNode.outEdges[srcPort].push(this);
@@ -563,16 +564,16 @@ class Node
         this.centerDiv = null;
 
         // DOM divs for port connectors, mapped by port name
-        this.inPorts = {};
-        this.outPorts = {};
+        this.inPorts = [];
+        this.outPorts = [];
 
         // Input and output edges, mapped by port names
-        this.inEdges = {};
-        this.outEdges = {};
+        this.inEdges = [];
+        this.outEdges = [];
 
         // There can be multiple output edges per output port
-        for (let portName of this.schema.outs)
-            this.outEdges[portName] = [];
+        for (let portIdx in this.schema.outs)
+            this.outEdges[portIdx] = [];
 
         this.genNodeDOM(state.name);
     }
@@ -649,28 +650,30 @@ class Node
         contentDiv.appendChild(outPortsDiv);
 
         // Create the destination (inputs) ports
-        for (var i = 0; i < this.numIns; ++i)
+        for (var portIdx = 0; portIdx < this.numIns; ++portIdx)
         {
             this.genPortDOM(
                 inPortsDiv,
-                this.schema.ins[i].name,
+                portIdx,
+                this.schema.ins[portIdx].name,
                 'dst'
             );
         }
 
         // Create the source (output) ports
-        for (var i = 0; i < this.numOuts; ++i)
+        for (var portIdx = 0; portIdx < this.numOuts; ++portIdx)
         {
             this.genPortDOM(
                 outPortsDiv,
-                this.schema.outs[i],
+                portIdx,
+                this.schema.outs[portIdx],
                 'src'
             );
         }
     }
 
     // Setup DOM nodes for a connection port
-    genPortDOM(parentDiv, portName, side)
+    genPortDOM(parentDiv, portIdx, portName, side)
     {
         let editor = this.editor;
 
@@ -680,7 +683,7 @@ class Node
 
             evt.stopPropagation();
 
-            let [cx, cy] = this.getPortPos(portName, side);
+            let [cx, cy] = this.getPortPos(portIdx, side);
 
             // If no connection is in progress
             if (!editor.edge)
@@ -693,14 +696,14 @@ class Node
                     // Remove previous connection on this port, if any
                     editor.model.update(new model.Disconnect(
                         this.nodeId,
-                        portName,
+                        portIdx,
                     ));
 
-                    edge.setDst(this, portName, cx, cy);
+                    edge.setDst(this, portIdx, cx, cy);
                 }
                 else
                 {
-                    edge.setSrc(this, portName, cx, cy);
+                    edge.setSrc(this, portIdx, cx, cy);
                 }
 
                 editor.edge = edge;
@@ -719,14 +722,14 @@ class Node
                     editor.edge.srcNode.nodeId,
                     editor.edge.srcPort,
                     this.nodeId,
-                    portName
+                    portIdx
                 ));
             }
             else
             {
                 editor.model.update(new model.ConnectNodes(
                     this.nodeId,
-                    portName,
+                    portIdx,
                     editor.edge.dstNode.nodeId,
                     editor.edge.dstPort
                 ));
@@ -753,11 +756,11 @@ class Node
 
         if (side == 'dst')
         {
-            this.inPorts[portName] = connDiv;
+            this.inPorts[portIdx] = connDiv;
         }
         else
         {
-            this.outPorts[portName] = connDiv;
+            this.outPorts[portIdx] = connDiv;
         }
     }
 
@@ -765,9 +768,9 @@ class Node
      * Get the position of the center of a port connector relative
      * to the editor canvas.
      */
-    getPortPos(portName, side)
+    getPortPos(portIdx, side)
     {
-        let connDiv = (side == 'dst')? this.inPorts[portName]:this.outPorts[portName];
+        let connDiv = (side == 'dst')? this.inPorts[portIdx]:this.outPorts[portIdx];
 
         let graphRect = this.editor.graphDiv.getBoundingClientRect();
 
