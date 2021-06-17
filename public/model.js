@@ -472,7 +472,15 @@ export class DeleteNodes extends Action
     }
 }
 
-// Group the selected nodes into a module
+/**
+ *  Group the selected nodes into a user-created module
+ *  Currently, the way this works is that the selected nodes will become
+ *  a black box with inputs and outputs corresponding to the nodes/ports it's
+ *  connected to outside the group. Eventually, we will also make it possible
+ *  to rename module input and output ports after the module is created. We
+ *  could make it possible to expose specific knobs inside the group on the
+ *  module's UI.
+ * */
 export class GroupNodes extends Action
 {
     constructor(nodeIds)
@@ -488,19 +496,22 @@ export class GroupNodes extends Action
         // Create a set from the node ids so we can test membership quickly
         let groupSet = new Set(this.nodeIds)
 
-        function tupleInList(list, tuple)
+        function findInList(list, tuple)
         {
-            for (let tuple of list)
+            for (let idx = 0; idx < list.length; ++idx)
             {
-                if (treeEq(tupleB, tupleA))
-                    return true;
+                if (treeEq(list[idx], tuple))
+                    return idx;
             }
 
-            return false;
+            return -1;
         }
 
         // List of source ports we are connected to
         let srcPorts = [];
+
+        // List of inputs for the group
+        let ins = [];
 
         // For each node in the group
         for (let nodeId of this.nodeIds)
@@ -516,9 +527,11 @@ export class GroupNodes extends Action
                 let srcPort = node.ins[dstPort];
                 let [srcNode, portIdx] = srcPort;
 
-                if (!groupSet.has(srcNode) && !tupleInList(srcPorts, srcPort))
+                // If this connection leads to an outside port which we aren't tracking yet
+                if (!groupSet.has(srcNode) && findInList(srcPorts, srcPort) == -1)
                 {
                     srcPorts.push(srcPort);
+                    ins.push({ name: 'in' + ins.length, default: 0 });
                 }
             }
         }
@@ -534,6 +547,10 @@ export class GroupNodes extends Action
 
 
 
+        // TODO: update connections exiting the group
+
+        // TODO: update connections leaving the group
+
 
 
 
@@ -545,7 +562,13 @@ export class GroupNodes extends Action
             y: Infinity,
             ins: {},
             params: {},
-            nodes: {}
+            nodes: {},
+            schema: {
+                ins: ins,
+                outs: [], // TODO
+                params: [],
+                description: 'user-created module'
+            },
         };
 
         // Add the new module node to the state
@@ -568,33 +591,6 @@ export class GroupNodes extends Action
             module.x = Math.min(module.x, node.x);
             module.y = Math.min(module.y, node.y);
         }
-
-
-        // TODO: update connections exiting the group
-
-        // TODO: update connections leaving the group
-
-
-
-        /*
-        // For each node in the model
-        for (let nodeId in model.state.nodes)
-        {
-            let nodeState = model.state.nodes[nodeId];
-
-            // For each input-side connection
-            for (let dstPort in nodeState.ins)
-            {
-                let [srcId, srcPort] = nodeState.ins[dstPort];
-
-                // If the source node is being deleted
-                if (this.nodeIds.indexOf(srcId) != -1)
-                {
-                    delete nodeState.ins[dstPort];
-                }
-            }
-        }
-        */
     }
 }
 
