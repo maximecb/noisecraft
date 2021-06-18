@@ -169,6 +169,22 @@ export function treeEq(a, b)
 }
 
 /**
+Test that a value is an object
+*/
+export function isObject(val)
+{
+    return (typeof val === 'object') && (val !== null);
+}
+
+/**
+Test that a value is a string
+*/
+export function isString(val)
+{
+    return (typeof val === 'string') || (val instanceof String);
+}
+
+/**
 Test that a value is integer
 */
 export function isInt(val)

@@ -59,7 +59,7 @@ undo, however. It could be more of a direct state update,
 or it's a special undoable action.
 */
 
-import { assert, treeCopy, treeEq } from './utils.js';
+import { assert, treeCopy, treeEq, isString, isObject } from './utils.js';
 
 /**
  * High-level description/scheme for each type of node
@@ -691,6 +691,38 @@ export class Model
 
         // Broadcast state update
         this.broadcast(this.state, null);
+    }
+
+    // Serializes the model into a string representation
+    serialize()
+    {
+        return JSON.stringify({
+            state: this.state
+        });
+    }
+
+    // Tries to deserialize a string representation of a model
+    //
+    // Returns true if successfully deserialized and loaded, false otherwise
+    deserialize(data)
+    {
+        if (!isString(data)) {
+            return false;
+        }
+
+        let json;
+        try {
+            json = JSON.parse(data);
+        } catch (e) {
+            return false;
+        }
+
+        if (!isObject(json) || !isObject(json.state)) {
+            return false;
+        }
+
+        this.load(json.state);
+        return true;
     }
 
     /** Check if the graph contains a specific type of node */

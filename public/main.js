@@ -22,61 +22,23 @@ let audioView = new AudioView(model);
 // Create a new project
 model.new();
 
-/*
-export function importData(jsonData)
-{
-    //console.log('json data:', jsonData);
-
-    // Stop playback to avoid glitching
-    stopPlayback();
-
-    // Show the Edit tab before loading the graph,
-    // so it can resize itself correctly
-    showTab('edit');
-
-    let graph = JSON.parse(jsonData);
-    editor.load(graph);
-}
-
-export function exportData()
-{
-    return JSON.stringify(editor.graph);
-}
-
 document.body.onload = function ()
 {
-    let graphData = localStorage.getItem('graph');
+    if (window.location.hash)
+        return;
 
-    if (graphData && !window.location.hash)
-    {
-        console.log('loading saved graph');
+    let serializedModelData = localStorage.getItem('latestModelData');
+    if (!serializedModelData)
+        return;
 
-        try
-        {
-            importData(graphData);
-        }
-        catch (exc)
-        {
-            //alert('Graph failed to load');
-            console.log(exc);
-            localStorage.removeItem('graph');
-            editor = new GraphEditor();
-            editor.newGraph();
-            //location.reload(false);
-        }
-    }
-    else
-    {
-        editor.newGraph();
-    }
+    importModel(serializedModelData);
 }
 
 window.onunload = function ()
 {
     // Save the graph when unloading the page
-    localStorage.setItem('graph', exportData());
+    localStorage.setItem('latestModelData', model.serialize());
 }
-*/
 
 window.onkeydown = function (event)
 {
@@ -129,6 +91,18 @@ window.onkeydown = function (event)
         editor.deleteSelected();
         event.preventDefault();
         return;
+    }
+}
+
+export function importModel(serializedModelData)
+{
+    // Stop playback to avoid glitching
+    stopPlayback();
+
+    if (model.deserialize(serializedModelData)) {
+        console.log('model restored from previous session');
+    } else {
+        console.warn('could not restore model from previous session');
     }
 }
 
