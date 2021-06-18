@@ -13,15 +13,6 @@ let playing = false;
 // Project model/state
 let model = new Model();
 
-model.on('loading', () => {
-    // Stop playback to avoid glitching
-    stopPlayback();
-
-    // Show the Edit tab before loading the graph,
-    // so it can resize itself correctly
-    /* showTab('edit'); */
-});
-
 // Graph editor view
 let editor = new Editor(model);
 
@@ -36,21 +27,17 @@ document.body.onload = function ()
     if (window.location.hash)
         return;
 
-    let modelData = localStorage.getItem('model');
-    if (!modelData)
+    let serializedModelData = localStorage.getItem('latestModelData');
+    if (!serializedModelData)
         return;
 
-    if (model.deserialize(modelData)) {
-        console.log('model restored from previous session');
-    } else {
-        console.warn('could not restore model from previous session');
-    }
+    importModel(serializedModelData);
 }
 
 window.onunload = function ()
 {
     // Save the graph when unloading the page
-    localStorage.setItem('model', model.serialize());
+    localStorage.setItem('latestModelData', model.serialize());
 }
 
 window.onkeydown = function (event)
@@ -104,6 +91,18 @@ window.onkeydown = function (event)
         editor.deleteSelected();
         event.preventDefault();
         return;
+    }
+}
+
+export function importModel(serializedModelData)
+{
+    // Stop playback to avoid glitching
+    stopPlayback();
+
+    if (model.deserialize(serializedModelData)) {
+        console.log('model restored from previous session');
+    } else {
+        console.warn('could not restore model from previous session');
     }
 }
 
