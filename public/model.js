@@ -34,7 +34,7 @@ disconnect <src_node> <out_port> <dst_node> <out_port>
 // Creating a module will cause the model to
 // Move nodes inside the module
 create_module <list_of_node_ids>
-split_module <node_id>
+ungroup_module <node_id>
 
 // Sent by the play/stop buttons (but not undo-able)
 play 
@@ -44,7 +44,7 @@ stop
 set_play_pos <time>
 
 // Actions to edit the settings/parameters of nodes
-set_name <node_id> <name>
+set_node_name <node_id> <name>
 set_param <node_id> <param_name> <new_val>
 
 // To visualize audio data in the UI
@@ -62,8 +62,8 @@ or it's a special undoable action.
 import { assert, treeCopy, treeEq, isString, isObject } from './utils.js';
 
 /**
- * High-level description/scheme for each type of node
-*/
+ * High-level description/schema for each type of node
+ * */
 export const NODE_SCHEMA =
 {
     'Add': {
@@ -338,7 +338,7 @@ export const NODE_SCHEMA =
  * Base class for all model update actions.
  * As a general rule, we only create actions for things we can undo.
  * Moving nodes is an action, but selecting or copying nodes is not.
-*/
+ * */
 export class Action
 {
     // Update the model based on this action
@@ -348,7 +348,9 @@ export class Action
     }
 }
 
-// Create a new node
+/**
+ * Create a new node
+ * */
 export class CreateNode extends Action
 {
     constructor(nodeType, x, y)
@@ -385,7 +387,9 @@ export class CreateNode extends Action
     }
 }
 
-// Move one or more nodes
+/**
+ * Move one or more nodes
+ * */
 export class MoveNodes extends Action
 {
     constructor(nodeIds, dx, dy)
@@ -407,7 +411,9 @@ export class MoveNodes extends Action
     }
 }
 
-// Delete one or more nodes
+/**
+ * Delete one or more nodes
+ * */
 export class DeleteNodes extends Action
 {
     constructor(nodeIds)
@@ -450,13 +456,80 @@ export class DeleteNodes extends Action
 }
 
 /**
- *  Group the selected nodes into a user-created module
- *  Currently, the way this works is that the selected nodes will become
- *  a black box with inputs and outputs corresponding to the nodes/ports it's
- *  connected to outside the group. Eventually, we will also make it possible
- *  to rename module input and output ports after the module is created. We
- *  could make it possible to expose specific knobs inside the group on the
- *  module's UI.
+ * Set a node parameter to a given value
+ * */
+class SetParam extends Action
+{
+    constructor(nodeId, paramName, value)
+    {
+        this.nodeId = nodeId;
+        this.paramName = paramName;
+        this.value = value;
+    }
+
+    update(model)
+    {
+        let node = model.state.nodes[this.nodeId];
+        assert (this.param in node.params);
+        node.params[this.paramName] = this.value;
+    }
+}
+
+/**
+ * Connect two nodes with an edge
+ * */
+export class ConnectNodes extends Action
+{
+    constructor(srcId, srcPort, dstId, dstPort)
+    {
+        super();
+        this.srcId = srcId;
+        this.srcPort = srcPort;
+        this.dstId = dstId;
+        this.dstPort = dstPort;
+    }
+
+    update(model)
+    {
+        assert (this.srcId != this.dstId);
+        let srcNode = model.state.nodes[this.srcId];
+        let dstNode = model.state.nodes[this.dstId];
+        assert (srcNode);
+        assert (dstNode);
+
+        // An input port can only have one incoming connection
+        dstNode.ins[this.dstPort] = [this.srcId, this.srcPort];
+    }
+}
+
+/**
+ * Remove the connection attached to an input port
+ * */
+export class Disconnect extends Action
+{
+    constructor(dstId, dstPort)
+    {
+        super();
+        this.dstId = dstId;
+        this.dstPort = dstPort;
+    }
+
+    update(model)
+    {
+        let dstNode = model.state.nodes[this.dstId];
+        assert (dstNode);
+        dstNode.ins[this.dstPort] = null;
+    }
+}
+
+/**
+ * Group the selected nodes into a user-created module
+ * Currently, the way this works is that the selected nodes will become
+ * a black box with inputs and outputs corresponding to the nodes/ports it's
+ * connected to outside the group. Eventually, we will also make it possible
+ * to rename module input and output ports after the module is created. We
+ * could make it possible to expose specific knobs inside the group on the
+ * module's UI.
  * */
 export class GroupNodes extends Action
 {
@@ -598,50 +671,9 @@ export class GroupNodes extends Action
     }
 }
 
-// Connect two nodes with an edge
-export class ConnectNodes extends Action
-{
-    constructor(srcId, srcPort, dstId, dstPort)
-    {
-        super();
-        this.srcId = srcId;
-        this.srcPort = srcPort;
-        this.dstId = dstId;
-        this.dstPort = dstPort;
-    }
-
-    update(model)
-    {
-        assert (this.srcId != this.dstId);
-        let srcNode = model.state.nodes[this.srcId];
-        let dstNode = model.state.nodes[this.dstId];
-        assert (srcNode);
-        assert (dstNode);
-
-        // An input port can only have one incoming connection
-        dstNode.ins[this.dstPort] = [this.srcId, this.srcPort];
-    }
-}
-
-// Remove the connection attached to an input port
-export class Disconnect extends Action
-{
-    constructor(dstId, dstPort)
-    {
-        super();
-        this.dstId = dstId;
-        this.dstPort = dstPort;
-    }
-
-    update(model)
-    {
-        let dstNode = model.state.nodes[this.dstId];
-        assert (dstNode);
-        dstNode.ins[this.dstPort] = null;
-    }
-}
-
-/** Graph of nodes model, operates on internal state data */
+/**
+ * Graph of nodes model, operates on internal state data
+ * */
 export class Model
 {
     constructor()
@@ -708,9 +740,10 @@ export class Model
         });
     }
 
-    // Tries to deserialize a string representation of a model
-    //
-    // Returns true if successfully deserialized and loaded, false otherwise
+    /**
+     * Tries to deserialize a JSON string representation of a model
+     * Returns true if successfully deserialized and loaded, false otherwise
+     * */
     deserialize(data)
     {
         if (!isString(data))
@@ -734,7 +767,9 @@ export class Model
         return true;
     }
 
-    /** Check if the graph contains a specific type of node */
+    /**
+     * Check if the graph contains a specific type of node
+     * */
     hasNode(nodeType)
     {
         // Compute the next available id
