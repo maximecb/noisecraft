@@ -33,7 +33,10 @@ document.body.onload = function ()
     if (!serializedModelData)
         return;
 
-    importModel(serializedModelData);
+    if (importModel(serializedModelData))
+        console.log('model restored from previous session');
+    else
+        console.warn('could not restore model from previous session');
 }
 
 window.onunload = function ()
@@ -101,11 +104,43 @@ export function importModel(serializedModelData)
     // Stop playback to avoid glitching
     stopPlayback();
 
-    if (model.deserialize(serializedModelData)) {
-        console.log('model restored from previous session');
-    } else {
-        console.warn('could not restore model from previous session');
-    }
+    return model.deserialize(serializedModelData);
+}
+
+export function openModelFile()
+{
+    let input = document.createElement('input');
+    input.type = 'file';
+
+    input.onchange = e =>
+    {
+        if (!e || !e.target || !e.target.files)
+            return;
+
+        let file = e.target.files[0];
+        if (!file)
+            return;
+
+        let reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+
+        reader.onload = e =>
+        {
+            if (!e || !e.target)
+                return;
+
+            if (!importModel(e.target.result))
+                console.warn('could not deserialize model file');
+        }
+
+    };
+
+    input.click();
+}
+
+export function saveModelFile()
+{
+
 }
 
 export function startPlayback()
