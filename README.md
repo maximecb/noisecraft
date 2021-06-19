@@ -19,6 +19,9 @@ Design principles:
   - Avoid drop-down menus and hidden options if possible
   - Use keys and controls that will likely seem familiar to most users
   - Avoid ambiguity, use known/existing terminology wherever possible
+- Practical considerations:
+  - Avoid images and sound samples to keep bandwidth costs low
+  - Avoiding sound samples also forces people to think about how to generate sounds
 
 I would like to use a multi-page design, as opposed to a single-page app. This means
 the New, Help and Browse links will open new tabs. This will avoid the users accidentally
