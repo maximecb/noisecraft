@@ -30,11 +30,20 @@ model.new();
 document.body.onload = function ()
 {
     if (window.location.hash)
+    {
+        // To avoid erasing localStorage on refresh/reload
+        if (window.location.hash == '#new')
+            history.replaceState(null, null, ' ');
+
         return;
+    }
 
     let serializedModelData = localStorage.getItem('latestModelData');
+
     if (!serializedModelData)
+    {
         return;
+    }
 
     if (importModel(serializedModelData))
         console.log('model restored from previous session');
