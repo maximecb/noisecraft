@@ -341,14 +341,6 @@ export const NODE_SCHEMA =
 */
 export class Action
 {
-    // Try to combine this action with a previous action
-    // This is used to simplify the undo queue
-    combine(prev)
-    {
-        // Action can't be combined
-        return null;
-    }
-
     // Update the model based on this action
     update(model)
     {
@@ -402,21 +394,6 @@ export class MoveNodes extends Action
         this.nodeIds = nodeIds;
         this.dx = dx;
         this.dy = dy;
-    }
-
-    combine(prev)
-    {
-        if (this.prototype != prev.prototype)
-            return null;
-
-        if (!treeEq(this.nodeIds, prev.nodeIds))
-            return null;
-
-        return new MoveNodes(
-            this.nodeIds,
-            this.dx + prev.dx,
-            this.dy + prev.dy,
-        );
     }
 
     update(model)
@@ -675,8 +652,11 @@ export class Model
         // Persistent state
         this.state = null;
 
-        // List of past states tracked for undo/redo
-        this.undoQueue = [];
+        // Stack of past states and actions tracked for undo
+        this.undoStack = [];
+
+        // Stack of actions tracked for redo
+        this.redoStack = [];
     }
 
     // Register a view
@@ -780,12 +760,15 @@ export class Model
     // Apply an action to the model
     update(action)
     {
-        //console.log(action);
+        console.log('update model', action.constructor.name);
 
         assert (!('id' in action) || action.id in this.state.nodes);
 
-        // Save the state and action in the undo queue
-        this.addUndo(action);
+        // Store a copy of the current state for undo
+        this.undoStack.push(treeCopy(this.state));
+
+        // Clear the redo stack
+        this.redoStack = [];
 
         // Update the model based on the action
         action.update(this);
@@ -794,44 +777,33 @@ export class Model
         this.broadcast(this.state, action);
     }
 
-    // Add an action to the undo queue
-    addUndo(action)
-    {
-        if (this.undoQueue.length > 0)
-        {
-            let prev = this.undoQueue[this.undoQueue.length-1];
-            let combined = action.combine(prev.action);
-
-            // If this action can be combined with the previous
-            if (combined)
-            {
-                this.undoQueue.pop();
-                this.undoQueue.push({
-                    action: combined,
-                    state: prev.state
-                });
-
-                return;
-            }
-        }
-
-        // Store a copy of the state for undo
-        this.undoQueue.push({
-            action: action,
-            state: treeCopy(this.state)
-        });
-    }
-
     // Undo the last action performed
     undo()
     {
-        if (this.undoQueue.length == 0)
+        if (this.undoStack.length == 0)
             return;
 
-        let prev = this.undoQueue.pop()
+        // Store the current state in the redo stack
+        this.redoStack.push(treeCopy(this.state));
 
-        // Restore the old state
-        this.state = prev.state;
+        // Restore the previous model state
+        this.state = this.undoStack.pop();
+
+        // Broadcast the state update
+        this.broadcast(this.state, null);
+    }
+
+    // Redo an action that was undone
+    redo()
+    {
+        if (this.redoStack.length == 0)
+            return;
+
+        // Store a copy of the current state for undo
+        this.undoStack.push(treeCopy(this.state));
+
+        // Restore the redo state
+        this.state = this.redoStack.pop();
 
         // Broadcast the state update
         this.broadcast(this.state, null);

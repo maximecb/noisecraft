@@ -77,24 +77,24 @@ window.onkeydown = function (event)
         if (event.code == 'KeyZ')
         {
             console.log('undo');
-            model.undo();
             event.preventDefault();
+            model.undo();
         }
 
         // Ctrl + Y (redo)
         if (event.code == 'KeyY')
         {
             console.log('redo');
-            //model.redo();
             event.preventDefault();
+            model.redo();
         }
 
         // Ctrl + G (group nodes)
         if (event.code == 'KeyG')
         {
             console.log('group nodes');
-            editor.groupSelected();
             event.preventDefault();
+            editor.groupSelected();
         }
 
         return;
@@ -104,8 +104,8 @@ window.onkeydown = function (event)
     if (event.code == 'Backspace' || event.code == 'Delete')
     {
         console.log('delete key');
-        editor.deleteSelected();
         event.preventDefault();
+        editor.deleteSelected();
         return;
     }
 }

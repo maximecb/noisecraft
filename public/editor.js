@@ -113,8 +113,6 @@ export class Editor
                 return;
             }
     
-            console.log('click');
-
             // This event may get triggered while dragging knob controls
             if (evt.target === this.graphDiv)
             {
