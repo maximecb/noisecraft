@@ -2,7 +2,8 @@
 
 Browser-based visual programming language and platform for sound synthesis and music making.
 Once NoiseCraft is more functional and stable, it will be open sourced under the GPLv2.
-When the app is deployed it will be live at https://noisecraft.app.
+When the app is deployed it will be live at https://noisecraft.app. The goal is for the app
+to remain free to use and ad-free for the foreseeable future.
 
 ## Design
 
