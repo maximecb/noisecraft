@@ -733,20 +733,22 @@ export class Model
     // Returns true if successfully deserialized and loaded, false otherwise
     deserialize(data)
     {
-        if (!isString(data)) {
+        if (!isString(data))
             return false;
-        }
 
         let json;
-        try {
+        try
+        {
             json = JSON.parse(data);
-        } catch (e) {
+        }
+
+        catch (e)
+        {
             return false;
         }
 
-        if (!isObject(json) || !isObject(json.state)) {
+        if (!isObject(json) || !isObject(json.state))
             return false;
-        }
 
         this.load(json.state);
         return true;
