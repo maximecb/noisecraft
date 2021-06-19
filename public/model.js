@@ -10,7 +10,7 @@ Each node has:
   - some of these can be invisible to the user
   - some of these are reset after playback
 - a map of input connections for each input port
-  - pairs of (node_id, out_port_name), no property if no connection
+  - pairs of (node_id, out_port_idx), no property if no connection
 - private state that is used for audio
   - this is not persisted and not tracked by the model
 
@@ -36,7 +36,7 @@ disconnect <src_node> <out_port> <dst_node> <out_port>
 create_module <list_of_node_ids>
 split_module <node_id>
 
-// Sent by the play/stop buttons
+// Sent by the play/stop buttons (but not undo-able)
 play 
 stop
 
@@ -493,79 +493,18 @@ export class GroupNodes extends Action
     {
         console.log('grouping nodes');
 
-        // Create a set from the node ids so we can test membership quickly
-        let groupSet = new Set(this.nodeIds)
-
-        function findInList(list, tuple)
-        {
-            for (let idx = 0; idx < list.length; ++idx)
-            {
-                if (treeEq(list[idx], tuple))
-                    return idx;
-            }
-
-            return -1;
-        }
-
-        // List of source ports we are connected to
-        let srcPorts = [];
-
-        // List of inputs for the group
-        let ins = [];
-
-        // For each node in the group
-        for (let nodeId of this.nodeIds)
-        {
-            let node = model.state.nodes[nodeId];
-
-            // For each input port
-            for (let dstPort in node.ins)
-            {
-                if (!node.ins[dstPort])
-                    continue;
-
-                let srcPort = node.ins[dstPort];
-                let [srcNode, portIdx] = srcPort;
-
-                // If this connection leads to an outside port which we aren't tracking yet
-                if (!groupSet.has(srcNode) && findInList(srcPorts, srcPort) == -1)
-                {
-                    srcPorts.push(srcPort);
-                    ins.push({ name: 'in' + ins.length, default: 0 });
-                }
-            }
-        }
-
-        console.log(`num group ins: ${srcPorts.length}`);
-
-
-
-
-
-
-
-
-
-
-        // TODO: update connections exiting the group
-
-        // TODO: update connections leaving the group
-
-
-
-
         // Create a module node
         let module = {
             type: 'Module',
             name: 'Module',
             x: Infinity,
             y: Infinity,
-            ins: {},
+            ins: [],
             params: {},
             nodes: {},
             schema: {
-                ins: ins,
-                outs: [], // TODO
+                ins: [],
+                outs: [],
                 params: [],
                 description: 'user-created module'
             },
@@ -591,6 +530,71 @@ export class GroupNodes extends Action
             module.x = Math.min(module.x, node.x);
             module.y = Math.min(module.y, node.y);
         }
+
+        // Create a set from the node ids so we can test membership quickly
+        let groupSet = new Set(this.nodeIds)
+
+        function findInList(list, tuple)
+        {
+            for (let idx = 0; idx < list.length; ++idx)
+            {
+                if (treeEq(list[idx], tuple))
+                    return idx;
+            }
+
+            return -1;
+        }
+
+        // For each node in the module
+        for (let nodeId of this.nodeIds)
+        {
+            let node = module.nodes[nodeId];
+
+            // For each input port
+            for (let dstPort in node.ins)
+            {
+                if (!node.ins[dstPort])
+                    continue;
+
+                let srcPort = node.ins[dstPort];
+                let [srcNode, portIdx] = srcPort;
+
+                // If this input connection leads to a port outside of the group
+                if (!groupSet.has(srcNode))
+                {
+                    let listIdx = findInList(module.ins, srcPort);
+
+                    // If we aren't tracking this port yet
+                    if (listIdx == -1)
+                    {
+                        listIdx = module.ins.length;
+                        module.ins.push(srcPort);
+                        module.schema.ins.push({ name: 'in' + listIdx, default: 0 });
+                    }
+
+                    // Keep track of the fact that this is an external connection
+                    node.ins[dstPort] = listIdx;
+                }
+            }
+        }
+
+        console.log(`num module ins: ${module.ins.length}`);
+
+
+
+        // TODO: update connections exiting the group
+
+
+
+
+
+
+        
+
+
+
+
+
     }
 }
 

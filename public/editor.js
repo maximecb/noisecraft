@@ -563,8 +563,8 @@ class Node
         // Graph editor
         this.editor = editor;
 
-        // Descriptor for this node type
-        this.schema = NODE_SCHEMA[state.type];
+        // Schema for this node type
+        this.schema = (state.type == 'Module')? state.schema:NODE_SCHEMA[state.type];
 
         this.nodeId = id;
         this.nodeType = state.type;
