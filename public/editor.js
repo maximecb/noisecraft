@@ -118,9 +118,16 @@ export class Editor
             // This event may get triggered while dragging knob controls
             if (evt.target === this.graphDiv)
             {
-                this.createNodeDialog(this.getMousePos(evt));
-                evt.stopPropagation();
-                return;
+                if (this.selected.length > 0)
+                {
+                    this.deselect();
+                }
+                else
+                {
+                    this.createNodeDialog(this.getMousePos(evt));
+                    evt.stopPropagation();
+                    return;
+                }
             }
         }
 
@@ -259,6 +266,20 @@ export class Editor
                 node.nodeDiv.style.removeProperty('border-color');
             }
         }
+    }
+
+    // Remove the currently active selection
+    deselect()
+    {
+        // For each selected node
+        for (let nodeId of this.selected)
+        {
+            // Unhighlight the node
+            let node = this.nodes.get(nodeId);
+            node.nodeDiv.style.removeProperty('border-color');
+        }
+
+        this.selected = [];
     }
 
     // Resize the graph to fit all nodes
