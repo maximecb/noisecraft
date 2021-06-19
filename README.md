@@ -20,7 +20,7 @@ Design principles:
   - Use keys and controls that will likely seem familiar to most users
   - Avoid ambiguity, use known/existing terminology wherever possible
 - Practical considerations:
-  - Avoid images and sound samples to keep bandwidth costs low
+  - Avoid images and sound samples to keep bandwidth/server costs low
   - Avoiding sound samples also forces people to think about how to generate sounds
 
 I would like to use a multi-page design, as opposed to a single-page app. This means
