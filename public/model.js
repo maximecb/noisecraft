@@ -511,9 +511,11 @@ export class GroupNodes extends Action
         };
 
         // Add the new module node to the state
-        let nodeId = model.nextId++;
-        assert (!model.state[nodeId]);
-        model.state.nodes[nodeId] = module;
+        let moduleId = model.nextId++;
+        assert (!model.state[moduleId]);
+        model.state.nodes[moduleId] = module;
+
+        console.log(`moduleId=${moduleId}`);
 
         // Add the nodes to the module and remove them from the global graph
         for (let nodeId of this.nodeIds)
@@ -521,6 +523,8 @@ export class GroupNodes extends Action
             let node = model.state.nodes[nodeId];
             module.nodes[nodeId] = node;
             delete model.state.nodes[nodeId];
+
+            console.log(`deleting nodeId=${nodeId}`);
         }
 
         // Compute the position of the group node
@@ -530,9 +534,6 @@ export class GroupNodes extends Action
             module.x = Math.min(module.x, node.x);
             module.y = Math.min(module.y, node.y);
         }
-
-        // Create a set from the node ids so we can test membership quickly
-        let groupSet = new Set(this.nodeIds)
 
         function findInList(list, tuple)
         {
@@ -560,7 +561,7 @@ export class GroupNodes extends Action
                 let [srcNode, portIdx] = srcPort;
 
                 // If this input connection leads to a port outside of the group
-                if (!groupSet.has(srcNode))
+                if (srcNode in model.state.nodes)
                 {
                     let listIdx = findInList(module.ins, srcPort);
 
@@ -580,21 +581,43 @@ export class GroupNodes extends Action
 
         console.log(`num module ins: ${module.ins.length}`);
 
+        // List of output ports (tuples) that are connected to outside nodes
+        let outPorts = [];
 
+        // For each node outside the module
+        for (let nodeId in model.state.nodes)
+        {
+            let node = model.state.nodes[nodeId];
 
-        // TODO: update connections exiting the group
+            // For each input port
+            for (let dstPort in node.ins)
+            {
+                if (!node.ins[dstPort])
+                    continue;
 
+                let srcPort = node.ins[dstPort];
+                let [srcNode, portIdx] = srcPort;
 
+                // If this input connection leads to a port inside of the group
+                if (srcNode in module.nodes)
+                {
+                    let listIdx = findInList(outPorts, srcPort);
 
+                    // If we aren't tracking this port yet
+                    if (listIdx == -1)
+                    {
+                        listIdx = outPorts.length;
+                        outPorts.push(srcPort);
+                        module.schema.outs.push('out' + listIdx);
+                    }
 
+                    // Keep track of the fact that this is an external connection
+                    node.ins[dstPort] = [String(moduleId), listIdx];
+                }
+            }
+        }
 
-
-        
-
-
-
-
-
+        console.log(`num module outs: ${module.schema.outs.length}`);
     }
 }
 

@@ -184,6 +184,8 @@ export class Editor
                     continue;
 
                 let [srcId, srcPort] = dstState.ins[dstPort];
+                assert (typeof srcId == 'string');
+                assert (this.nodes.has(srcId));
                 let srcNode = this.nodes.get(srcId);
 
                 let [sx, sy] = srcNode.getPortPos(srcPort, 'src');
