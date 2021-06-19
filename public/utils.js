@@ -313,6 +313,75 @@ export function randElem(array)
 }
 
 /**
+Choose a random opaque bright color
+*/
+export function randBrightColor()
+{
+    let ranges = [
+        [175, 255],
+        [50, 200],
+        [0, 235]
+    ];
+
+    shuffleArray(ranges);
+
+    return randColor(ranges[0], ranges[1], ranges[2]);
+}
+
+/**
+Choose a random opaque color
+
+Returns a 6-character hexadecimal string with a preceding "#"
+*/
+export function randColor(rRange, gRange, bRange)
+{
+    rRange = rRange || [0, 255];
+    gRange = gRange || [0, 255];
+    bRange = bRange || [0, 255];
+
+    // Generate random color components
+    let r = randColorComponent(rRange);
+    let g = randColorComponent(gRange);
+    let b = randColorComponent(bRange);
+
+    return `#${r}${g}${b}`;
+}
+
+/**
+Choose a random color component value
+
+Returns a 2-character hexadecimal string
+*/
+export function randColorComponent(range)
+{
+    let result = randInt(
+        Math.max(0, range[0] || 0),
+        Math.min(255, range[1] || 255)
+    ).toString(16);
+
+    if (result.length === 0)
+        return '00';
+    else if (result.length === 1)
+        return `0${result}`;
+    else
+        return result;
+}
+
+/**
+Shuffles the contents of an array randomly
+
+Given array is modified, does not create or return a copy
+*/
+export function shuffleArray(arr)
+{
+    for (let i = arr.length - 1; i > 0; i--)
+    {
+        let j = randInt(0, i);
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+}
+
+/**
 Plot a single-variable function on a canvas
 */
 export function plotFn(fn, xMin, xMax, canvasId)
