@@ -2,6 +2,9 @@ import { Model } from './model.js';
 import { Editor } from './editor.js';
 import { AudioView } from './audioview.js';
 
+// Project title input
+let inputProjectTitle = document.getElementById('project_title');
+
 // Menu buttons
 let btnNew = document.getElementById('btn_new');
 let btnSave = document.getElementById('btn_save');
@@ -140,7 +143,14 @@ export function openModelFile()
 
 export function saveModelFile()
 {
+    let a = document.createElement('a');
+    a.download = `${inputProjectTitle.value || 'Untitled Project'}.json`;
+    a.href = window.URL.createObjectURL(new Blob(
+        [model.serialize()],
+        {type: 'application/json'}
+    ));
 
+    a.click();
 }
 
 export function startPlayback()
