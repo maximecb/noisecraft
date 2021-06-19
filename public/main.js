@@ -135,7 +135,6 @@ export function openModelFile()
             if (!importModel(e.target.result))
                 console.warn('could not deserialize model file');
         }
-
     };
 
     input.click();
@@ -227,25 +226,6 @@ export function stopPlayback()
 
 
     playing = false;
-}
-
-export function newProject()
-{
-    /*
-    if (playing)
-        btnStop.onclick();
-
-    let ok = confirm(
-        'You will lose any unsaved work.'
-    );
-
-    if (ok)
-    {
-        showTab('edit');
-        editor.clear();
-        history.pushState(null, null, '.');
-    }
-    */
 }
 
 btnSave.onclick = saveModelFile;
