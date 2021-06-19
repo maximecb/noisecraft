@@ -56,7 +56,7 @@ window.onkeydown = function (event)
         return;
 
     // Spacebar triggers play/stop
-    if (event.keyCode == 0x20)
+    if (event.code == 'Space')
     {
         if (playing)
         {
@@ -74,15 +74,23 @@ window.onkeydown = function (event)
     if (event.ctrlKey || event.metaKey)
     {
         // Ctrl + Z (undo)
-        if (event.keyCode == 90)
+        if (event.code == 'KeyZ')
         {
             console.log('undo');
             model.undo();
             event.preventDefault();
         }
 
-        // Ctrl + G (group)
-        if (event.keyCode == 71)
+        // Ctrl + Y (redo)
+        if (event.code == 'KeyY')
+        {
+            console.log('redo');
+            //model.redo();
+            event.preventDefault();
+        }
+
+        // Ctrl + G (group nodes)
+        if (event.code == 'KeyG')
         {
             console.log('group nodes');
             editor.groupSelected();
@@ -93,7 +101,7 @@ window.onkeydown = function (event)
     }
 
     // Delete or backspace key
-    if (event.keyCode == 46 || event.keyCode == 8)
+    if (event.code == 'Backspace' || event.code == 'Delete')
     {
         console.log('delete key');
         editor.deleteSelected();

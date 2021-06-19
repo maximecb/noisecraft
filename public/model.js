@@ -10,7 +10,7 @@ Each node has:
   - some of these can be invisible to the user
   - some of these are reset after playback
 - a map of input connections for each input port
-  - pairs of (node_id, out_port_name), no property if no connection
+  - pairs of (node_id, out_port_idx), no property if no connection
 - private state that is used for audio
   - this is not persisted and not tracked by the model
 
@@ -36,7 +36,7 @@ disconnect <src_node> <out_port> <dst_node> <out_port>
 create_module <list_of_node_ids>
 split_module <node_id>
 
-// Sent by the play/stop buttons
+// Sent by the play/stop buttons (but not undo-able)
 play 
 stop
 
@@ -493,8 +493,47 @@ export class GroupNodes extends Action
     {
         console.log('grouping nodes');
 
-        // Create a set from the node ids so we can test membership quickly
-        let groupSet = new Set(this.nodeIds)
+        // Create a module node
+        let module = {
+            type: 'Module',
+            name: 'Module',
+            x: Infinity,
+            y: Infinity,
+            ins: [],
+            params: {},
+            nodes: {},
+            schema: {
+                ins: [],
+                outs: [],
+                params: [],
+                description: 'user-created module'
+            },
+        };
+
+        // Add the new module node to the state
+        let moduleId = model.nextId++;
+        assert (!model.state[moduleId]);
+        model.state.nodes[moduleId] = module;
+
+        console.log(`moduleId=${moduleId}`);
+
+        // Add the nodes to the module and remove them from the global graph
+        for (let nodeId of this.nodeIds)
+        {
+            let node = model.state.nodes[nodeId];
+            module.nodes[nodeId] = node;
+            delete model.state.nodes[nodeId];
+
+            console.log(`deleting nodeId=${nodeId}`);
+        }
+
+        // Compute the position of the group node
+        for (let nodeId of this.nodeIds)
+        {
+            let node = module.nodes[nodeId];
+            module.x = Math.min(module.x, node.x);
+            module.y = Math.min(module.y, node.y);
+        }
 
         function findInList(list, tuple)
         {
@@ -507,14 +546,46 @@ export class GroupNodes extends Action
             return -1;
         }
 
-        // List of source ports we are connected to
-        let srcPorts = [];
-
-        // List of inputs for the group
-        let ins = [];
-
-        // For each node in the group
+        // For each node in the module
         for (let nodeId of this.nodeIds)
+        {
+            let node = module.nodes[nodeId];
+
+            // For each input port
+            for (let dstPort in node.ins)
+            {
+                if (!node.ins[dstPort])
+                    continue;
+
+                let srcPort = node.ins[dstPort];
+                let [srcNode, portIdx] = srcPort;
+
+                // If this input connection leads to a port outside of the group
+                if (srcNode in model.state.nodes)
+                {
+                    let listIdx = findInList(module.ins, srcPort);
+
+                    // If we aren't tracking this port yet
+                    if (listIdx == -1)
+                    {
+                        listIdx = module.ins.length;
+                        module.ins.push(srcPort);
+                        module.schema.ins.push({ name: 'in' + listIdx, default: 0 });
+                    }
+
+                    // Keep track of the fact that this is an external connection
+                    node.ins[dstPort] = listIdx;
+                }
+            }
+        }
+
+        console.log(`num module ins: ${module.ins.length}`);
+
+        // List of output ports (tuples) that are connected to outside nodes
+        let outPorts = [];
+
+        // For each node outside the module
+        for (let nodeId in model.state.nodes)
         {
             let node = model.state.nodes[nodeId];
 
@@ -527,70 +598,26 @@ export class GroupNodes extends Action
                 let srcPort = node.ins[dstPort];
                 let [srcNode, portIdx] = srcPort;
 
-                // If this connection leads to an outside port which we aren't tracking yet
-                if (!groupSet.has(srcNode) && findInList(srcPorts, srcPort) == -1)
+                // If this input connection leads to a port inside of the group
+                if (srcNode in module.nodes)
                 {
-                    srcPorts.push(srcPort);
-                    ins.push({ name: 'in' + ins.length, default: 0 });
+                    let listIdx = findInList(outPorts, srcPort);
+
+                    // If we aren't tracking this port yet
+                    if (listIdx == -1)
+                    {
+                        listIdx = outPorts.length;
+                        outPorts.push(srcPort);
+                        module.schema.outs.push('out' + listIdx);
+                    }
+
+                    // Keep track of the fact that this is an external connection
+                    node.ins[dstPort] = [String(moduleId), listIdx];
                 }
             }
         }
 
-        console.log(`num group ins: ${srcPorts.length}`);
-
-
-
-
-
-
-
-
-
-
-        // TODO: update connections exiting the group
-
-        // TODO: update connections leaving the group
-
-
-
-
-        // Create a module node
-        let module = {
-            type: 'Module',
-            name: 'Module',
-            x: Infinity,
-            y: Infinity,
-            ins: {},
-            params: {},
-            nodes: {},
-            schema: {
-                ins: ins,
-                outs: [], // TODO
-                params: [],
-                description: 'user-created module'
-            },
-        };
-
-        // Add the new module node to the state
-        let nodeId = model.nextId++;
-        assert (!model.state[nodeId]);
-        model.state.nodes[nodeId] = module;
-
-        // Add the nodes to the module and remove them from the global graph
-        for (let nodeId of this.nodeIds)
-        {
-            let node = model.state.nodes[nodeId];
-            module.nodes[nodeId] = node;
-            delete model.state.nodes[nodeId];
-        }
-
-        // Compute the position of the group node
-        for (let nodeId of this.nodeIds)
-        {
-            let node = module.nodes[nodeId];
-            module.x = Math.min(module.x, node.x);
-            module.y = Math.min(module.y, node.y);
-        }
+        console.log(`num module outs: ${module.schema.outs.length}`);
     }
 }
 
