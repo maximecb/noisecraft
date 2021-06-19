@@ -1,6 +1,7 @@
 import { Dialog, assert, makeSvg, setSvg, getSvg } from './utils.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
+import { Knob } from './knob.js';
 
 export class Editor
 {
@@ -164,7 +165,8 @@ export class Editor
         for (let nodeId in newState.nodes)
         {
             let nodeState = newState.nodes[nodeId];
-            let node = new Node(nodeId, nodeState, this);
+            let nodeClass = NODE_CLASSES[nodeState.type];
+            let node = new nodeClass(nodeId, nodeState, this);
             this.nodes.set(nodeId, node);
             this.graphDiv.appendChild(node.nodeDiv);
         }
@@ -827,4 +829,49 @@ class Node
         // Adjust the graph to fit this node
         //this.editor.fitNode(this, true);
     }
+}
+
+/**
+Rotary knob control
+*/
+class KnobNode extends Node
+{
+    constructor(id, state, editor)
+    {
+        super(id, state, editor);
+
+        this.knob = new Knob(
+            state.params.minVal,
+            state.params.maxVal,
+            state.params.value,
+            state.params.controlNo
+        );
+        this.centerDiv.append(this.knob.div)
+
+        // TODO: need to send update messages to the model
+        // Update the parameters when the knob state changes
+        //this.knob.addChangeListener(value => this.data.params.value = value);
+        //this.knob.addBindListener(controlNo => this.data.params.controlNo = controlNo);
+    }
+
+    // FIXME: for the node params dialog
+    /*
+    KnobNode.prototype.saveParams = function (newParams)
+    {
+        GraphNode.prototype.saveParams.call(this, newParams);
+    
+        this.knob.minVal = newParams.minVal;
+        this.knob.maxVal = newParams.maxVal;
+        this.knob.value = newParams.value;
+    
+        // Redraw the knob
+        this.knob.drawKnob();
+    }
+    */
+}
+
+// Map of node types to specialized node classes
+const NODE_CLASSES =
+{
+    'Knob': KnobNode,
 }
