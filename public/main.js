@@ -2,8 +2,10 @@ import { Model } from './model.js';
 import { Editor } from './editor.js';
 import { AudioView } from './audioview.js';
 
-// New, play, stop buttons
+// Menu buttons
 let btnNew = document.getElementById('btn_new');
+let btnSave = document.getElementById('btn_save');
+let btnOpen = document.getElementById('btn_open');
 let btnPlay = document.getElementById('btn_play');
 let btnStop = document.getElementById('btn_stop');
 
@@ -165,6 +167,8 @@ export function newProject()
     */
 }
 
+btnSave.onclick = saveModelFile;
+btnOpen.onclick = openModelFile;
 btnPlay.onclick = startPlayback;
 btnStop.onclick = stopPlayback;
 btnNew.onclick = newProject;
