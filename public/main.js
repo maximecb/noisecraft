@@ -240,4 +240,3 @@ btnSave.onclick = saveModelFile;
 btnOpen.onclick = openModelFile;
 btnPlay.onclick = startPlayback;
 btnStop.onclick = stopPlayback;
-btnNew.onclick = newProject;
