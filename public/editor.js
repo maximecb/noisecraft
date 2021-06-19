@@ -1,4 +1,4 @@
-import { Dialog, assert, makeSvg, setSvg, getSvg } from './utils.js';
+import { Dialog, assert, makeSvg, setSvg, getSvg, randBrightColor } from './utils.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
 
@@ -463,7 +463,7 @@ class Edge
     constructor()
     {
         this.line = makeSvg('line');
-        setSvg(this.line, 'stroke', '#FFF');
+        setSvg(this.line, 'stroke', randBrightColor());
         setSvg(this.line, 'stroke-width', '2');
 
         // Source and destination nodes
