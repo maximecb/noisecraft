@@ -858,9 +858,16 @@ class KnobNode extends Node
         );
         this.centerDiv.append(this.knob.div)
 
-        // TODO: need to send update messages to the model
-        // Update the parameters when the knob state changes
-        //this.knob.addChangeListener(value => this.data.params.value = value);
+        function knobChange(value)
+        {
+            editor.model.update(new model.SetParam(
+                id,
+                'value',
+                value
+            ));
+        }
+
+        this.knob.on('change', knobChange);
         //this.knob.addBindListener(controlNo => this.data.params.controlNo = controlNo);
     }
 

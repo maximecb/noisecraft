@@ -458,10 +458,11 @@ export class DeleteNodes extends Action
 /**
  * Set a node parameter to a given value
  * */
-class SetParam extends Action
+export class SetParam extends Action
 {
     constructor(nodeId, paramName, value)
     {
+        super();
         this.nodeId = nodeId;
         this.paramName = paramName;
         this.value = value;
@@ -470,7 +471,7 @@ class SetParam extends Action
     update(model)
     {
         let node = model.state.nodes[this.nodeId];
-        assert (this.param in node.params);
+        assert (this.paramName in node.params);
         node.params[this.paramName] = this.value;
     }
 }

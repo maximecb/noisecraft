@@ -17,12 +17,6 @@ export class Knob extends Eventable
         this.maxVal = maxVal;
         this.value = value;
 
-        // Knob value change callbacks
-        this.changeListeners = [];
-
-        // MIDI binding listeners
-        this.bindListeners = []
-
         // Div containing the whole knob
         this.div = document.createElement('div');
         this.div.style['padding'] = '4px';
@@ -148,9 +142,8 @@ export class Knob extends Eventable
         // Rotate the knob to its new position
         this.drawKnob();
 
-        // Call the change callbacks
-        //for (let fn of this.changeListeners)
-        //    fn(this.value);
+        // Call the change event callbacks
+        this.trigger('change', this.value);
     }
 
     /**
