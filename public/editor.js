@@ -165,7 +165,7 @@ export class Editor
         for (let nodeId in newState.nodes)
         {
             let nodeState = newState.nodes[nodeId];
-            let nodeClass = NODE_CLASSES[nodeState.type];
+            let nodeClass = (nodeState.type in NODE_CLASSES)? NODE_CLASSES[nodeState.type]:Node;
             let node = new nodeClass(nodeId, nodeState, this);
             this.nodes.set(nodeId, node);
             this.graphDiv.appendChild(node.nodeDiv);

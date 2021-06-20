@@ -7,10 +7,12 @@ import { Eventable } from './eventable.js';
 /**
 Reusable knob control component
 */
-export class Knob
+export class Knob extends Eventable
 {
     constructor(minVal, maxVal, value, controlNo)
     {
+        super();
+
         this.minVal = minVal;
         this.maxVal = maxVal;
         this.value = value;
