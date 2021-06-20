@@ -314,71 +314,37 @@ export function randElem(array)
 
 /**
 Choose a random opaque bright color
+
+If seed is provided, it must be a hexadecimal string
 */
-export function randBrightColor()
+export function randBrightColor(seed)
 {
-    let ranges = [
-        [175, 255],
-        [50, 200],
-        [0, 235]
+    // Colors of the 12-band rainbow flag
+    let colors = [
+        '#971c93',
+        '#5124cd',
+        '#0131ff',
+        '#009393',
+        '#00fa00',
+        '#cbfa00',
+        '#fefb00',
+        '#fec802',
+        '#ff9501',
+        '#ff5004',
+        '#fe2204',
+        '#d81d52'
     ];
 
-    shuffleArray(ranges);
+    if (!isString(seed))
+        return randElem(colors);
 
-    return randColor(ranges[0], ranges[1], ranges[2]);
-}
+    // Convert the seed from a hexadecimal string to a decimal integer
+    let index = parseInt(seed, 16);
 
-/**
-Choose a random opaque color
+    // "Wrap" the index around until it fits within the colors array
+    index %= colors.length;
 
-Returns a 6-character hexadecimal string with a preceding "#"
-*/
-export function randColor(rRange, gRange, bRange)
-{
-    rRange = rRange || [0, 255];
-    gRange = gRange || [0, 255];
-    bRange = bRange || [0, 255];
-
-    // Generate random color components
-    let r = randColorComponent(rRange);
-    let g = randColorComponent(gRange);
-    let b = randColorComponent(bRange);
-
-    return `#${r}${g}${b}`;
-}
-
-/**
-Choose a random color component value
-
-Returns a 2-character hexadecimal string
-*/
-export function randColorComponent(range)
-{
-    let result = randInt(
-        Math.max(0, range[0] || 0),
-        Math.min(255, range[1] || 255)
-    ).toString(16);
-
-    if (result.length === 0)
-        return '00';
-    else if (result.length === 1)
-        return `0${result}`;
-    else
-        return result;
-}
-
-/**
-Shuffles the contents of an array randomly
-
-Given array is modified, does not create or return a copy
-*/
-export function shuffleArray(arr)
-{
-    for (let i = arr.length - 1; i > 0; i--)
-    {
-        let j = randInt(0, i);
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
+    return colors[index];
 }
 
 /**
