@@ -45,6 +45,9 @@ export class Knob extends Eventable
         // HTML document body
         let body = document.getElementsByTagName("body")[0];
 
+        // Last time the knob was clicked
+        let lastClickTime = 0;
+
         function onMouseDown(evt)
         {
             console.log('knob mouseDown');
@@ -52,7 +55,15 @@ export class Knob extends Eventable
             evt.preventDefault();
             evt.stopPropagation();
 
-            //this.drawKnob();
+            // Double-clicking triggers the bind MIDI dialog
+            // This hack is necessary because we block mouse events
+            // while the knob is being moved
+            let curTime = Date.now();
+            if (curTime - lastClickTime < 400)
+            {
+                this.midiDialog();
+            }
+            lastClickTime = curTime;
 
             // TODO: simulate a double click to bind MIDI
 
@@ -70,25 +81,19 @@ export class Knob extends Eventable
             window.addEventListener('mousemove', this.mouseMoveHandler);
             window.addEventListener('mouseup', this.mouseUpHandler);
 
-            // This is a div that takes up the whole window and intercepts
-            // mouse events while the knob is moving
-            this.bgDiv = document.createElement('div');
-            this.bgDiv.className = 'overlay';
-            body.appendChild(this.bgDiv);    
+            // Block any mouse events within the body while the knob is moving
+            body.style['pointer-events'] = 'none';
         }
 
         function onMouseUp(evt)
         {
-            evt.preventDefault();
-            evt.stopPropagation();
-
             window.removeEventListener('mousemove', this.mouseMoveHandler);
             window.removeEventListener('mouseup', this.mouseUpHandler);
-            body.removeChild(this.bgDiv);
-
             this.mouseMoveHandler = null;
             this.mouseUpHandler = null;
-            this.bgDiv = null;
+
+            // Unblock mouse events on the body
+            body.style.removeProperty('pointer-events');
         }
 
         function onMouseMove(evt)

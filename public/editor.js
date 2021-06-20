@@ -645,7 +645,7 @@ class Node
         this.nodeDiv.onmouseup = endDrag.bind(this);
         this.nodeDiv.ontouchend = endDrag.bind(this);
         //this.nodeDiv.onclick = delNode.bind(this);
-        //this.nodeDiv.ondblclick = this.paramsDialog.bind(this);
+        this.nodeDiv.ondblclick = this.paramsDialog.bind(this);
 
         // Node header text
         this.headerDiv = document.createElement('div');
@@ -828,6 +828,16 @@ class Node
         // TODO: move this into the Editor class
         // Adjust the graph to fit this node
         //this.editor.fitNode(this, true);
+    }
+
+    /**
+     * Show a modal dialog to edit node parameters
+     * */
+    paramsDialog()
+    {
+        console.log('params dialog');
+
+        // TODO
     }
 }
 
