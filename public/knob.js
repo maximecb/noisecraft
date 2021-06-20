@@ -5,8 +5,8 @@ import { Eventable } from './eventable.js';
 // TODO: use the Eventable class for event handlers
 
 /**
-Reusable knob control component
-*/
+ * Reusable knob control component
+ * */
 export class Knob extends Eventable
 {
     constructor(minVal, maxVal, value, controlNo)
@@ -42,17 +42,26 @@ export class Knob extends Eventable
         this.valDiv.appendChild(document.createTextNode('1.00'));
         this.div.appendChild(this.valDiv);
 
+        // HTML document body
+        let body = document.getElementsByTagName("body")[0];
+
         function onMouseDown(evt)
         {
+            console.log('knob mouseDown');
+
             evt.preventDefault();
             evt.stopPropagation();
-            this.drawKnob();
+
+            //this.drawKnob();
+
+            // TODO: simulate a double click to bind MIDI
 
             // Prevents bug where moving knob cannot be released
             if (this.mouseMoveHandler)
             {
                 window.removeEventListener('mousemove', this.mouseMoveHandler);
                 window.removeEventListener('mouseup', this.mouseUpHandler);
+                body.removeChild(this.bgDiv);
             }
 
             // Temporarily register mousemove and mouseup handlers on window
@@ -60,14 +69,26 @@ export class Knob extends Eventable
             this.mouseUpHandler = onMouseUp.bind(this);
             window.addEventListener('mousemove', this.mouseMoveHandler);
             window.addEventListener('mouseup', this.mouseUpHandler);
+
+            // This is a div that takes up the whole window and intercepts
+            // mouse events while the knob is moving
+            this.bgDiv = document.createElement('div');
+            this.bgDiv.className = 'overlay';
+            body.appendChild(this.bgDiv);    
         }
 
         function onMouseUp(evt)
         {
             evt.preventDefault();
             evt.stopPropagation();
+
             window.removeEventListener('mousemove', this.mouseMoveHandler);
             window.removeEventListener('mouseup', this.mouseUpHandler);
+            body.removeChild(this.bgDiv);
+
+            this.mouseMoveHandler = null;
+            this.mouseUpHandler = null;
+            this.bgDiv = null;
         }
 
         function onMouseMove(evt)
@@ -75,8 +96,8 @@ export class Knob extends Eventable
             // Map the current value in [0, 1]
             let normVal = this.getNormVal();
 
-            var deltaY = -evt.movementY
-            var scaleY = 100;
+            let deltaY = -evt.movementY
+            let scaleY = 100;
 
             // Update the control value
             normVal += deltaY / scaleY;
@@ -85,51 +106,7 @@ export class Knob extends Eventable
             this.setNormVal(normVal);
         }
 
-        function onDblClick(evt)
-        {
-            evt.preventDefault();
-            evt.stopPropagation();
-
-            var div = document.createElement('div');
-            var dialog = new Dialog('MIDI Control Mapping', div);
-
-            div.appendChild(document.createTextNode(
-                'Move a knob or fader on your MIDI controller to map the ' +
-                'control to this knob. Note that the MIDI controller should ' +
-                'be connected before Zupiter is loaded. Press escape to unmap ' +
-                'the knob.'
-            ));
-
-            let knob = this;
-
-            function map(msg)
-            {
-                var msgType = msg[0] & 0xF0;
-
-                // MIDI control change
-                if (msgType == 0xB0 && msg.length == 3)
-                {
-                    let cc = msg[1];
-                    dialog.close();
-                    knob.bindMidi(cc);
-                    midi.removeInputListener(map);
-                }
-            }
-
-            function unmap(evt)
-            {
-                console.log('UNMAP');
-                knob.bindMidi(null);
-                midi.removeInputListener(map);
-            }
-
-            midi.addInputListener(map);
-            dialog.addCloseListener(unmap);
-        }
-
         this.div.onmousedown = onMouseDown.bind(this);
-        this.div.onclick = e => e.stopPropagation();
-        this.div.ondblclick = onDblClick.bind(this);
 
         // FIXME:
         // Re-bind the controller to MIDI
@@ -140,27 +117,9 @@ export class Knob extends Eventable
         this.drawKnob();
     }
 
-    // TODO: use Eventable for this
     /**
-    Add a knob value change listener
-    */
-    addChangeListener(callback)
-    {
-        this.changeListeners.push(callback);
-    }
-
-    // TODO: use Eventable for this
-    /**
-    Add a MIDI binding listener
-    */
-    addBindListener(callback)
-    {
-        this.bindListeners.push(callback);
-    }
-
-    /**
-    Compute the normalized value of this knob, in the [0,1] range
-    */
+     * Compute the normalized value of this knob, in the [0,1] range
+     * */
     getNormVal()
     {
         var value = this.value;
@@ -174,8 +133,8 @@ export class Knob extends Eventable
     }
 
     /**
-    Set the normalized value of this knob (in the [0,1] range)
-    */
+     * Set the normalized value of this knob (in the [0,1] range)
+     * */
     setNormVal(normVal)
     {
         // Map the new value to its actual range
@@ -190,51 +149,8 @@ export class Knob extends Eventable
     }
 
     /**
-    Bind the knob to a MIDI continuous control number
-    */
-    bindMidi(controlNo)
-    {
-        function midiListener(msg)
-        {
-            var msgType = msg[0] & 0xF0;
-
-            // MIDI control change
-            if (msgType != 0xB0 || msg.length != 3)
-                return;
-
-            let cc = msg[1];
-            let val = msg[2]
-
-            // Only respond to a specific controller
-            if (cc != this.controlNo)
-                return;
-
-            let normVal = val / 127;
-            this.setNormVal(normVal);
-        }
-
-        if (this.listener)
-        {
-            midi.removeInputListener(this.listener);
-        }
-
-        if (controlNo !== null)
-        {
-            this.controlNo = controlNo;
-            this.listener = midiListener.bind(this);
-            midi.addInputListener(this.listener);
-        }
-
-        // Call the MIDI bind callbacks
-        for (let fn of this.bindListeners)
-        {
-            fn(controlNo);
-        }
-    }
-
-    /**
-    Draw the knob at its current position
-    */
+     * Draw the knob at its current position
+     * */
     drawKnob()
     {
         // Map the current value in [0, 1]
@@ -280,5 +196,91 @@ export class Knob extends Eventable
             valStr = '+' + valStr;
 
         this.valDiv.textContent = valStr;
+    }
+
+    /**
+     * Create a dialog to bind this knob to a MIDI control number
+     * */
+    midiDialog()
+    {
+        console.log('bind MIDI');
+
+        var div = document.createElement('div');
+        var dialog = new Dialog('MIDI Control Mapping', div);
+
+        div.appendChild(document.createTextNode(
+            'Move a knob or fader on your MIDI controller to map the ' +
+            'control to this knob. Note that the MIDI controller should ' +
+            'be connected before Zupiter is loaded. Press escape to unmap ' +
+            'the knob.'
+        ));
+
+        let knob = this;
+
+        function map(msg)
+        {
+            var msgType = msg[0] & 0xF0;
+
+            // MIDI control change
+            if (msgType == 0xB0 && msg.length == 3)
+            {
+                let cc = msg[1];
+                dialog.close();
+                knob.bindMidi(cc);
+                midi.removeInputListener(map);
+            }
+        }
+
+        function unmap(evt)
+        {
+            knob.bindMidi(null);
+            midi.removeInputListener(map);
+        }
+
+        midi.addInputListener(map);
+        dialog.addCloseListener(unmap);
+    }
+
+    /**
+     * Bind this knob to a MIDI continuous control number
+     * */
+    bindMidi(controlNo)
+    {
+        function midiListener(msg)
+        {
+            var msgType = msg[0] & 0xF0;
+
+            // MIDI control change
+            if (msgType != 0xB0 || msg.length != 3)
+                return;
+
+            let cc = msg[1];
+            let val = msg[2]
+
+            // Only respond to a specific controller
+            if (cc != this.controlNo)
+                return;
+
+            let normVal = val / 127;
+            this.setNormVal(normVal);
+        }
+
+        if (this.listener)
+        {
+            midi.removeInputListener(this.listener);
+        }
+
+        if (controlNo !== null)
+        {
+            this.controlNo = controlNo;
+            this.listener = midiListener.bind(this);
+            midi.addInputListener(this.listener);
+        }
+
+        // Call the MIDI bind callbacks
+        for (let fn of this.bindListeners)
+        {
+            fn(controlNo);
+        }
     }
 }
