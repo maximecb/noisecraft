@@ -313,13 +313,15 @@ export function randElem(array)
 }
 
 /**
-Choose a random opaque bright color
+Returns a hex string (with a preceding '#') that is a bright color.
 
-If seed is provided, it must be a hexadecimal string
+If a key is provided, the same color will always be returned for that key.
+
+If no key is provided, the returned color is randomly selected.
 */
-export function randBrightColor(seed)
+export function getBrightColor(key)
 {
-    // Colors of the 12-band rainbow flag
+    // Colors of the 12-band rainbow flag!
     let colors = [
         '#971c93',
         '#5124cd',
@@ -335,15 +337,10 @@ export function randBrightColor(seed)
         '#d81d52'
     ];
 
-    if (!isString(seed))
+    if (!isString(key))
         return randElem(colors);
 
-    // Convert the seed from a hexadecimal string to a decimal integer
-    let index = parseInt(seed, 16);
-
-    // "Wrap" the index around until it fits within the colors array
-    index %= colors.length;
-
+    let index = hash(key) % colors.length;
     return colors[index];
 }
 
@@ -398,4 +395,21 @@ export function plotFn(fn, xMin, xMax, canvasId)
             ctx.stroke();
         }
     }
+}
+
+/**
+Hash a string into a non-negative integer.
+
+Uses the DJB2 algorithm.
+*/
+export function hash(str)
+{
+    let hash = 0;
+    for (let i = 0; i < str.length; i++)
+    {
+        hash ^= (hash << 5);
+        hash ^= str.charCodeAt(i);
+    }
+
+    return Math.abs(hash);
 }

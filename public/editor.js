@@ -1,4 +1,4 @@
-import { Dialog, assert, makeSvg, setSvg, getSvg, randBrightColor } from './utils.js';
+import { Dialog, assert, makeSvg, setSvg, getSvg, getBrightColor } from './utils.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
 
@@ -463,7 +463,7 @@ class Edge
     constructor()
     {
         this.line = makeSvg('line');
-        setSvg(this.line, 'stroke', randBrightColor());
+        setSvg(this.line, 'stroke', '#fff');
         setSvg(this.line, 'stroke-width', '2');
 
         // Source and destination nodes
@@ -492,6 +492,9 @@ class Edge
             setSvg(this.line, 'x2', x);
             setSvg(this.line, 'y2', y);
         }
+
+        let colorKey = `${srcNode.nodeType}_${srcPort}`;
+        setSvg(this.line, 'stroke', getBrightColor(colorKey));
     }
 
     setDst(dstNode, dstPort, x, y)
