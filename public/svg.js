@@ -26,13 +26,23 @@ export class CubicLine
 
     setStart(x, y, angle, controlLength)
     {
-        this.start = this.calculateEndpoint(x, y, angle, controlLength);
+        this.start = {
+            x: x,
+            y: y,
+            angle: angle
+        };
+
         this.render();
     }
 
     setEnd(x, y, angle, controlLength)
     {
-        this.end = this.calculateEndpoint(x, y, angle, controlLength);
+        this.end = {
+            x: x,
+            y: y,
+            angle: angle
+        };
+
         this.render();
     }
 
@@ -41,12 +51,10 @@ export class CubicLine
         if (this.start === null)
             return;
 
-        this.start = this.calculateEndpoint(
-            this.start.x + dx,
-            this.start.y + dy,
-            this.start.angle,
-            this.start.controlLength
-        );
+        this.start.x += dx;
+        this.start.y += dy;
+
+        this.render();
     }
 
     moveEnd(dx, dy)
@@ -54,12 +62,8 @@ export class CubicLine
         if (this.end === null)
             return;
 
-        this.end = this.calculateEndpoint(
-            this.end.x + dx,
-            this.end.y + dy,
-            this.end.angle,
-            this.end.controlLength
-        );
+        this.end.x += dx;
+        this.end.y += dy;
     }
 
     calculateEndpoint(x, y, angle, controlLength)
@@ -81,13 +85,32 @@ export class CubicLine
             return;
         }
 
+        let dx = this.start.x - this.end.x;
+        let dy = this.start.y - this.end.y;
+        let dist = Math.sqrt((dx*dx) + (dy*dy));
+        let controlLength = Math.floor(dist / 2);
+
+        let start = this.calculateEndpoint(
+            this.start.x,
+            this.start.y,
+            this.start.angle,
+            controlLength
+        );
+
+        let end = this.calculateEndpoint(
+            this.end.x,
+            this.end.y,
+            this.end.angle,
+            controlLength
+        );
+
         // The "M" command moves the cursor to an absolute point. The "C"
         // command draws a cubic bezier line starting at the cursor and
         // ending at another absolute point, with two given control points.
-        let d = `M ${this.start.x},${this.start.y}` +
-                `C ${this.start.cx},${this.start.cy} ` +
-                  `${this.end.cx},${this.end.cy} ` +
-                  `${this.end.x},${this.end.y} `;
+        let d = `M ${start.x},${start.y}` +
+                `C ${start.cx},${start.cy} ` +
+                  `${end.cx},${end.cy} ` +
+                  `${end.x},${end.y} `;
 
         setSvg(this.element, 'd', d);
     }
