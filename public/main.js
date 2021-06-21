@@ -16,22 +16,31 @@ let btnStop = document.getElementById('btn_stop');
 let playing = false;
 
 // Project model/state
-let model = new Model();
+let model = null;
 
 // Graph editor view
-let editor = new Editor(model);
+let editor = null;
 
 // Audio view of the model
-let audioView = new AudioView(model);
-
-// Create a new project
-model.new();
+let audioView = null;
 
 document.body.onload = function ()
 {
+    // Project model/state
+    model = new Model();
+
+    // Graph editor view
+    editor = new Editor(model);
+
+    // Audio view of the model
+    audioView = new AudioView(model);
+
+    // Create a new blank project
+    model.new();
+
     if (window.location.hash)
     {
-        // To avoid erasing localStorage on refresh/reload
+        // Avoid erasing saved state on refresh/reload
         if (window.location.hash == '#new')
             history.replaceState(null, null, ' ');
 
