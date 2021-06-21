@@ -341,10 +341,24 @@ export const NODE_SCHEMA =
  * */
 export class Action
 {
+    // Test if this action can be combined with the previous
+    // This is used to simplify the undo queue
+    combinable(prev)
+    {
+        // Action can't be combined
+        return false;
+    }
+
     // Update the model based on this action
     update(model)
     {
         throw TypeError("unimplemented");
+    }
+
+    // By default, actions can be undone
+    get undoable()
+    {
+        return true;
     }
 }
 
@@ -398,6 +412,17 @@ export class MoveNodes extends Action
         this.nodeIds = nodeIds;
         this.dx = dx;
         this.dy = dy;
+    }
+
+    combinable(prev)
+    {
+        if (this.prototype != prev.prototype)
+            return false;
+
+        if (!treeEq(this.nodeIds, prev.nodeIds))
+            return false;
+
+        return true;
     }
 
     update(model)
@@ -466,6 +491,23 @@ export class SetParam extends Action
         this.nodeId = nodeId;
         this.paramName = paramName;
         this.value = value;
+    }
+
+    combinable(prev)
+    {
+        if (this.prototype != prev.prototype)
+            return false;
+
+        if (this.nodeId != prev.nodeId)
+            return false;
+
+        if (this.paramName != prev.paramName)
+            return false;
+
+        if (this.paramName != "value")
+            return false;
+
+        return true;
     }
 
     update(model)
@@ -685,6 +727,9 @@ export class Model
         // Persistent state
         this.state = null;
 
+        // Last undoable action performed
+        this.lastAction = null;
+
         // Stack of past states and actions tracked for undo
         this.undoStack = [];
 
@@ -800,17 +845,42 @@ export class Model
 
         assert (!('id' in action) || action.id in this.state.nodes);
 
-        // Store a copy of the current state for undo
-        this.undoStack.push(treeCopy(this.state));
+        // If this action is undoable
+        if (action.undoable)
+        {
+            // Save the state and action for undo
+            this.addUndo(action);
 
-        // Clear the redo stack
-        this.redoStack = [];
+            // Clear the redo stack
+            this.redoStack = [];
+        }
 
         // Update the model based on the action
         action.update(this);
 
         // Broadcast the new state and action
         this.broadcast(this.state, action);
+    }
+
+    // Add an action to the undo queue
+    addUndo(action)
+    {
+        if (this.undoStack.length > 0 && this.lastAction)
+        {
+            let prev = this.undoStack[this.undoStack.length-1];
+            let combinable = action.combinable(this.lastAction);
+
+            // If this action can be combined with the previous
+            if (combinable)
+            {
+                // Don't store a copy of the current state for undo
+                return;
+            }
+        }
+
+        // Store a copy of the state for undo
+        this.undoStack.push(treeCopy(this.state));
+        this.lastAction = action;
     }
 
     // Undo the last action performed
@@ -824,6 +894,7 @@ export class Model
 
         // Restore the previous model state
         this.state = this.undoStack.pop();
+        this.lastAction = null;
 
         // Broadcast the state update
         this.broadcast(this.state, null);

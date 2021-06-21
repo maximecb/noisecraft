@@ -12,10 +12,16 @@ export class AudioView
         this.audioWorklet = null;
     }
 
-    // Update the audio view
+    /** Update the audio view */
     update(newState, action)
     {
+        console.log('audio view update');
+
         // TODO
+
+
+
+
     }
 
     /** Start audio playback */

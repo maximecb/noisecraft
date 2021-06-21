@@ -18,16 +18,13 @@ class NCAudioWorklet extends AudioWorkletProcessor
     /// Receive messages from the message port
     onmessage(event)
     {
-        // TODO: handle control changes and other signals
-        // should we just have a general concept of signals (FP values)?
-
         let msg = event.data;
 
         switch (msg.type)
         {
             case 'NEW_UNIT':
             this.unit = msg.unit;
-            this.genSample = makeFun(this.unit);
+            //this.genSample = makeFun(this.unit);
             break;
 
             case 'CTRL_CHANGE':

@@ -128,7 +128,7 @@ window.onkeydown = function (event)
     }
 }
 
-export function importModel(serializedModelData)
+function importModel(serializedModelData)
 {
     // Stop playback to avoid glitching
     stopPlayback();
@@ -136,7 +136,7 @@ export function importModel(serializedModelData)
     return model.deserialize(serializedModelData);
 }
 
-export function openModelFile()
+function openModelFile()
 {
     let input = document.createElement('input');
     input.type = 'file';
