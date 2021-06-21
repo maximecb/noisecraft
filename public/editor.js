@@ -1,4 +1,5 @@
 import { Dialog, assert, makeSvg, setSvg, getSvg, getBrightColor } from './utils.js';
+import { CubicLine } from './svg.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
 
@@ -108,7 +109,7 @@ export class Editor
             if (this.edge)
             {
                 console.log('abort edge connection');
-                this.svg.removeChild(this.edge.line);
+                this.svg.removeChild(this.edge.line.element);
                 this.edge = null;
                 return;
             }
@@ -194,7 +195,7 @@ export class Editor
                 let edge = new Edge();
                 edge.setSrc(srcNode, srcPort, sx, sy);
                 edge.setDst(dstNode, dstPort, dx, dy);
-                this.svg.appendChild(edge.line);
+                this.svg.appendChild(edge.line.element);
             }
         }
 
@@ -462,9 +463,9 @@ class Edge
 {
     constructor()
     {
-        this.line = makeSvg('line');
-        setSvg(this.line, 'stroke', '#fff');
-        setSvg(this.line, 'stroke-width', '2');
+        this.line = new CubicLine();
+        this.line.setColor('#fff');
+        this.line.setWidth('2');
 
         // Source and destination nodes
         this.srcNode = null;
@@ -484,17 +485,11 @@ class Edge
 
         this.srcNode = srcNode;
         this.srcPort = srcPort;
-        setSvg(this.line, 'x1', x);
-        setSvg(this.line, 'y1', y);
 
-        if (!this.dstNode)
-        {
-            setSvg(this.line, 'x2', x);
-            setSvg(this.line, 'y2', y);
-        }
-
-        let colorKey = `${srcNode.nodeType}_${srcPort}`;
-        setSvg(this.line, 'stroke', getBrightColor(colorKey));
+        this.line.setStart(x, y, 0, 64);
+        this.line.setColor(getBrightColor(
+            `${srcNode.nodeType}_${srcPort}`
+        ));
     }
 
     setDst(dstNode, dstPort, x, y)
@@ -503,30 +498,18 @@ class Edge
 
         this.dstNode = dstNode;
         this.dstPort = dstPort;
-        setSvg(this.line, 'x2', x);
-        setSvg(this.line, 'y2', y);
 
-        if (!this.srcNode)
-        {
-            setSvg(this.line, 'x1', x);
-            setSvg(this.line, 'y1', y);
-        }
+        this.line.setEnd(x, y, -Math.PI, 64);
     }
 
     moveSrc(dx, dy)
     {
-        var x1 = Number(getSvg(this.line, 'x1'));
-        var y1 = Number(getSvg(this.line, 'y1'));
-        setSvg(this.line, 'x1', x1 + dx);
-        setSvg(this.line, 'y1', y1 + dy);
+        this.line.moveStart(dx, dy);
     }
 
     moveDst(dx, dy)
     {
-        var x2 = Number(getSvg(this.line, 'x2'));
-        var y2 = Number(getSvg(this.line, 'y2'));
-        setSvg(this.line, 'x2', x2 + dx);
-        setSvg(this.line, 'y2', y2 + dy);
+        this.line.moveEnd(dx, dy);
     }
 
     // Find out which side of the edge is unconnected
@@ -547,13 +530,11 @@ class Edge
 
         if (openSide == 'src')
         {
-            setSvg(this.line, 'x1', mousePos.x);
-            setSvg(this.line, 'y1', mousePos.y);
+            this.line.setStart(mousePos.x, mousePos.y, 0, 64);
         }
         else
         {
-            setSvg(this.line, 'x2', mousePos.x);
-            setSvg(this.line, 'y2', mousePos.y);
+            this.line.setEnd(mousePos.x, mousePos.y, -Math.PI, 64);
         }
     }
 }
@@ -732,7 +713,7 @@ class Node
                 }
 
                 editor.edge = edge;
-                editor.svg.appendChild(edge.line);
+                editor.svg.appendChild(edge.line.element);
 
                 return;
             }
