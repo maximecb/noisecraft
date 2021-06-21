@@ -486,7 +486,7 @@ class Edge
         this.srcNode = srcNode;
         this.srcPort = srcPort;
 
-        this.line.setStart(x, y, 0, 64);
+        this.line.setStart(x, y, 0);
         this.line.setColor(getBrightColor(
             `${srcNode.nodeType}_${srcPort}`
         ));
@@ -499,7 +499,7 @@ class Edge
         this.dstNode = dstNode;
         this.dstPort = dstPort;
 
-        this.line.setEnd(x, y, -Math.PI, 64);
+        this.line.setEnd(x, y, -Math.PI);
     }
 
     moveSrc(dx, dy)
@@ -530,11 +530,11 @@ class Edge
 
         if (openSide == 'src')
         {
-            this.line.setStart(mousePos.x, mousePos.y, 0, 64);
+            this.line.setStart(mousePos.x, mousePos.y, 0);
         }
         else
         {
-            this.line.setEnd(mousePos.x, mousePos.y, -Math.PI, 64);
+            this.line.setEnd(mousePos.x, mousePos.y, -Math.PI);
         }
     }
 }
