@@ -2,7 +2,8 @@
 
 Browser-based visual programming language and platform for sound synthesis and music making.
 Once NoiseCraft is more functional and stable, it will be open sourced under the GPLv2.
-When the app is deployed it will be live at https://noisecraft.app.
+When the app is deployed it will be live at https://noisecraft.app. The goal is for the app
+to remain free to use and ad-free for the foreseeable future.
 
 ## Design
 
@@ -16,13 +17,16 @@ Design principles:
   - Minimize the learning curve and reduce friction
   - Keep the user interface simple and uncluttered
   - Avoid drop-down menus and hidden options if possible
-  - Use keys and controls that will likely seem familiar to most users
+  - Use key combos and controls that will likely seem familiar to most users
   - Avoid ambiguity, use known/existing terminology wherever possible
+- Practical considerations:
+  - Avoid images and sound samples to keep bandwidth/server costs low
+  - Avoiding sound samples also forces people to think about how to generate sounds
 
 I would like to use a multi-page design, as opposed to a single-page app. This means
 the New, Help and Browse links will open new tabs. This will avoid the users accidentally
 losing their work when clicking other tabs, and make it possible for us to send new users
-direct links to the browse and help pages, for example.
+direct links to the Browse and Help pages, for example.
 
 The user-interface uses an immediate-mode GUI. That is, the UI gets redrawn every time
 an action is performed on the model. This makes it trivial to implement features such

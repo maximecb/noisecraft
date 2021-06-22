@@ -1,6 +1,7 @@
 import { Dialog, assert, makeSvg, setSvg, getSvg, getBrightColor } from './utils.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
+import { Knob } from './knob.js';
 
 export class Editor
 {
@@ -113,8 +114,6 @@ export class Editor
                 return;
             }
     
-            console.log('click');
-
             // This event may get triggered while dragging knob controls
             if (evt.target === this.graphDiv)
             {
@@ -166,7 +165,8 @@ export class Editor
         for (let nodeId in newState.nodes)
         {
             let nodeState = newState.nodes[nodeId];
-            let node = new Node(nodeId, nodeState, this);
+            let nodeClass = (nodeState.type in NODE_CLASSES)? NODE_CLASSES[nodeState.type]:Node;
+            let node = new nodeClass(nodeId, nodeState, this);
             this.nodes.set(nodeId, node);
             this.graphDiv.appendChild(node.nodeDiv);
         }
@@ -648,7 +648,7 @@ class Node
         this.nodeDiv.onmouseup = endDrag.bind(this);
         this.nodeDiv.ontouchend = endDrag.bind(this);
         //this.nodeDiv.onclick = delNode.bind(this);
-        //this.nodeDiv.ondblclick = this.paramsDialog.bind(this);
+        this.nodeDiv.ondblclick = this.paramsDialog.bind(this);
 
         // Node header text
         this.headerDiv = document.createElement('div');
@@ -832,4 +832,66 @@ class Node
         // Adjust the graph to fit this node
         //this.editor.fitNode(this, true);
     }
+
+    /**
+     * Show a modal dialog to edit node parameters
+     * */
+    paramsDialog()
+    {
+        console.log('params dialog');
+
+        // TODO
+    }
+}
+
+/**
+Rotary knob control
+*/
+class KnobNode extends Node
+{
+    constructor(id, state, editor)
+    {
+        super(id, state, editor);
+
+        this.knob = new Knob(
+            state.params.minVal,
+            state.params.maxVal,
+            state.params.value,
+            state.params.controlNo
+        );
+        this.centerDiv.append(this.knob.div)
+
+        function knobChange(value)
+        {
+            editor.model.update(new model.SetParam(
+                id,
+                'value',
+                value
+            ));
+        }
+
+        this.knob.on('change', knobChange);
+        //this.knob.addBindListener(controlNo => this.data.params.controlNo = controlNo);
+    }
+
+    // FIXME: for the node params dialog
+    /*
+    KnobNode.prototype.saveParams = function (newParams)
+    {
+        GraphNode.prototype.saveParams.call(this, newParams);
+    
+        this.knob.minVal = newParams.minVal;
+        this.knob.maxVal = newParams.maxVal;
+        this.knob.value = newParams.value;
+    
+        // Redraw the knob
+        this.knob.drawKnob();
+    }
+    */
+}
+
+// Map of node types to specialized node classes
+const NODE_CLASSES =
+{
+    'Knob': KnobNode,
 }

@@ -1,7 +1,7 @@
 import { assert } from './utils.js';
-import { nodeDescs } from './graph.js';
-import * as synth from './synth.js';
-import * as music from './music.js';
+import { NODE_SCHEMA } from './model.js';
+//import * as synth from './synth.js';
+//import * as music from './music.js';
 
 /*
 Split delay nodes into two pseudo-nodes to break cycles
@@ -9,11 +9,6 @@ Produces a new graph reusing the same nodes
 */
 function splitDelays(graph, nodeMap)
 {
-    // NOTE: this function could be much cleaner if we had
-    // a proper high-level graph object with some methods
-    // to manipulate it, MVC style, instead of trying to
-    // stick to a JSON representation.
-
     let nodes = {...graph.nodes};
     let newGraph = { nodes: nodes };
     let newMap = new WeakMap()

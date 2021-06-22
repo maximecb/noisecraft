@@ -19,7 +19,7 @@ export function Dialog(title, div)
 
     // Used to detect/prevent clicks outside dialog
     this.bgDiv = document.createElement('div');
-    this.bgDiv.className = 'overlay';
+    this.bgDiv.className = 'dark_overlay';
     this.bgDiv.onclick = bgClick.bind(this);
 
     var body = document.getElementsByTagName("body")[0];

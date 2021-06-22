@@ -34,7 +34,7 @@ disconnect <src_node> <out_port> <dst_node> <out_port>
 // Creating a module will cause the model to
 // Move nodes inside the module
 create_module <list_of_node_ids>
-split_module <node_id>
+ungroup_module <node_id>
 
 // Sent by the play/stop buttons (but not undo-able)
 play 
@@ -44,7 +44,7 @@ stop
 set_play_pos <time>
 
 // Actions to edit the settings/parameters of nodes
-set_name <node_id> <name>
+set_node_name <node_id> <name>
 set_param <node_id> <param_name> <new_val>
 
 // To visualize audio data in the UI
@@ -62,8 +62,8 @@ or it's a special undoable action.
 import { assert, treeCopy, treeEq, isString, isObject } from './utils.js';
 
 /**
- * High-level description/scheme for each type of node
-*/
+ * High-level description/schema for each type of node
+ * */
 export const NODE_SCHEMA =
 {
     'Add': {
@@ -338,15 +338,15 @@ export const NODE_SCHEMA =
  * Base class for all model update actions.
  * As a general rule, we only create actions for things we can undo.
  * Moving nodes is an action, but selecting or copying nodes is not.
-*/
+ * */
 export class Action
 {
-    // Try to combine this action with a previous action
+    // Test if this action can be combined with the previous
     // This is used to simplify the undo queue
-    combine(prev)
+    combinable(prev)
     {
         // Action can't be combined
-        return null;
+        return false;
     }
 
     // Update the model based on this action
@@ -354,9 +354,17 @@ export class Action
     {
         throw TypeError("unimplemented");
     }
+
+    // By default, actions can be undone
+    get undoable()
+    {
+        return true;
+    }
 }
 
-// Create a new node
+/**
+ * Create a new node
+ * */
 export class CreateNode extends Action
 {
     constructor(nodeType, x, y)
@@ -393,7 +401,9 @@ export class CreateNode extends Action
     }
 }
 
-// Move one or more nodes
+/**
+ * Move one or more nodes
+ * */
 export class MoveNodes extends Action
 {
     constructor(nodeIds, dx, dy)
@@ -404,19 +414,15 @@ export class MoveNodes extends Action
         this.dy = dy;
     }
 
-    combine(prev)
+    combinable(prev)
     {
         if (this.prototype != prev.prototype)
-            return null;
+            return false;
 
         if (!treeEq(this.nodeIds, prev.nodeIds))
-            return null;
+            return false;
 
-        return new MoveNodes(
-            this.nodeIds,
-            this.dx + prev.dx,
-            this.dy + prev.dy,
-        );
+        return true;
     }
 
     update(model)
@@ -430,7 +436,9 @@ export class MoveNodes extends Action
     }
 }
 
-// Delete one or more nodes
+/**
+ * Delete one or more nodes
+ * */
 export class DeleteNodes extends Action
 {
     constructor(nodeIds)
@@ -473,13 +481,98 @@ export class DeleteNodes extends Action
 }
 
 /**
- *  Group the selected nodes into a user-created module
- *  Currently, the way this works is that the selected nodes will become
- *  a black box with inputs and outputs corresponding to the nodes/ports it's
- *  connected to outside the group. Eventually, we will also make it possible
- *  to rename module input and output ports after the module is created. We
- *  could make it possible to expose specific knobs inside the group on the
- *  module's UI.
+ * Set a node parameter to a given value
+ * */
+export class SetParam extends Action
+{
+    constructor(nodeId, paramName, value)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.paramName = paramName;
+        this.value = value;
+    }
+
+    combinable(prev)
+    {
+        if (this.prototype != prev.prototype)
+            return false;
+
+        if (this.nodeId != prev.nodeId)
+            return false;
+
+        if (this.paramName != prev.paramName)
+            return false;
+
+        if (this.paramName != "value")
+            return false;
+
+        return true;
+    }
+
+    update(model)
+    {
+        let node = model.state.nodes[this.nodeId];
+        assert (this.paramName in node.params);
+        node.params[this.paramName] = this.value;
+    }
+}
+
+/**
+ * Connect two nodes with an edge
+ * */
+export class ConnectNodes extends Action
+{
+    constructor(srcId, srcPort, dstId, dstPort)
+    {
+        super();
+        this.srcId = srcId;
+        this.srcPort = srcPort;
+        this.dstId = dstId;
+        this.dstPort = dstPort;
+    }
+
+    update(model)
+    {
+        assert (this.srcId != this.dstId);
+        let srcNode = model.state.nodes[this.srcId];
+        let dstNode = model.state.nodes[this.dstId];
+        assert (srcNode);
+        assert (dstNode);
+
+        // An input port can only have one incoming connection
+        dstNode.ins[this.dstPort] = [this.srcId, this.srcPort];
+    }
+}
+
+/**
+ * Remove the connection attached to an input port
+ * */
+export class Disconnect extends Action
+{
+    constructor(dstId, dstPort)
+    {
+        super();
+        this.dstId = dstId;
+        this.dstPort = dstPort;
+    }
+
+    update(model)
+    {
+        let dstNode = model.state.nodes[this.dstId];
+        assert (dstNode);
+        dstNode.ins[this.dstPort] = null;
+    }
+}
+
+/**
+ * Group the selected nodes into a user-created module
+ * Currently, the way this works is that the selected nodes will become
+ * a black box with inputs and outputs corresponding to the nodes/ports it's
+ * connected to outside the group. Eventually, we will also make it possible
+ * to rename module input and output ports after the module is created. We
+ * could make it possible to expose specific knobs inside the group on the
+ * module's UI.
  * */
 export class GroupNodes extends Action
 {
@@ -621,50 +714,49 @@ export class GroupNodes extends Action
     }
 }
 
-// Connect two nodes with an edge
-export class ConnectNodes extends Action
+/**
+ * Start playbacks
+ * */
+export class Play extends Action
 {
-    constructor(srcId, srcPort, dstId, dstPort)
+    constructor()
     {
         super();
-        this.srcId = srcId;
-        this.srcPort = srcPort;
-        this.dstId = dstId;
-        this.dstPort = dstPort;
     }
 
     update(model)
     {
-        assert (this.srcId != this.dstId);
-        let srcNode = model.state.nodes[this.srcId];
-        let dstNode = model.state.nodes[this.dstId];
-        assert (srcNode);
-        assert (dstNode);
+    }
 
-        // An input port can only have one incoming connection
-        dstNode.ins[this.dstPort] = [this.srcId, this.srcPort];
+    get undoable()
+    {
+        return false;
     }
 }
 
-// Remove the connection attached to an input port
-export class Disconnect extends Action
-{
-    constructor(dstId, dstPort)
+/**
+ * Stop playback
+ * */
+ export class Stop extends Action
+ {
+    constructor()
     {
         super();
-        this.dstId = dstId;
-        this.dstPort = dstPort;
     }
 
     update(model)
     {
-        let dstNode = model.state.nodes[this.dstId];
-        assert (dstNode);
-        dstNode.ins[this.dstPort] = null;
+    }
+
+    get undoable()
+    {
+        return false;
     }
 }
 
-/** Graph of nodes model, operates on internal state data */
+/**
+ * Graph of nodes model, operates on internal state data
+ * */
 export class Model
 {
     constructor()
@@ -675,8 +767,14 @@ export class Model
         // Persistent state
         this.state = null;
 
-        // List of past states tracked for undo/redo
-        this.undoQueue = [];
+        // Last undoable action performed
+        this.lastAction = null;
+
+        // Stack of past states and actions tracked for undo
+        this.undoStack = [];
+
+        // Stack of actions tracked for redo
+        this.redoStack = [];
     }
 
     // Register a view
@@ -728,31 +826,36 @@ export class Model
         });
     }
 
-    // Tries to deserialize a string representation of a model
-    //
-    // Returns true if successfully deserialized and loaded, false otherwise
+    /**
+     * Tries to deserialize a JSON string representation of a model
+     * Returns true if successfully deserialized and loaded, false otherwise
+     * */
     deserialize(data)
     {
-        if (!isString(data)) {
+        if (!isString(data))
             return false;
-        }
 
         let json;
-        try {
+        try
+        {
             json = JSON.parse(data);
-        } catch (e) {
+        }
+
+        catch (e)
+        {
             return false;
         }
 
-        if (!isObject(json) || !isObject(json.state)) {
+        if (!isObject(json) || !isObject(json.state))
             return false;
-        }
 
         this.load(json.state);
         return true;
     }
 
-    /** Check if the graph contains a specific type of node */
+    /**
+     * Check if the graph contains a specific type of node
+     * */
     hasNode(nodeType)
     {
         // Compute the next available id
@@ -778,12 +881,19 @@ export class Model
     // Apply an action to the model
     update(action)
     {
-        //console.log(action);
+        console.log('update model', action.constructor.name);
 
         assert (!('id' in action) || action.id in this.state.nodes);
 
-        // Save the state and action in the undo queue
-        this.addUndo(action);
+        // If this action is undoable
+        if (action.undoable)
+        {
+            // Save the state and action for undo
+            this.addUndo(action);
+
+            // Clear the redo stack
+            this.redoStack = [];
+        }
 
         // Update the model based on the action
         action.update(this);
@@ -795,41 +905,52 @@ export class Model
     // Add an action to the undo queue
     addUndo(action)
     {
-        if (this.undoQueue.length > 0)
+        if (this.undoStack.length > 0 && this.lastAction)
         {
-            let prev = this.undoQueue[this.undoQueue.length-1];
-            let combined = action.combine(prev.action);
+            let prev = this.undoStack[this.undoStack.length-1];
+            let combinable = action.combinable(this.lastAction);
 
             // If this action can be combined with the previous
-            if (combined)
+            if (combinable)
             {
-                this.undoQueue.pop();
-                this.undoQueue.push({
-                    action: combined,
-                    state: prev.state
-                });
-
+                // Don't store a copy of the current state for undo
                 return;
             }
         }
 
         // Store a copy of the state for undo
-        this.undoQueue.push({
-            action: action,
-            state: treeCopy(this.state)
-        });
+        this.undoStack.push(treeCopy(this.state));
+        this.lastAction = action;
     }
 
     // Undo the last action performed
     undo()
     {
-        if (this.undoQueue.length == 0)
+        if (this.undoStack.length == 0)
             return;
 
-        let prev = this.undoQueue.pop()
+        // Store the current state in the redo stack
+        this.redoStack.push(treeCopy(this.state));
 
-        // Restore the old state
-        this.state = prev.state;
+        // Restore the previous model state
+        this.state = this.undoStack.pop();
+        this.lastAction = null;
+
+        // Broadcast the state update
+        this.broadcast(this.state, null);
+    }
+
+    // Redo an action that was undone
+    redo()
+    {
+        if (this.redoStack.length == 0)
+            return;
+
+        // Store a copy of the current state for undo
+        this.undoStack.push(treeCopy(this.state));
+
+        // Restore the redo state
+        this.state = this.redoStack.pop();
 
         // Broadcast the state update
         this.broadcast(this.state, null);
