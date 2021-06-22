@@ -715,6 +715,46 @@ export class GroupNodes extends Action
 }
 
 /**
+ * Start playbacks
+ * */
+export class Play extends Action
+{
+    constructor()
+    {
+        super();
+    }
+
+    update(model)
+    {
+    }
+
+    get undoable()
+    {
+        return false;
+    }
+}
+
+/**
+ * Stop playback
+ * */
+ export class Stop extends Action
+ {
+    constructor()
+    {
+        super();
+    }
+
+    update(model)
+    {
+    }
+
+    get undoable()
+    {
+        return false;
+    }
+}
+
+/**
  * Graph of nodes model, operates on internal state data
  * */
 export class Model

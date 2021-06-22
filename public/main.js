@@ -1,4 +1,4 @@
-import { Model } from './model.js';
+import { Model, Play, Stop } from './model.js';
 import { Editor } from './editor.js';
 import { AudioView } from './audioview.js';
 
@@ -16,25 +16,16 @@ let btnStop = document.getElementById('btn_stop');
 let playing = false;
 
 // Project model/state
-let model = null;
+let model = new Model();
 
 // Graph editor view
-let editor = null;
+let editor = new Editor(model);
 
 // Audio view of the model
-let audioView = null;
+let audioView = new AudioView(model);
 
 document.body.onload = function ()
 {
-    // Project model/state
-    model = new Model();
-
-    // Graph editor view
-    editor = new Editor(model);
-
-    // Audio view of the model
-    audioView = new AudioView(model);
-
     // Create a new blank project
     model.new();
 
@@ -227,9 +218,8 @@ export function startPlayback()
 
     document.title = '▶ ' + document.title;
 
-    
-
-
+    // Send the play action to the model
+    model.update(new Play());
 
     playing = true;
 }
@@ -244,12 +234,8 @@ export function stopPlayback()
     // Remove the playback indicator from the title
     document.title = document.title.substr(2);
 
-
-    
-
-
-
-
+    // Send the stop action to the model
+    model.update(new Play());
 
     playing = false;
 }
