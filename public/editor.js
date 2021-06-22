@@ -463,7 +463,7 @@ class Edge
     constructor()
     {
         this.line = makeSvg('line');
-        setSvg(this.line, 'stroke', '#fff');
+        setSvg(this.line, 'stroke', '#ccc');
         setSvg(this.line, 'stroke-width', '2');
 
         // Source and destination nodes
