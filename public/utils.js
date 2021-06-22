@@ -404,12 +404,11 @@ Uses the DJB2 algorithm.
 */
 export function hash(str)
 {
-    let hash = 0;
+    let hash = 5381;
     for (let i = 0; i < str.length; i++)
     {
-        hash ^= (hash << 5);
-        hash ^= str.charCodeAt(i);
+        hash = ((hash << 5) + hash) + str.charCodeAt(i);
     }
 
-    return Math.abs(hash);
+    return hash >>> 0;
 }
