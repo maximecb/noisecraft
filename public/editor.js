@@ -480,7 +480,8 @@ class Edge
         let color = '#ccc';
         if (this.srcNode && this.dstNode)
         {
-            let colorKey = `${this.srcNode.nodeType}_${this.srcPort}`;
+            // n_ prefix is arbitrary, added to get a different color mix.
+            let colorKey = `n_${this.srcNode.nodeType}_${this.srcPort}`;
             color = getBrightColor(colorKey);
         }
 
