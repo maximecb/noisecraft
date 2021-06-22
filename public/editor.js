@@ -463,7 +463,7 @@ class Edge
     constructor()
     {
         this.line = makeSvg('line');
-        setSvg(this.line, 'stroke', '#ccc');
+        this.updateColor();
         setSvg(this.line, 'stroke-width', '2');
 
         // Source and destination nodes
@@ -473,6 +473,18 @@ class Edge
         // Source and destination port indices
         this.srcPort = null;
         this.dstPort = null;
+    }
+
+    updateColor()
+    {
+        let color = '#ccc';
+        if (this.srcNode && this.dstNode)
+        {
+            let colorKey = `${this.srcNode.nodeType}_${this.srcPort}`;
+            color = getBrightColor(colorKey);
+        }
+
+        setSvg(this.line, 'stroke', color);
     }
 
     setSrc(srcNode, srcPort, x, y)
@@ -493,8 +505,7 @@ class Edge
             setSvg(this.line, 'y2', y);
         }
 
-        let colorKey = `${srcNode.nodeType}_${srcPort}`;
-        setSvg(this.line, 'stroke', getBrightColor(colorKey));
+        this.updateColor();
     }
 
     setDst(dstNode, dstPort, x, y)
@@ -511,6 +522,8 @@ class Edge
             setSvg(this.line, 'x1', x);
             setSvg(this.line, 'y1', y);
         }
+
+        this.updateColor();
     }
 
     moveSrc(dx, dy)
