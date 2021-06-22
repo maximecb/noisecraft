@@ -1,4 +1,5 @@
-// TODO: import the compiler
+import * as model from './model.js';
+import { compile } from './compiler.js';
 
 export class AudioView
 {
@@ -13,11 +14,26 @@ export class AudioView
     }
 
     /** Update the audio view */
-    update(newState, action)
+    update(state, action)
     {
         console.log('audio view update');
 
-        // TODO
+        if (action instanceof model.MoveNodes)
+        {
+            return;
+        }
+
+        if (action instanceof model.Play)
+        {
+            return;
+        }
+
+        if (action instanceof model.Stop)
+        {
+            this.stopAudio();
+            return;
+        }
+
 
 
 
@@ -49,20 +65,25 @@ export class AudioView
     /** Stop audio playback */
     stopAudio()
     {
+        if (!this.audioWorklet)
+            return;
+
         // Disconnect the worklet
         this.audioWorklet.disconnect();
         this.audioWorklet = null;
     }
 
-    // TODO: interface with audio worklet
-    /*
-    setControl(ctrlId, value)
+    setParam(ctrlId, value)
     {
+        if (!this.audioWorklet)
+            return;
+
+        /*
         audioWorklet.port.postMessage({
-            type: 'CTRL_CHANGE',
+            type: 'SET_PARAM',
             ctrlId: ctrlId,
             value: value
         });
+        */
     }
-    */
 }

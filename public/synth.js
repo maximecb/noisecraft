@@ -1,6 +1,6 @@
 import { assert } from './utils.js';
 
-/// Pulse/square oscillator
+// Pulse/square oscillator
 export function pulseOsc(time, freq, duty)
 {
     var cyclePos = (time * freq) % 1;
@@ -9,13 +9,13 @@ export function pulseOsc(time, freq, duty)
 
 // TODO: vintage-style waveforms (eg: Moog-like)
 
-/// Produces noise in the [-1, 1] range
+// Produces noise in the [-1, 1] range
 export function noise()
 {
     return 2 * Math.random() - 1;
 };
 
-/// Basic overdrive-style distortion
+// Basic overdrive-style distortion
 export function distort(x, amount)
 {
     amount = Math.min(Math.max(amount, 0), 1);
@@ -26,7 +26,7 @@ export function distort(x, amount)
     return y;
 }
 
-/// Linear interpolation between two values
+// Linear interpolation between two values
 export function lerp(x, y0, y1)
 {
     if (x >= 1)
@@ -59,7 +59,7 @@ export function expRamp(t, tMax, v0, v1)
     return v0 * Math.pow(v1 / v0, t / tMax);
 }
 
-/// Attack-decay envelope
+// Attack-decay envelope
 export function ADEnv(time, attack, decay)
 {
     if (time < attack)
@@ -82,7 +82,7 @@ Attack-decay-sustain-release envelope
 */
 export function ADSREnv()
 {
-    /// Current state
+    // Current state
     this.state = 'off';
 
     this.startTime = 0;
@@ -90,7 +90,7 @@ export function ADSREnv()
     this.startVal = 0;
 }
 
-/// Reset the state of the envelope
+// Reset the state of the envelope
 ADSREnv.prototype.reset = function ()
 {
     ADSREnv.call(this);
@@ -309,7 +309,7 @@ export function Delay()
     this.writeIdx = 0;
 };
 
-/// Maximum delay time
+// Maximum delay time
 Delay.MAX_TIME = 10;
 
 Delay.prototype.reset = function ()
