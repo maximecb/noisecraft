@@ -337,11 +337,10 @@ export function getBrightColor(key)
         '#d81d52'
     ];
 
-    if (!isString(key))
-        return randElem(colors);
-
-    let index = hash(key) % colors.length;
-    return colors[index];
+    if (isString(key))
+        return colors[hash(key) % colors.length];
+    else
+        return colors[key % colors.length];
 }
 
 /**
