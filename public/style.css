@@ -364,8 +364,19 @@ div.patsel_btn_queue
     font-size: 18px;
 }
 
-/* Invisible overlay div to hide dialog background */
+/* Invisible overlay div to intercept events */
 .overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background: rgba(0,0,0,0);
+    z-index: 2;
+}
+
+/* Dark overlay div to hide dialog background */
+.dark_overlay {
     position: fixed;
     width: 100%;
     height: 100%;

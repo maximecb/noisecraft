@@ -19,7 +19,7 @@ export function Dialog(title, div)
 
     // Used to detect/prevent clicks outside dialog
     this.bgDiv = document.createElement('div');
-    this.bgDiv.className = 'overlay';
+    this.bgDiv.className = 'dark_overlay';
     this.bgDiv.onclick = bgClick.bind(this);
 
     var body = document.getElementsByTagName("body")[0];
@@ -337,11 +337,10 @@ export function getBrightColor(key)
         '#d81d52'
     ];
 
-    if (!isString(key))
-        return randElem(colors);
-
-    let index = hash(key) % colors.length;
-    return colors[index];
+    if (isString(key))
+        return colors[hash(key) % colors.length];
+    else
+        return colors[key % colors.length];
 }
 
 /**
@@ -404,12 +403,11 @@ Uses the DJB2 algorithm.
 */
 export function hash(str)
 {
-    let hash = 0;
+    let hash = 5381;
     for (let i = 0; i < str.length; i++)
     {
-        hash ^= (hash << 5);
-        hash ^= str.charCodeAt(i);
+        hash = ((hash << 5) + hash) + str.charCodeAt(i);
     }
 
-    return Math.abs(hash);
+    return hash >>> 0;
 }
