@@ -64,6 +64,8 @@ export class CubicLine
 
         this.end.x += dx;
         this.end.y += dy;
+
+        this.render();
     }
 
     calculateEndpoint(x, y, angle, controlLength)
