@@ -766,15 +766,6 @@ export class Model
 
         // Persistent state
         this.state = null;
-
-        // Last undoable action performed
-        this.lastAction = null;
-
-        // Stack of past states and actions tracked for undo
-        this.undoStack = [];
-
-        // Stack of actions tracked for redo
-        this.redoStack = [];
     }
 
     // Register a view
@@ -798,11 +789,20 @@ export class Model
     // Load the JSON state into the model
     load(state)
     {
+        // Last undoable action performed
+        this.lastAction = null;
+
+        // Stack of past states and actions tracked for undo
+        this.undoStack = [];
+
+        // Stack of actions tracked for redo
+        this.redoStack = [];
+
+        // Next unique node id to be allocated
+        this.nextId = 0;
+
         // Current playback position
         this.playPos = 0;
-
-        // Next node id to be allocated
-        this.nextId = 0;
 
         // Compute the next available id
         for (let id in state.nodes)
@@ -812,6 +812,7 @@ export class Model
                 this.nextId = id + 1;
         }
 
+        // Store the new state
         this.state = state;
 
         // Broadcast state update
