@@ -231,11 +231,15 @@ export function stopPlayback()
 
     console.log('stopping playback');
 
+    // Hide the stop button
+    btnPlay.style.display = 'inline-block';
+    btnStop.style.display = 'none';
+
     // Remove the playback indicator from the title
     document.title = document.title.substr(2);
 
     // Send the stop action to the model
-    model.update(new Play());
+    model.update(new Stop());
 
     playing = false;
 }

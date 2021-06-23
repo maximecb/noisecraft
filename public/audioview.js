@@ -8,9 +8,14 @@ export class AudioView
         this.model = model;
         model.addView(this);
 
+        // Web Audio context
         this.audioCtx = null;
 
+        // Background audio thread
         this.audioWorklet = null;
+
+        // Latest compiled unit
+        this.unit = null;
     }
 
     /** Update the audio view */
@@ -25,6 +30,7 @@ export class AudioView
 
         if (action instanceof model.Play)
         {
+            this.playAudio();
             return;
         }
 
@@ -34,14 +40,26 @@ export class AudioView
             return;
         }
 
+        if (action instanceof model.SetParam)
+        {
+            // TODO
+            return;
+        }
 
+        // Compile a new unit from the project state
+        this.unit = compile(state);
 
-
-
+        if (this.audioWorklet)
+        {
+            this.audioWorklet.port.postMessage({
+                type: 'NEW_UNIT',
+                unit: this.unit
+            });
+        }
     }
 
     /** Start audio playback */
-    async playAudio(unit)
+    async playAudio()
     {
         if (!this.audioCtx)
         {
@@ -58,7 +76,7 @@ export class AudioView
 
         this.audioWorklet.port.postMessage({
             type: 'NEW_UNIT',
-            unit: unit
+            unit: this.unit
         });
     }
 
@@ -73,7 +91,7 @@ export class AudioView
         this.audioWorklet = null;
     }
 
-    setParam(ctrlId, value)
+    setParam(nodeId, value)
     {
         if (!this.audioWorklet)
             return;

@@ -1,13 +1,12 @@
-import { assert } from './utils.js';
+import { assert, treeCopy } from './utils.js';
 import { NODE_SCHEMA } from './model.js';
-//import * as synth from './synth.js';
 //import * as music from './music.js';
 
 /*
 Split delay nodes into two pseudo-nodes to break cycles
 Produces a new graph reusing the same nodes
 */
-function splitDelays(graph, nodeMap)
+function splitDelays(graph)
 {
     let nodes = {...graph.nodes};
     let newGraph = { nodes: nodes };
@@ -41,7 +40,7 @@ function splitDelays(graph, nodeMap)
         }
 
         nodes[nodeId] = node;
-        newMap.set(node, nodeMap.get(origNode));
+        //newMap.set(node, nodeMap.get(origNode));
     }
 
     // Find max node id used in the graph
@@ -247,8 +246,6 @@ export function compile(graph, nodeMap)
         return name;
     }
 
-    // TODO: addCall, format arguments?
-
     // Split delay nodes
     [graph, nodeMap] = splitDelays(graph, nodeMap);
 
@@ -279,13 +276,6 @@ export function compile(graph, nodeMap)
         }
     }
 
-    // Library/helper object for the generated function
-    let lib = {
-        'pulse': synth.pulseOsc,
-        'distort': synth.distort,
-        'objs': {},
-    };
-
     // Source code generated
     let src = '';
 
@@ -293,7 +283,7 @@ export function compile(graph, nodeMap)
     {
         console.log('compiling', node.type, node.id);
 
-        let nodeObj = nodeMap.get(node);
+        //let nodeObj = nodeMap.get(node);
 
         if (node.type == 'Add')
         {
@@ -508,18 +498,5 @@ export function compile(graph, nodeMap)
 
     console.log(src);
 
-    let _genSample = new Function(
-        'lib',
-        'time',
-        'sampleRate',
-        'sampleTime',
-        src
-    );
-
-    function genSample(time, sampleRate, sampleTime)
-    {
-        return _genSample(lib, time, sampleRate, sampleTime);
-    }
-
-    return genSample;
+    return src;
 }

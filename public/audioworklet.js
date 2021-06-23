@@ -1,4 +1,4 @@
-import { makeFun } from './compiler.js';
+//import { materialize } from './audionodes.js';
 
 // Great intro to audio worklets:
 // https://developers.google.com/web/updates/2017/12/audio-worklet
@@ -13,6 +13,9 @@ class NCAudioWorklet extends AudioWorkletProcessor
         super();
 
         this.port.onmessage = this.onmessage.bind(this);
+
+        // Current playback position in seconds
+        this.playPos = 0;
     }
 
     /// Receive messages from the message port
@@ -23,8 +26,11 @@ class NCAudioWorklet extends AudioWorkletProcessor
         switch (msg.type)
         {
             case 'NEW_UNIT':
-            //this.unit = msg.unit;
-            //this.genSample = makeFun(this.unit);
+            let src = msg.unit;
+            this.genSample = new Function(
+                'time',
+                src
+            );
             break;
 
             case 'SET_PARAM':
@@ -46,9 +52,13 @@ class NCAudioWorklet extends AudioWorkletProcessor
         if (!this.genSample)
             return false;
 
+        // For each sample to generate
         for (let i = 0; i < outChannel0.length; i++)
         {
-            outChannel0[i] = this.genSample()
+            this.playPos += 1 / 44100;
+
+            // FIXME: stereo?
+            outChannel0[i] = this.genSample(this.playPos);
         }
 
         return true;
