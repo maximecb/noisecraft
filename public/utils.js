@@ -313,6 +313,37 @@ export function randElem(array)
 }
 
 /**
+Returns a hex string (with a preceding '#') that is a bright color.
+
+If a key is provided, the same color will always be returned for that key.
+
+If no key is provided, the returned color is randomly selected.
+*/
+export function getBrightColor(key)
+{
+    // Colors of the 12-band rainbow flag!
+    let colors = [
+        '#971c93',
+        '#5124cd',
+        '#0131ff',
+        '#009393',
+        '#00fa00',
+        '#cbfa00',
+        '#fefb00',
+        '#fec802',
+        '#ff9501',
+        '#ff5004',
+        '#fe2204',
+        '#d81d52'
+    ];
+
+    if (isString(key))
+        return colors[hash(key) % colors.length];
+    else
+        return colors[key % colors.length];
+}
+
+/**
 Plot a single-variable function on a canvas
 */
 export function plotFn(fn, xMin, xMax, canvasId)
@@ -363,4 +394,20 @@ export function plotFn(fn, xMin, xMax, canvasId)
             ctx.stroke();
         }
     }
+}
+
+/**
+Hash a string into a non-negative integer.
+
+Uses the DJB2 algorithm.
+*/
+export function hash(str)
+{
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++)
+    {
+        hash = ((hash << 5) + hash) + str.charCodeAt(i);
+    }
+
+    return hash >>> 0;
 }

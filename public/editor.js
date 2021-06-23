@@ -1,4 +1,4 @@
-import { Dialog, assert, makeSvg, setSvg, getSvg } from './utils.js';
+import { Dialog, assert, makeSvg, setSvg, getSvg, getBrightColor } from './utils.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
 import { Knob } from './knob.js';
@@ -463,7 +463,7 @@ class Edge
     constructor()
     {
         this.line = makeSvg('line');
-        setSvg(this.line, 'stroke', '#FFF');
+        this.updateColor();
         setSvg(this.line, 'stroke-width', '2');
 
         // Source and destination nodes
@@ -473,6 +473,19 @@ class Edge
         // Source and destination port indices
         this.srcPort = null;
         this.dstPort = null;
+    }
+
+    updateColor()
+    {
+        let color = '#ccc';
+        if (this.srcNode && this.dstNode)
+        {
+            // n_ prefix is arbitrary, added to get a different color mix.
+            let colorKey = `n_${this.srcNode.nodeType}_${this.srcPort}`;
+            color = getBrightColor(colorKey);
+        }
+
+        setSvg(this.line, 'stroke', color);
     }
 
     setSrc(srcNode, srcPort, x, y)
@@ -492,6 +505,8 @@ class Edge
             setSvg(this.line, 'x2', x);
             setSvg(this.line, 'y2', y);
         }
+
+        this.updateColor();
     }
 
     setDst(dstNode, dstPort, x, y)
@@ -508,6 +523,8 @@ class Edge
             setSvg(this.line, 'x1', x);
             setSvg(this.line, 'y1', y);
         }
+
+        this.updateColor();
     }
 
     moveSrc(dx, dy)
