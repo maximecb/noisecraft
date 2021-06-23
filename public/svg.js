@@ -78,7 +78,6 @@ export class CubicLine
         };
     }
 
-    // Tries to render the line if possible.
     render()
     {
         if (this.start === null || this.end === null)
