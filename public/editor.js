@@ -922,8 +922,69 @@ class Node
 }
 
 /**
-Rotary knob control
-*/
+ * Constant value node
+ * */
+class ConstNode extends Node
+{
+    constructor(id, state, editor)
+    {
+        super(id, state, editor);
+
+        // Hide the node header
+        this.headerDiv.style.display = 'none';
+
+        let input = this.input = document.createElement('input');
+        input.style['text-align'] = 'center';
+        input.style['font-size'] = 14;
+        input.style['font-family'] = 'monospace';
+        input.style.color = '#FFF';
+        input.style.background = 'none';
+        input.style.border = 'none';
+        input.type = 'text';
+        input.size = 4;
+        input.maxLength = 12;
+        this.centerDiv.appendChild(input);
+
+        function resize()
+        {
+            let width = Math.max(2, 1 + input.value.length) + 'ch';
+            input.style.width = width;
+        }
+
+        input.oninput = function ()
+        {
+            resize();
+        }
+
+        input.onchange = function ()
+        {
+            let val = Number(input.value);
+
+            if (input.value.trim() === "" || isNaN(val))
+            {
+                // Restore value from params
+                input.value = state.params.value;
+            }
+            else
+            {
+                editor.model.update(new model.SetParam(
+                    id,
+                    'value',
+                    val
+                ));    
+            }
+
+            resize();
+        }
+
+        input.value = state.params.value;
+        resize();
+    }
+}
+
+/**
+ * Rotary knob control
+ * */
 class KnobNode extends Node
 {
     constructor(id, state, editor)
@@ -970,5 +1031,6 @@ class KnobNode extends Node
 // Map of node types to specialized node classes
 const NODE_CLASSES =
 {
+    'Const': ConstNode,
     'Knob': KnobNode,
 }

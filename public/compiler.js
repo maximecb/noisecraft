@@ -361,14 +361,16 @@ export function compile(graph)
         }
         */
 
-        /*
         if (node.type == 'Const')
         {
-            let params = addObj('const', node.params);
-            addLet(outName(nodeId, 0), params + '.value');
+            //let params = addObj('const', node.params);
+            //addLet(outName(nodeId, 0), params + '.value');
+
+            // FIXME: we need a proper UI node
+            // The logic will be the same as for knobs
+            addLet(outName(nodeId, 0), node.params.value);
             continue;
         }
-        */
 
         /*
         if (node.type == 'delay_write')
