@@ -1,5 +1,4 @@
 import { Dialog, assert, makeSvg, setSvg, getSvg, getBrightColor } from './utils.js';
-import { CubicLine } from './svg.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
 import { Knob } from './knob.js';
@@ -110,7 +109,7 @@ export class Editor
             if (this.edge)
             {
                 console.log('abort edge connection');
-                this.svg.removeChild(this.edge.line.element);
+                this.svg.removeChild(this.edge.line);
                 this.edge = null;
                 return;
             }
@@ -195,7 +194,7 @@ export class Editor
                 let edge = new Edge();
                 edge.setSrc(srcNode, srcPort, sx, sy);
                 edge.setDst(dstNode, dstPort, dx, dy);
-                this.svg.appendChild(edge.line.element);
+                this.svg.appendChild(edge.line);
             }
         }
 
@@ -463,9 +462,14 @@ class Edge
 {
     constructor()
     {
-        this.line = new CubicLine();
-        this.line.setWidth('2');
-        this.updateColor();
+        // Information about rendering the edge line
+        this.lineStart = null;
+        this.lineEnd = null;
+
+        // The rendered edge line
+        this.line = makeSvg('path');
+        setSvg(this.line, 'fill', 'none');
+        setSvg(this.line, 'stroke-width', '2');
 
         // Source and destination nodes
         this.srcNode = null;
@@ -476,8 +480,26 @@ class Edge
         this.dstPort = null;
     }
 
-    updateColor()
+    calculateEndpoint(x, y, angle, controlLength)
     {
+        return {
+            x: x,
+            y: y,
+            cx: x + (controlLength * Math.cos(angle)),
+            cy: y + (controlLength * Math.sin(angle))
+        };
+    }
+
+    render()
+    {
+        if (this.lineStart === null || this.lineEnd === null)
+        {
+            // Don't draw anything, there's not enough information
+            setSvg(this.line, 'd', '');
+            return;
+        }
+
+        // Determine edge color
         let color = '#ccc';
         if (this.srcNode && this.dstNode)
         {
@@ -486,7 +508,37 @@ class Edge
             color = getBrightColor(colorKey);
         }
 
-        this.line.setColor(color);
+        setSvg(this.line, 'stroke', color);
+
+        // Calculate the cubic bezier control points
+        let dx = this.lineStart.x - this.lineEnd.x;
+        let dy = this.lineStart.y - this.lineEnd.y;
+        let dist = Math.sqrt((dx*dx) + (dy*dy));
+        let controlLength = Math.floor(dist / 2);
+
+        let start = this.calculateEndpoint(
+            this.lineStart.x,
+            this.lineStart.y,
+            this.lineStart.angle,
+            controlLength
+        );
+
+        let end = this.calculateEndpoint(
+            this.lineEnd.x,
+            this.lineEnd.y,
+            this.lineEnd.angle,
+            controlLength
+        );
+
+        // The "M" command moves the cursor to an absolute point. The "C"
+        // command draws a cubic bezier line starting at the cursor and
+        // ending at another absolute point, with two given control points.
+        let d = `M ${start.x},${start.y} ` +
+                `C ${start.cx},${start.cy} ` +
+                  `${end.cx},${end.cy} ` +
+                  `${end.x},${end.y}`;
+
+        setSvg(this.line, 'd', d);
     }
 
     setSrc(srcNode, srcPort, x, y)
@@ -499,8 +551,13 @@ class Edge
         this.srcNode = srcNode;
         this.srcPort = srcPort;
 
-        this.line.setStart(x, y, 0);
-        this.updateColor();
+        this.lineStart = {
+            x: x,
+            y: y,
+            angle: 0
+        };
+
+        this.render();
     }
 
     setDst(dstNode, dstPort, x, y)
@@ -510,18 +567,35 @@ class Edge
         this.dstNode = dstNode;
         this.dstPort = dstPort;
 
-        this.line.setEnd(x, y, -Math.PI);
-        this.updateColor();
+        this.lineEnd = {
+            x: x,
+            y: y,
+            angle: -Math.PI
+        };
+
+        this.render();
     }
 
     moveSrc(dx, dy)
     {
-        this.line.moveStart(dx, dy);
+        if (this.lineStart === null)
+            return;
+
+        this.lineStart.x += dx;
+        this.lineStart.y += dy;
+
+        this.render();
     }
 
     moveDst(dx, dy)
     {
-        this.line.moveEnd(dx, dy);
+        if (this.lineEnd === null)
+            return;
+
+        this.lineEnd.x += dx;
+        this.lineEnd.y += dy;
+
+        this.render();
     }
 
     // Find out which side of the edge is unconnected
@@ -542,12 +616,22 @@ class Edge
 
         if (openSide == 'src')
         {
-            this.line.setStart(mousePos.x, mousePos.y, 0);
+            this.lineStart = {
+                x: mousePos.x,
+                y: mousePos.y,
+                angle: 0
+            };
         }
         else
         {
-            this.line.setEnd(mousePos.x, mousePos.y, -Math.PI);
+            this.lineEnd = {
+                x: mousePos.x,
+                y: mousePos.y,
+                angle: -Math.PI
+            };
         }
+
+        this.render();
     }
 }
 
@@ -725,7 +809,7 @@ class Node
                 }
 
                 editor.edge = edge;
-                editor.svg.appendChild(edge.line.element);
+                editor.svg.appendChild(edge.line);
 
                 return;
             }
