@@ -243,12 +243,14 @@ export const NODE_SCHEMA =
         description: 'white noise source',
     },
 
+    /*
     'Notes': {
         ins: [],
         outs: [],
         params: [],
         description: 'text notes',
     },
+    */
 
     'Pulse': {
         ins: [
@@ -296,6 +298,9 @@ export const NODE_SCHEMA =
         description: 'sine wave oscillator',
     },
 
+    // TODO: we probably want to change the implementation
+    // so rate values between 0 and 1 make more useful sense.
+    /*
     'Slide': {
         ins: [
             { name: 'in', default: 0 },
@@ -305,6 +310,7 @@ export const NODE_SCHEMA =
         params: [],
         description: 'simple slew-rate limiter using a running average',
     },
+    */
 
     'Sub': {
         ins: [

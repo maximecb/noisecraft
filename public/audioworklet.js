@@ -48,6 +48,7 @@ class NCAudioWorklet extends AudioWorkletProcessor
     {
         const output = outputs[0];
         const outChannel0 = output[0];
+        const outChannel1 = output[1];
 
         if (!this.genSample)
             return false;
@@ -57,8 +58,9 @@ class NCAudioWorklet extends AudioWorkletProcessor
         {
             this.playPos += 1 / 44100;
 
-            // FIXME: stereo?
-            outChannel0[i] = this.genSample(this.playPos);
+            let [leftVal, rightVal] = this.genSample(this.playPos);
+            outChannel0[i] = leftVal;
+            outChannel1[i] = rightVal;
         }
 
         return true;

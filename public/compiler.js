@@ -1,16 +1,15 @@
 import { assert, treeCopy } from './utils.js';
 import { NODE_SCHEMA } from './model.js';
-//import * as music from './music.js';
+import * as music from './music.js';
 
-/*
-Split delay nodes into two pseudo-nodes to break cycles
-Produces a new graph reusing the same nodes
-*/
+/**
+ * Split delay nodes into two pseudo-nodes to break cycles
+ * Produces a new graph reusing the same nodes
+ * */
 function splitDelays(graph)
 {
     let nodes = {...graph.nodes};
     let newGraph = { nodes: nodes };
-    let newMap = new WeakMap()
 
     // Copy the graph nodes
     for (let nodeId in nodes)
@@ -40,7 +39,6 @@ function splitDelays(graph)
         }
 
         nodes[nodeId] = node;
-        //newMap.set(node, nodeMap.get(origNode));
     }
 
     // Find max node id used in the graph
@@ -69,7 +67,6 @@ function splitDelays(graph)
         writeNode.ins = [node.ins[0]]
         writeNode.outs = [];
         nodes[writeNode.id] = writeNode;
-        newMap.set(writeNode, newMap.get(node));
 
         // delay_read takes a delay time as input, produces an output signal
         // It does not take the signal as input
@@ -78,13 +75,11 @@ function splitDelays(graph)
         readNode.id = ++maxId;
         readNode.ins = [node.ins[1]]
         nodes[readNode.id] = readNode;
-        newMap.set(readNode, newMap.get(node));
 
         // Keep track of split delays
         splitMap[node.id] = { readId: readNode.id, writeId: writeNode.id };
 
         // Remove the original delay node
-        newMap.delete(node);
         delete nodes[node.id];
     }
 
@@ -120,21 +115,23 @@ function splitDelays(graph)
         }
     }
 
-    return [newGraph, newMap];
+    return newGraph;
 }
 
 /**
-Topologically sort the nodes in a graph (Kahn's algorithm)
-*/
+ * Topologically sort the nodes in a graph (Kahn's algorithm)
+ * */
 function topoSort(graph)
 {
-    function countInEdges(node)
+    // Count the number of input edges going into a node
+    function countInEdges(nodeId)
     {
-        var numIns = 0;
+        let node = graph.nodes[nodeId];
+        let numIns = 0;
 
-        for (var i = 0; i < node.ins.length; ++i)
+        for (let i = 0; i < node.ins.length; ++i)
         {
-            var edge = node.ins[i];
+            let edge = node.ins[i];
 
             if (!edge)
                 continue;
@@ -148,23 +145,49 @@ function topoSort(graph)
         return numIns;
     }
 
-    // Set of nodes with no outgoing edges
-    var S = [];
+    // Set of nodes with no incoming edges
+    let S = [];
 
     // List sorted in reverse topological order
-    var L = [];
+    let L = [];
 
     // Map of input-side edges removed from the graph
-    var remEdges = new WeakSet();
+    let remEdges = new WeakSet();
+
+    // Map of each node to a list of outgoing edges
+    let outEdges = new Map();
 
     // Populate the initial list of nodes without input edges
     for (let nodeId in graph.nodes)
     {
-        var node = graph.nodes[nodeId];
-
-        if (countInEdges(node) == 0)
+        if (countInEdges(nodeId) == 0)
         {
-            S.push(node);
+            S.push(nodeId);
+        }
+    }
+
+    // Initialize the set of list of output edges for each node
+    for (let nodeId in graph.nodes)
+    {
+        outEdges.set(nodeId, []);
+    }
+
+    // Populate the list of output edges for each node
+    for (let nodeId in graph.nodes)
+    {
+        let node = graph.nodes[nodeId];
+
+        // For each input of this node
+        for (let i = 0; i < node.ins.length; ++i)
+        {
+            let edge = node.ins[i];
+
+            if (!edge)
+                continue;
+
+            let [srcId, srcPort] = node.ins[i];
+            let srcOuts = outEdges.get(srcId);
+            srcOuts.push([nodeId, edge]);
         }
     }
 
@@ -172,23 +195,21 @@ function topoSort(graph)
     while (S.length > 0)
     {
         // Remove a node from S, add to tail of L
-        var node = S.pop();
-        L.push(node);
+        var nodeId = S.pop();
+        L.push(nodeId);
 
-        // For each outgoing port
-        for (let portIdx = 0; portIdx < node.outs.length; ++portIdx)
+        // Get the list of output edges for this node
+        let nodeOuts = outEdges.get(nodeId);
+
+        // For each outgoing edge
+        for (let [dstId, edge] of nodeOuts)
         {
-            // For each outgoing edge
-            for (let edge of node.outs[portIdx])
-            {
-                // Mark the edge as removed
-                let dstNode = graph.nodes[edge.nodeId];
-                remEdges.add(dstNode.ins[edge.portIdx]);
+            // Mark the edge as removed
+            remEdges.add(edge);
 
-                // If the node has no more incoming edges
-                if (countInEdges(dstNode) == 0)
-                    S.push(dstNode);
-            }
+            // If the node has no more incoming edges
+            if (countInEdges(dstId) == 0)
+                S.push(dstId);
         }
     }
 
@@ -196,26 +217,27 @@ function topoSort(graph)
 }
 
 /**
-Compile a graph into a sound generating function
-*/
-export function compile(graph, nodeMap)
+ * Compile a sound-generating function from a graph of nodes
+ * */
+export function compile(graph)
 {
-    function outName(node, idx)
+    function outName(nodeId, idx)
     {
-        return 'n' + node.id + '_' + idx;
+        assert (typeof nodeId == 'number' || typeof nodeId == 'string');
+        return 'n' + nodeId + '_' + idx;
     }
 
     function inVal(node, idx)
     {
-        let desc = nodeDescs[node.type];
-        let edge = node.ins[idx];
-        let defVal = desc.ins[idx].default;
+        let schema = NODE_SCHEMA[node.type];
+        let defVal = schema.ins[idx].default;
 
-        if (!edge)
+        if (!node.ins[idx])
             return defVal;
 
-        let srcNode = graph.nodes[edge.nodeId];
-        return outName(srcNode, edge.portIdx);
+        let [srcId, portIdx] = node.ins[idx];
+        let srcNode = graph.nodes[srcId];
+        return outName(srcId, portIdx);
     }
 
     function addLine(str)
@@ -230,9 +252,9 @@ export function compile(graph, nodeMap)
         addLine('let ' + name + ' = ' + str);
     }
 
-    function addDef(node, str)
+    function addDef(nodeId, str)
     {
-        addLet(outName(node, 0), str);
+        addLet(outName(nodeId, 0), str);
     }
 
     function addObj(prefix, obj)
@@ -247,7 +269,7 @@ export function compile(graph, nodeMap)
     }
 
     // Split delay nodes
-    [graph, nodeMap] = splitDelays(graph, nodeMap);
+    //graph = splitDelays(graph);
 
     let numNodes = Object.keys(graph.nodes).length
     console.log('num nodes: ', numNodes);
@@ -264,33 +286,37 @@ export function compile(graph, nodeMap)
     */
 
     // Find the audio output node
-    let audioOut = null;
+    let audioOutId = null;
 
-    for (let node of order)
+    for (let nodeId of order)
     {
+        let node = graph.nodes[nodeId];
+
         if (node.type == 'AudioOut')
         {
-            if (audioOut)
+            if (audioOutId !== null)
                 throw 'there can be only one AudioOut node';
-            audioOut = node;
+
+            audioOutId = nodeId;
         }
     }
 
     // Source code generated
     let src = '';
 
-    for (let node of order)
+    for (let nodeId of order)
     {
-        console.log('compiling', node.type, node.id);
+        let node = graph.nodes[nodeId];
 
-        //let nodeObj = nodeMap.get(node);
+        console.log('compiling', node.type, nodeId);
 
         if (node.type == 'Add')
         {
-            addDef(node, inVal(node, 0) + ' + ' + inVal(node, 1));
+            addDef(nodeId, inVal(node, 0) + ' + ' + inVal(node, 1));
             continue;
         }
 
+        /*
         if (node.type == 'ADSR')
         {
             let obj = addObj('adsr', nodeObj.env);
@@ -307,43 +333,53 @@ export function compile(graph, nodeMap)
 
             continue;
         }
+        */
 
         if (node.type == 'AudioOut')
         {
             // Multiply by 0.5 to manage loudness and help avoid clipping
-            addLet(outName(node, 0), '0.3 * ' + inVal(node, 0));
-            addLet(outName(node, 1), '0.3 * ' + inVal(node, 1));
+            addLet(outName(nodeId, 0), '0.3 * ' + inVal(node, 0));
+            addLet(outName(nodeId, 1), '0.3 * ' + inVal(node, 1));
             continue;
         }
 
+        /*
         if (node.type == 'Clock')
         {
             let params = addObj('clock', node.params);
             addDef(node, 'lib.pulse(time, ' + music.CLOCK_PPQ + ' * ' + params + '.value/60, 0.5)');
             continue;
         }
+        */
 
+        /*
         if (node.type == 'ClockOut')
         {
             let clockNode = addObj('clockout', nodeObj);
             addLine(clockNode + '.update(' + inVal(node, 0) + ')');
             continue;
         }
+        */
 
+        /*
         if (node.type == 'Const')
         {
             let params = addObj('const', node.params);
-            addLet(outName(node, 0), params + '.value');
+            addLet(outName(nodeId, 0), params + '.value');
             continue;
         }
+        */
 
+        /*
         if (node.type == 'delay_write')
         {
             let delay = addObj('delay', nodeObj.delay);
             addLine(delay + '.write(' + inVal(node, 0) + ')');
             continue;
         }
+        */
 
+        /*
         if (node.type == 'delay_read')
         {
             let delay = addObj('delay', nodeObj.delay);
@@ -357,11 +393,13 @@ export function compile(graph, nodeMap)
 
             continue;
         }
+        */
 
+        /*
         if (node.type == 'Distort')
         {
             addDef(
-                node,
+                nodeId,
                 'lib.distort(' +
                 inVal(node, 0) + ', ' +
                 inVal(node, 1) + ')'
@@ -369,13 +407,15 @@ export function compile(graph, nodeMap)
 
             continue;
         }
+        */
 
         if (node.type == 'Div')
         {
-            addDef(node, inVal(node, 0) + '? (' + inVal(node, 0) + ' / ' + inVal(node, 1) + '):0');
+            addDef(nodeId, inVal(node, 0) + '? (' + inVal(node, 0) + ' / ' + inVal(node, 1) + '):0');
             continue;
         }
 
+        /*
         if (node.type == 'Filter')
         {
             let obj = addObj('filter', new synth.TwoPoleFilter);
@@ -389,14 +429,18 @@ export function compile(graph, nodeMap)
 
             continue;
         }
+        */
 
+        /*
         if (node.type == 'Knob')
         {
             let params = addObj('knob', node.params);
             addLet(outName(node, 0), params + '.value');
             continue;
         }
+        */
 
+        /*
         if (node.type == 'MidiIn')
         {
             let obj = addObj('midiin', nodeObj);
@@ -404,7 +448,9 @@ export function compile(graph, nodeMap)
             addLet(outName(node, 1), obj + '.gate');
             continue;
         }
+        */
 
+        /*
         if (node.type == 'MonoSeq')
         {
             let seq = addObj('seq', nodeObj);
@@ -416,17 +462,18 @@ export function compile(graph, nodeMap)
 
             continue;
         }
+        */
 
         if (node.type == 'Mul')
         {
-            addDef(node, inVal(node, 0) + ' * ' + inVal(node, 1));
+            addDef(nodeId, inVal(node, 0) + ' * ' + inVal(node, 1));
             continue;
         }
 
         if (node.type == 'Noise')
         {
             // Produce a random value in [-1, 1]
-            addDef(node, '2 * Math.random() - 1');
+            addDef(nodeId, '2 * Math.random() - 1');
             continue;
         }
 
@@ -435,61 +482,73 @@ export function compile(graph, nodeMap)
             continue;
         }
 
+        /*
         if (node.type == 'Pulse')
         {
             let obj = addObj('pulse', nodeObj);
             addDef(node, obj + '.update(' + inVal(node, 0) + ', ' + inVal(node, 1) + ', sampleTime)');
             continue;
         }
+        */
 
+        /*
         if (node.type == 'Saw')
         {
             let obj = addObj('saw', nodeObj);
             addDef(node, obj + '.update(' + inVal(node, 0) + ', sampleTime)');
             continue;
         }
+        */
 
+        /*
         if (node.type == 'Scope')
         {
             let obj = addObj('scope', nodeObj);
             addDef(node, obj + '.update(' + inVal(node, 0) + ', sampleRate)');
             continue;
         }
+        */
 
+        /*
         if (node.type == 'Sine')
         {
             let obj = addObj('sine', nodeObj);
             addDef(node, obj + '.update(' + inVal(node, 0) + ', ' + inVal(node, 1) + ', sampleTime)');
             continue;
         }
+        */
 
+        /*
         if (node.type == 'Slide')
         {
             let obj = addObj('slide', nodeObj);
             addDef(node, obj + '.update(' + inVal(node, 0) + ', ' + inVal(node, 1) + ')');
             continue;
         }
+        */
 
         if (node.type == 'Sub')
         {
-            addDef(node, inVal(node, 0) + ' - ' + inVal(node, 1));
+            addDef(nodeId, inVal(node, 0) + ' - ' + inVal(node, 1));
             continue;
         }
 
+        /*
         if (node.type == 'Tri')
         {
             let obj = addObj('tri', nodeObj);
             addDef(node, obj + '.update(' + inVal(node, 0) + ', sampleTime)');
             continue;
         }
+        */
 
         throw 'unknown node type "' + node.type + '"';
     }
 
     // Return the audio output values
-    if (audioOut)
+    if (audioOutId != null)
     {
-        addLine('return [' + outName(audioOut, 0) + ', ' + outName(audioOut, 1) + ']');
+        addLine('return [' + outName(audioOutId, 0) + ', ' + outName(audioOutId, 1) + ']');
     }
     else
     {

@@ -1,5 +1,6 @@
 import { assert } from './utils.js';
 import * as synth from './synth.js';
+import * as music from './music.js';
 
 /**
  * Base class for stateful audio processing nodes

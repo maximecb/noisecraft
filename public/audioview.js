@@ -71,7 +71,11 @@ export class AudioView
             await this.audioCtx.audioWorklet.addModule('audioworklet.js');
         }
 
-        this.audioWorklet = new AudioWorkletNode(this.audioCtx, 'sample-generator');
+        this.audioWorklet = new AudioWorkletNode(
+            this.audioCtx,
+            'sample-generator',
+            { outputChannelCount: [2] }
+        );
         this.audioWorklet.connect(this.audioCtx.destination);
 
         this.audioWorklet.port.postMessage({
