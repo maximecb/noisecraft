@@ -462,8 +462,13 @@ class Edge
 {
     constructor()
     {
-        this.line = makeSvg('line');
-        this.updateColor();
+        // Information about rendering the edge line
+        this.lineStart = null;
+        this.lineEnd = null;
+
+        // The rendered edge line
+        this.line = makeSvg('path');
+        setSvg(this.line, 'fill', 'none');
         setSvg(this.line, 'stroke-width', '2');
 
         // Source and destination nodes
@@ -475,8 +480,26 @@ class Edge
         this.dstPort = null;
     }
 
-    updateColor()
+    calculateEndpoint(x, y, angle, controlLength)
     {
+        return {
+            x: x,
+            y: y,
+            cx: x + (controlLength * Math.cos(angle)),
+            cy: y + (controlLength * Math.sin(angle))
+        };
+    }
+
+    render()
+    {
+        if (this.lineStart === null || this.lineEnd === null)
+        {
+            // Don't draw anything, there's not enough information
+            setSvg(this.line, 'd', '');
+            return;
+        }
+
+        // Determine edge color
         let color = '#ccc';
         if (this.srcNode && this.dstNode)
         {
@@ -486,6 +509,36 @@ class Edge
         }
 
         setSvg(this.line, 'stroke', color);
+
+        // Calculate the cubic bezier control points
+        let dx = this.lineStart.x - this.lineEnd.x;
+        let dy = this.lineStart.y - this.lineEnd.y;
+        let dist = Math.sqrt((dx*dx) + (dy*dy));
+        let controlLength = Math.floor(dist / 2);
+
+        let start = this.calculateEndpoint(
+            this.lineStart.x,
+            this.lineStart.y,
+            this.lineStart.angle,
+            controlLength
+        );
+
+        let end = this.calculateEndpoint(
+            this.lineEnd.x,
+            this.lineEnd.y,
+            this.lineEnd.angle,
+            controlLength
+        );
+
+        // The "M" command moves the cursor to an absolute point. The "C"
+        // command draws a cubic bezier line starting at the cursor and
+        // ending at another absolute point, with two given control points.
+        let d = `M ${start.x},${start.y} ` +
+                `C ${start.cx},${start.cy} ` +
+                  `${end.cx},${end.cy} ` +
+                  `${end.x},${end.y}`;
+
+        setSvg(this.line, 'd', d);
     }
 
     setSrc(srcNode, srcPort, x, y)
@@ -497,16 +550,14 @@ class Edge
 
         this.srcNode = srcNode;
         this.srcPort = srcPort;
-        setSvg(this.line, 'x1', x);
-        setSvg(this.line, 'y1', y);
 
-        if (!this.dstNode)
-        {
-            setSvg(this.line, 'x2', x);
-            setSvg(this.line, 'y2', y);
-        }
+        this.lineStart = {
+            x: x,
+            y: y,
+            angle: 0
+        };
 
-        this.updateColor();
+        this.render();
     }
 
     setDst(dstNode, dstPort, x, y)
@@ -515,32 +566,36 @@ class Edge
 
         this.dstNode = dstNode;
         this.dstPort = dstPort;
-        setSvg(this.line, 'x2', x);
-        setSvg(this.line, 'y2', y);
 
-        if (!this.srcNode)
-        {
-            setSvg(this.line, 'x1', x);
-            setSvg(this.line, 'y1', y);
-        }
+        this.lineEnd = {
+            x: x,
+            y: y,
+            angle: -Math.PI
+        };
 
-        this.updateColor();
+        this.render();
     }
 
     moveSrc(dx, dy)
     {
-        var x1 = Number(getSvg(this.line, 'x1'));
-        var y1 = Number(getSvg(this.line, 'y1'));
-        setSvg(this.line, 'x1', x1 + dx);
-        setSvg(this.line, 'y1', y1 + dy);
+        if (this.lineStart === null)
+            return;
+
+        this.lineStart.x += dx;
+        this.lineStart.y += dy;
+
+        this.render();
     }
 
     moveDst(dx, dy)
     {
-        var x2 = Number(getSvg(this.line, 'x2'));
-        var y2 = Number(getSvg(this.line, 'y2'));
-        setSvg(this.line, 'x2', x2 + dx);
-        setSvg(this.line, 'y2', y2 + dy);
+        if (this.lineEnd === null)
+            return;
+
+        this.lineEnd.x += dx;
+        this.lineEnd.y += dy;
+
+        this.render();
     }
 
     // Find out which side of the edge is unconnected
@@ -561,14 +616,22 @@ class Edge
 
         if (openSide == 'src')
         {
-            setSvg(this.line, 'x1', mousePos.x);
-            setSvg(this.line, 'y1', mousePos.y);
+            this.lineStart = {
+                x: mousePos.x,
+                y: mousePos.y,
+                angle: 0
+            };
         }
         else
         {
-            setSvg(this.line, 'x2', mousePos.x);
-            setSvg(this.line, 'y2', mousePos.y);
+            this.lineEnd = {
+                x: mousePos.x,
+                y: mousePos.y,
+                angle: -Math.PI
+            };
         }
+
+        this.render();
     }
 }
 
