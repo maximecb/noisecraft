@@ -304,6 +304,9 @@ export function compile(graph)
     // Generated source code
     let src = '';
 
+    // Set of stateful nodes that are relevant for audio synthesis
+    let audioNodes = {};
+
     for (let nodeId of order)
     {
         let node = graph.nodes[nodeId];
@@ -511,14 +514,12 @@ export function compile(graph)
         }
         */
 
-        /*
         if (node.type == 'Sine')
         {
-            let obj = addObj('sine', nodeObj);
-            addDef(node, obj + '.update(' + inVal(node, 0) + ', ' + inVal(node, 1) + ', sampleTime)');
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)}, ${inVal(node, 1)})`);
             continue;
         }
-        */
 
         /*
         if (node.type == 'Slide')
@@ -559,8 +560,14 @@ export function compile(graph)
 
     console.log(src);
 
+    // This will be assembled into an audio processing graph
+    // by the audio thread (audioworklet.js)
     return {
+        // Compiled source code of the genSample function
         src: src,
-        nodes: []
-    }
+
+        // Set of nodes that are relevant for audio processing,
+        // indexed by nodeId
+        nodes: audioNodes
+    };
 }
