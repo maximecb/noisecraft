@@ -37,10 +37,10 @@ create_module <list_of_node_ids>
 ungroup_module <node_id>
 
 // Sent by the play/stop buttons (but not undo-able)
-play 
+play
 stop
 
-// Sent by the audio thread so the UI can reflect playback position 
+// Sent by the audio thread so the UI can reflect playback position
 set_play_pos <time>
 
 // Actions to edit the settings/parameters of nodes
@@ -385,7 +385,7 @@ export class CreateNode extends Action
     {
         let schema = NODE_SCHEMA[this.nodeType];
 
-        let nodeState = {
+        let node = {
             type: this.nodeType,
             name: this.nodeType,
             x: this.x,
@@ -397,13 +397,12 @@ export class CreateNode extends Action
         // Initialize node parameters to default values
         for (let param of schema.params)
         {
-            nodeState.params[param.name] = param.default;
+            node.params[param.name] = param.default;
         }
 
         // Add the node to the state
-        let nodeId = model.nextId++;
-        assert (!model.state[nodeId]);
-        model.state.nodes[nodeId] = nodeState;
+        let nodeId = model.getFreeId();
+        model.state.nodes[nodeId] = node;
     }
 }
 
@@ -610,8 +609,7 @@ export class GroupNodes extends Action
         };
 
         // Add the new module node to the state
-        let moduleId = model.nextId++;
-        assert (!model.state[moduleId]);
+        let moduleId = model.getFreeId();
         model.state.nodes[moduleId] = module;
 
         console.log(`moduleId=${moduleId}`);
@@ -795,6 +793,26 @@ export class Model
     // Load the JSON state into the model
     load(state)
     {
+        assert (state instanceof Object);
+
+        // Recursively find the maximum nodeId in a set of nodes
+        function findMaxId(nodes, maxId)
+        {
+            for (let nodeId in nodes)
+            {
+                nodeId = Number(nodeId);
+                maxId = Math.max(maxId, nodeId);
+                let node = nodes[nodeId];
+                if (node.type == 'Module')
+                    maxId = findMaxId(node.nodes, maxId);
+            }
+
+            return maxId;
+        }
+
+        // Next unique nodeId to be allocated
+        this.nextFreeId = findMaxId(state.nodes, -1) + 1;
+
         // Last undoable action performed
         this.lastAction = null;
 
@@ -804,19 +822,8 @@ export class Model
         // Stack of actions tracked for redo
         this.redoStack = [];
 
-        // Next unique node id to be allocated
-        this.nextId = 0;
-
         // Current playback position
         this.playPos = 0;
-
-        // Compute the next available id
-        for (let id in state.nodes)
-        {
-            id = Number(id);
-            if (id >= this.nextId)
-                this.nextId = id + 1;
-        }
 
         // Store the new state
         this.state = state;
@@ -861,6 +868,16 @@ export class Model
     }
 
     /**
+     * Get the next available nodeId
+     * */
+    getFreeId()
+    {
+        let nodeId = this.nextFreeId++;
+        assert (!(nodeId in this.state.nodes));
+        return nodeId;
+    }
+
+    /**
      * Check if the graph contains a specific type of node
      * */
     hasNode(nodeType)
@@ -890,7 +907,7 @@ export class Model
     {
         console.log('update model', action.constructor.name);
 
-        assert (!('id' in action) || action.id in this.state.nodes);
+        assert (!('nodeId' in action) || action.nodeId in this.state.nodes);
 
         // If this action is undoable
         if (action.undoable)
