@@ -1,4 +1,4 @@
-//import { materialize } from './audionodes.js';
+import { AudioGraph } from './audiograph.js';
 
 // Great intro to audio worklets:
 // https://developers.google.com/web/updates/2017/12/audio-worklet
@@ -12,10 +12,11 @@ class NCAudioWorklet extends AudioWorkletProcessor
     {
         super();
 
+        // Port to process input messages from the main thread
         this.port.onmessage = this.onmessage.bind(this);
 
-        // Current playback position in seconds
-        this.playPos = 0;
+        // Audio generation graph
+        this.audioGraph = new AudioGraph();
     }
 
     /// Receive messages from the message port
@@ -26,17 +27,11 @@ class NCAudioWorklet extends AudioWorkletProcessor
         switch (msg.type)
         {
             case 'NEW_UNIT':
-            let src = msg.unit;
-            this.genSample = new Function(
-                'time',
-                src
-            );
+            this.audioGraph.update(msg.unit);
             break;
 
             case 'SET_PARAM':
-            //let ctrlId = msg.ctrlId;
-            //let value = msg.value;
-            //this.unit.state[ctrlId] = value;
+            // TODO
             break;
 
             default:
@@ -50,15 +45,10 @@ class NCAudioWorklet extends AudioWorkletProcessor
         const outChannel0 = output[0];
         const outChannel1 = output[1];
 
-        if (!this.genSample)
-            return false;
-
         // For each sample to generate
         for (let i = 0; i < outChannel0.length; i++)
         {
-            this.playPos += 1 / 44100;
-
-            let [leftVal, rightVal] = this.genSample(this.playPos);
+            let [leftVal, rightVal] = this.audioGraph.genSample();
             outChannel0[i] = leftVal;
             outChannel1[i] = rightVal;
         }

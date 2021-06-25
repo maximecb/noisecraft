@@ -301,7 +301,7 @@ export function compile(graph)
         }
     }
 
-    // Source code generated
+    // Generated source code
     let src = '';
 
     for (let nodeId of order)
@@ -559,5 +559,8 @@ export function compile(graph)
 
     console.log(src);
 
-    return src;
+    return {
+        src: src,
+        nodes: []
+    }
 }
