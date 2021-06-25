@@ -1,0 +1,159 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+        <link rel="icon" type="image/x-icon" href="favicon.ico" />
+        <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+        <title>NoiseCraft Help Page</title>
+    </head>
+    <body>
+    <div class="layout">
+
+        <div id="helpcontents" style="max-width: 800px; margin-left: auto; margin-right: auto">
+            <h1>NoiseCraft Help Page</h1>
+
+            <h2>Introduction</h2>
+            <p>
+            NoiseCraft is a <a href="https://en.wikipedia.org/wiki/Modular_synthesizer" target=”_blank”>modular synthesizer</a> that runs
+            in your web browser, loosely inspired by Pure Data, Max/MSP, and other visual programming languages. Essentially,
+            it's a tool that allows you to build your own synthesizer by creating new nodes (modules) and connecting
+            them together. By connecting nodes with edges, you control how audio data and control signals flow from one
+            node to another and how sound is generated.
+            </p>
+
+            <p>
+            For those who are new to synthesizers and sound synthesis,
+            <a href="https://gizmodo.com/a-beginners-guide-to-the-synth-1736978695" target=”_blank”>A Beginner's Guide to the Synth</a>
+            is a good introduction to the basic concepts involved.
+            Please don't hesitate to ask any question,
+            offer feedback and report bugs in the
+            <a href="https://reddit.com/r/musictools" target=”_blank”>musictools subreddit</a>.
+            </p>
+
+            <h2>The Basics</h2>
+
+            <h3>Node Types</h3>
+            Each node has input ports on the left, output ports on the right, and performs some operation
+            internally. Nodes like Add and Mul will add and multiply two input signals together. Sine, Saw, Pulse
+            and Noise are oscillators (signal sources). The AudioOut node takes a left and right signal and plays
+            it back on your speakers.
+
+            <h3>Creating New Nodes</h3>
+            <p>
+            Clicking on empty space in the Edit tab will make a dialog menu pop up which allows you to select the
+            kind of node you want to create. Once the node is created, you can drag it around by clicking on the
+            node's name and holding the left mouse button as you move the mouse.
+            </p>
+
+            <h3>Connecting Nodes</h3>
+            <p>
+            Nodes can have input and output ports, represented by orange boxes. By convention, the input ports of
+            a node are always on the left side, and the output ports are on the right. You can only connect output
+            ports to input ports. One output can be connected to multiple inputs, but each in put can only be
+            connected to one output. To make a connection, simply click on the first port to connect, and then
+            on the second. A white line (edge) representing the connection will appear.
+            </p>
+
+            <h3>Moving Nodes</h3>
+            <p>
+            To move a node, click on the node's name and hold down the mouse button while moving the mouse.
+            </p>
+
+            <h3>Deleting Nodes</h3>
+            <p>
+            You can delete nodes by holding down the shift key while clicking on a node's name.
+            </p>
+
+            <h3>Removing Connections</h3>
+            <p>
+            To break connections, you can click on the input-side port
+            associated with that connection. This will break the connection, and leave you holding a dangling
+            wire which you can then reconnect to an input port on another node. You can also drop the
+            dangling connection by clicking on an empty part of the canvas.
+            <p>
+
+            <p>
+            It's also possible to override existing connections. In NoiseCraft, output-side ports can be
+            connected to multiple inputs, but input-side ports can can only be connected to one thing.
+            When you try to connect an output port to an input port that already is connected to something,
+            this will remove the previous connection on that input port and override it with the new
+            connection you just made.
+            </p>
+
+            <h3>Editing Node Parameters</h3>
+            <p>
+            Double-clicking on a node's name will make a Node Parameters menu specific to this node pop up.
+            This allows you to edit advanced parameters, such as the minimum and maximum value a knob can output,
+            or the output range of a sine oscillator.
+            </p>
+
+            <h2>Examples</h2>
+
+            This section contains some simple example synth graphs which can serve as mini tutorials to
+            help you get started.
+
+            <h3>Producing Sound</h3>
+            <p>
+            In order to produce a sound, we need to connect an audio signal source to an audio output. The
+            <a href="#28" target="_blank">simplest possible graph</a>
+            that you could make to do this involves connecting a Noise node directly to an AudioOut
+            node. Try creating this simple graph, and then press the Play button in the top-right corner.
+            </p>
+
+            <h3>Playing Some Notes</h3>
+            <p>
+            The MidiIn node allows you to get pitch and gate inputs for notes played on a computer keyboard
+            or MIDI input device. The pitch value is the frequency of the note played. The gate value is one
+            when a key is held down, or zero otherwise.
+            </p>
+
+            <p>
+            This <a href="#31" target="_blank">example graph</a> uses the pitch value to directly control
+            a sawtooth wave oscillator. The gate value is then multiplied by the oscillator's output, so
+            that you only hear a sound when a note is playing.
+            </p>
+
+            <p>Press the play button in the top-right corner, and then try pressing the A to L keys on
+            your keyboard to produce sound. You can also shift one octave up or down with the Z and X keys.
+            If you want to use a MIDI input device, you should connect this device to your computer
+            before loading up NoiseCraft (or refresh the page).
+            </p>
+
+            <h3>Volume Knob</h3>
+            <p>
+            It's useful to be able to change the amplitude (intensity) of a signal. An easy way to do this
+            is to multiply that signal by some number. In <a href="#32" target="_blank">this example</a>,
+            we multiply the output of a noise source by some factor that is controlled by a knob. You can
+            change the value that the knob produces by clicking on the knob, holding the mouse button
+            down and moving your mouse up and down. Knobs, by default, produce values between 0 and 1.
+            However, you can change the output range of a knob by double clicking on its name (where it
+            says "Knob") and editing the node's parameters.
+            </p>
+
+            <h2>MIDI Support</h2>
+            <p>
+            NoiseCraft can receive input from MIDI keyboards, sequencers and other types of MIDI devices. The
+            MidiIn note, by default, will connect to every MIDI device on your system and receive notes. You
+            can also map virtual knobs in NoiseCraft to physical knobs on a MIDI device by double-clicking on
+            the virtual knob and then wiggling the physical knob you want to map to. If input from
+            your device is not detected, try refreshing the NoiseCraft page.
+            </p>
+
+            <p>
+            Most MIDI controllers should work with NoiseCraft out of the box, but if you are looking to purchase
+            new equipment, I have personally tested the Novation Launch Control, which has multiple mappable knobs,
+            the M-Audio KeyStation 88, and the Akai MPK Mini.
+            </p>
+
+            <h2>Troubleshooting</h2>
+            <p>
+            Please don't hesitate to ask any question, offer feedback and report bugs in the
+            <a href="https://reddit.com/r/musictools" target=”_blank”>musictools subreddit</a>.
+            However, please note that at the moment, I do not own a tablet. I only have access to Mac and Linux PCs.
+            As such, NoiseCraft is only tested on Chrome and Firefox on those two platforms. Support for tablets,
+            Windows computers and other platforms is not guaranteed.
+            </p>
+        </div>
+
+    </div>
+    </body>
+</html>

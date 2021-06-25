@@ -1,6 +1,7 @@
 // node-sqlite3 API:
 // https://github.com/mapbox/node-sqlite3/wiki/API
-const express = require("express");
+const express = require('express');
+const path = require('path')
 const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
 const crc = require('crc');
@@ -135,6 +136,11 @@ app.use('/', express.static('public', {
         updateStats(path, stat, get_client_ip(res.req));
     }
 }));
+
+// Help page
+app.get('/help', function(req, res) {
+    res.sendFile(path.join(__dirname, 'public/help.html'));
+});
 
 function updateStats(path, stats, clientIP)
 {
