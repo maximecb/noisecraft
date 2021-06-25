@@ -63,14 +63,14 @@ export class Editor
             evt.preventDefault();
 
             var mousePos = this.getMousePos(evt);
-    
+
             // If currently moving one or more nodes
             if (this.dragNodes.length > 0)
             {
                 this.moveNodes(mousePos);
                 return;
             }
-    
+
             // If currently connecting a port
             if (this.edge)
             {
@@ -98,7 +98,7 @@ export class Editor
 
             this.startMousePos = null;
         }
-    
+
         // Mouse click callback
         function mouseClick(evt)
         {
@@ -113,7 +113,7 @@ export class Editor
                 this.edge = null;
                 return;
             }
-    
+
             // This event may get triggered while dragging knob controls
             if (evt.target === this.graphDiv)
             {
@@ -705,13 +705,16 @@ class Node
             this.editor.endDrag(mousePos);
         }
 
-        function delNode(evt)
+        function onClick(evt)
         {
-            // Only delete on shift+click
+            // Only delete on shift + click
             if (evt.shiftKey && !this.editor.edge)
-                this.editor.delNode(this);
+            {
+                this.editor.model.update(
+                    new model.DeleteNodes(this.nodeId)
+                );
+            }
 
-            evt.preventDefault();
             evt.stopPropagation();
         }
 
@@ -724,7 +727,7 @@ class Node
         this.nodeDiv.ontouchstart = startDrag.bind(this);
         this.nodeDiv.onmouseup = endDrag.bind(this);
         this.nodeDiv.ontouchend = endDrag.bind(this);
-        //this.nodeDiv.onclick = delNode.bind(this);
+        this.nodeDiv.onclick = onClick.bind(this);
         this.nodeDiv.ondblclick = this.paramsDialog.bind(this);
 
         // Node header text
@@ -971,7 +974,7 @@ class ConstNode extends Node
                     id,
                     'value',
                     val
-                ));    
+                ));
             }
 
             resize();
@@ -1017,11 +1020,11 @@ class KnobNode extends Node
     KnobNode.prototype.saveParams = function (newParams)
     {
         GraphNode.prototype.saveParams.call(this, newParams);
-    
+
         this.knob.minVal = newParams.minVal;
         this.knob.maxVal = newParams.maxVal;
         this.knob.value = newParams.value;
-    
+
         // Redraw the knob
         this.knob.drawKnob();
     }
