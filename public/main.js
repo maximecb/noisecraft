@@ -131,6 +131,7 @@ function openModelFile()
 {
     let input = document.createElement('input');
     input.type = 'file';
+    input.accept = '.json,application/json,application/JSON';
 
     input.onchange = e =>
     {
