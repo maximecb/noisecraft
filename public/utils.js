@@ -177,6 +177,14 @@ export function isObject(val)
 }
 
 /**
+Test that a value is an array
+*/
+export function isArray(val)
+{
+    return val && (val.constructor === Array);
+}
+
+/**
 Test that a value is a string
 */
 export function isString(val)

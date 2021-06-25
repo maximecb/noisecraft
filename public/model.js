@@ -59,7 +59,7 @@ undo, however. It could be more of a direct state update,
 or it's a special undoable action.
 */
 
-import { assert, treeCopy, treeEq, isString, isObject } from './utils.js';
+import { assert, treeCopy, treeEq, isArray, isString, isObject } from './utils.js';
 
 /**
  * High-level description/schema for each type of node
@@ -891,6 +891,72 @@ export class Model
         }
 
         return false;
+    }
+
+    // Returns the minimum information required to copy a set of nodes
+    copy(nodeIds)
+    {
+        let result = {
+            // Complete information about the nodes of focus. These are the
+            // nodes being copied and pasted. They may or may not be connected
+            // to each other.
+            subjectNodes: {},
+
+            // Partial information about nodes providing input to subject nodes.
+            // If these nodes appear to exist at the paste destination, their
+            // connection with the subject nodes will be replicated.
+            sourceNodes: {}
+        };
+
+        // Start by copying the subject node states into an object. This will be
+        // the basis of our returned result, and a way to quickly check if a
+        // nodeId is in the nodeIds array.
+        for (let nodeId of nodeIds)
+        {
+            let node = this.nodes[nodeId];
+            if (!isObject(node))
+                continue;
+
+            result.subjectNodes[nodeId] = treeCopy(node);
+        }
+
+        // Filter connections and save relevant source nodes.
+        //
+        // Valid input information is always retained, just in case the paste
+        // destination can recreate the connection.
+        for (let nodeId of nodeIds)
+        {
+            let node = result.subjectNodes[nodeId];
+
+            node.ins = node.ins.map((input) => {
+                if (!isArray(input))
+                    return null;
+
+                let [inputNodeId] = input;
+
+                // Check if this connection starts at a subject node.
+                if (isObject(result.subjectNodes[inputNodeId]))
+                    return input;
+
+                // Check if we already know about this non-subject source node.
+                if (isObject(result.sourceNodes[inputNodeId]))
+                    return input;
+
+                // Ensure the new source node exists.
+                let sourceNode = this.nodes[inputNodeId];
+                if (!isObject(sourceNode))
+                    return null;
+
+                // Save source node.
+                result.sourceNodes[sourceNode.nodeId] = {
+                    type: sourceNode.type
+                };
+
+                return input;
+            });
+        }
+
+        return result;
     }
 
     // Broadcast an update to all views
