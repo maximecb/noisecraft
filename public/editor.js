@@ -380,13 +380,14 @@ export class Editor
     {
         console.log('starting drag');
 
-        if (this.selected.length > 0)
+        if (this.selected.indexOf(nodeId) != -1)
         {
             this.dragNodes = this.selected;
         }
         else
         {
             this.dragNodes = [nodeId];
+            this.deselect();
         }
 
         this.startMousePos = mousePos;
