@@ -2,16 +2,16 @@ import { assert } from './utils.js';
 import * as synth from './synth.js';
 import * as music from './music.js';
 
-// Amount of time that elapses for each sample
-const sampleTime = 1 / 44100;
-
 /**
  * Stateful graph that generates audio samples
  */
 export class AudioGraph
 {
-    constructor()
+    constructor(sampleRate)
     {
+        assert (sampleRate == 44100);
+        this.sampleRate = sampleRate;
+
         // Current playback position in seconds
         this.playPos = 0;
 
@@ -36,8 +36,6 @@ export class AudioGraph
         // For each audio node
         for (let nodeId in unit.nodes)
         {
-            console.log(`CREATING AUDIO NODE WITH ID ${nodeId}`);
-
             let nodeState = unit.nodes[nodeId];
 
             let nodeClass = (
@@ -57,7 +55,10 @@ export class AudioGraph
             }
 
             // Create a new audio node
-            this.nodes[nodeId] = new nodeClass(nodeState);
+            this.nodes[nodeId] = new nodeClass(
+                nodeState,
+                this.sampleRate
+            );
         }
 
         // Create the sample generation function
@@ -95,9 +96,25 @@ export class AudioGraph
  */
 class AudioNode
 {
-    constructor(state)
+    constructor(state, sampleRate)
     {
         this.params = state.params;
+        this.sampleRate = sampleRate;
+        this.sampleTime = 1 / sampleRate;
+    }
+}
+
+/**
+Delay line node
+*/
+class Delay extends AudioNode
+{
+    constructor(state, sampleRate)
+    {
+        super(state, sampleRate);
+
+        // Stateful delay line object
+        this.delay = new synth.Delay(sampleRate);
     }
 }
 
@@ -106,9 +123,9 @@ class AudioNode
  */
 class SawOsc extends AudioNode
 {
-    constructor(state)
+    constructor(state, sampleRate)
     {
-        super(state);
+        super(state, sampleRate);
 
         // Current time position
         this.phase = 0;
@@ -119,7 +136,7 @@ class SawOsc extends AudioNode
 
     update(freq)
     {
-        this.phase += sampleTime * freq;
+        this.phase += this.sampleTime * freq;
         let cyclePos = this.phase % 1;
         return -1 + 2 * cyclePos;
     }
@@ -130,9 +147,9 @@ class SawOsc extends AudioNode
  */
 class SineOsc extends AudioNode
 {
-    constructor(state)
+    constructor(state, sampleRate)
     {
-        super(state);
+        super(state, sampleRate);
 
         // Current time position
         this.phase = 0;
@@ -152,7 +169,7 @@ class SineOsc extends AudioNode
         this.syncSgn = (sync > 0);
 
         let cyclePos = this.phase % 1;
-        this.phase += sampleTime * freq;
+        this.phase += this.sampleTime * freq;
 
         let v = Math.sin(cyclePos * 2 * Math.PI);
         let normVal = (v + 1) / 2;
@@ -166,6 +183,7 @@ class SineOsc extends AudioNode
  */
 let NODE_CLASSES =
 {
+    Delay: Delay,
     Saw: SawOsc,
     Sine: SineOsc,
 };

@@ -3,47 +3,19 @@ import { NODE_SCHEMA } from './model.js';
 import * as music from './music.js';
 
 /**
- * Split delay nodes into two pseudo-nodes to break cycles
- * Produces a new graph reusing the same nodes
- * */
+ * Split delay nodes into two pseudo-nodes to break cycles produces a
+ * new graph reusing the same nodes.
+ * Note: this function assumes that all nodes inside modules have been
+ * inlined, and there are no modules in the input.
+ */
 function splitDelays(graph)
 {
-    let nodes = {...graph.nodes};
-    let newGraph = { nodes: nodes };
-
-    // Copy the graph nodes
-    for (let nodeId in nodes)
-    {
-        let origNode = nodes[nodeId];
-        let node = {...origNode};
-        node.ins = [...node.ins];
-        node.outs = [...node.outs];
-
-        for (var i = 0; i < node.ins.length; ++i)
-        {
-            node.ins[i] = node.ins[i]? {...node.ins[i]}:undefined;
-        }
-
-        // For each output port
-        for (let portIdx = 0; portIdx < node.outs.length; ++portIdx)
-        {
-            // Copy the output edge list
-            let edges = [...node.outs[portIdx]];
-            node.outs[portIdx] = edges;
-
-            // For each edge of this output port
-            for (var i = 0; i < edges.length; ++i)
-            {
-                edges[i] = {...edges[i]};
-            }
-        }
-
-        nodes[nodeId] = node;
-    }
+    // Copy the graph before modifying it
+    graph = treeCopy(graph);
 
     // Find max node id used in the graph
     let maxId = 0;
-    for (let nodeId in nodes)
+    for (let nodeId in graph.nodes)
     {
         maxId = Math.max(maxId, nodeId);
     }
@@ -53,9 +25,9 @@ function splitDelays(graph)
     let splitMap = {};
 
     // For each node
-    for (let nodeId in nodes)
+    for (let nodeId in graph.nodes)
     {
-        let node = nodes[nodeId];
+        let node = graph.nodes[nodeId];
 
         if (node.type != 'Delay')
             continue;
@@ -63,64 +35,56 @@ function splitDelays(graph)
         // delay_write writes a value, produces no output
         let writeNode = {...node};
         writeNode.type = 'delay_write';
-        writeNode.id = ++maxId;
+        writeNode.delayNode = node;
+        writeNode.delayId = nodeId;
         writeNode.ins = [node.ins[0]]
-        writeNode.outs = [];
-        nodes[writeNode.id] = writeNode;
+        let writeNodeId = String(++maxId);
+        graph.nodes[writeNodeId] = writeNode;
 
         // delay_read takes a delay time as input, produces an output signal
         // It does not take the signal as input
         let readNode = {...node};
         readNode.type = 'delay_read';
-        readNode.id = ++maxId;
+        readNode.delayId = nodeId;
         readNode.ins = [node.ins[1]]
-        nodes[readNode.id] = readNode;
+        let readNodeId = String(++maxId);
+        graph.nodes[readNodeId] = readNode;
 
         // Keep track of split delays
-        splitMap[node.id] = { readId: readNode.id, writeId: writeNode.id };
+        splitMap[nodeId] = { readId: readNodeId, writeId: writeNodeId };
 
         // Remove the original delay node
-        delete nodes[node.id];
+        delete graph.nodes[nodeId];
     }
 
     // Fixup the node connections to/from delays
-    for (let nodeId in nodes)
+    for (let nodeId in graph.nodes)
     {
-        let node = nodes[nodeId];
+        let node = graph.nodes[nodeId];
 
-        // For all input side edges
+        // For all input side ports
         for (var i = 0; i < node.ins.length; ++i)
         {
-            var edge = node.ins[i];
-            if (edge && edge.nodeId in splitMap)
-            {
-                edge.nodeId = splitMap[edge.nodeId].readId;
-            }
-        }
+            if (!node.ins[i])
+                continue;
 
-        // For all output side edges
-        for (let portIdx = 0; portIdx < node.outs.length; ++portIdx)
-        {
-            // For each outgoing edge
-            for (let edge of node.outs[portIdx])
+            let [srcId, srcPort] = node.ins[i];
+
+            if (srcId in splitMap)
             {
-                if (edge.nodeId in splitMap)
-                {
-                    let readId = splitMap[edge.nodeId].readId;
-                    let writeId = splitMap[edge.nodeId].writeId;
-                    edge.nodeId = (edge.portIdx == 0)? writeId:readId;
-                    edge.portIdx = 0;
-                }
+                node.ins[i] = [splitMap[srcId].readId, 0];
             }
         }
     }
 
-    return newGraph;
+    return graph;
 }
 
 /**
  * Topologically sort the nodes in a graph (Kahn's algorithm)
- * */
+ * Note: this function assumes that all nodes inside modules have been
+ * inlined, and there are no modules in the input.
+ */
 function topoSort(graph)
 {
     // Count the number of input edges going into a node
@@ -218,7 +182,7 @@ function topoSort(graph)
 
 /**
  * Compile a sound-generating function from a graph of nodes
- * */
+ */
 export function compile(graph)
 {
     function outName(nodeId, idx)
@@ -269,11 +233,11 @@ export function compile(graph)
     }
 
     // Split delay nodes
-    //graph = splitDelays(graph);
+    graph = splitDelays(graph);
 
     // Produce a topological sort of the graph
     let order = topoSort(graph);
-    console.log('num nodes in topoSort: ', order.length);
+    console.log('num nodes in topo order: ', order.length);
 
     /*
     for (let node of order)
@@ -309,7 +273,7 @@ export function compile(graph)
     {
         let node = graph.nodes[nodeId];
 
-        console.log('compiling', node.type, nodeId);
+        console.log(`compiling ${node.type}, nodeId=${nodeId}`);
 
         if (node.type == 'Add')
         {
@@ -369,30 +333,22 @@ export function compile(graph)
             continue;
         }
 
-        /*
         if (node.type == 'delay_write')
         {
-            let delay = addObj('delay', nodeObj.delay);
-            addLine(delay + '.write(' + inVal(node, 0) + ')');
+            audioNodes[node.delayId] = node.delayNode;
+            addLine(`nodes[${node.delayId}].delay.write(${inVal(node, 0)})`);
             continue;
         }
-        */
 
-        /*
         if (node.type == 'delay_read')
         {
-            let delay = addObj('delay', nodeObj.delay);
-
             addDef(
-                node,
-                delay + '.' + 'read(' +
-                inVal(node, 0) + ', ' +
-                'sampleRate)'
+                nodeId,
+                `nodes[${node.delayId}].delay.read(${inVal(node, 0)})`
             );
 
             continue;
         }
-        */
 
         /*
         if (node.type == 'Distort')

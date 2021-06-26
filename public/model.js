@@ -136,7 +136,6 @@ export const NODE_SCHEMA =
         description: 'editable constant value',
     },
 
-    /*
     'Delay': {
         ins: [
             { name: 'in', default: 0 },
@@ -146,7 +145,6 @@ export const NODE_SCHEMA =
         params: [],
         description: 'delay line',
     },
-    */
 
     // Used during compilation, reads from a delay line
     'delay_read': {

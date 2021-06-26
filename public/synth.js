@@ -303,8 +303,9 @@ KrajeskiFilter.prototype.setCutoff = function (cutoff)
 /**
 Delay line, implemented as a circular buffer
 */
-export function Delay()
+export function Delay(sampleRate)
 {
+    this.sampleRate = sampleRate;
     this.buffer = new Float32Array(Delay.MAX_TIME * 44100);
     this.writeIdx = 0;
 };
@@ -324,9 +325,9 @@ Delay.prototype.write = function (s)
     this.buffer[this.writeIdx] = s;
 };
 
-Delay.prototype.read = function (delayTime, sampleRate)
+Delay.prototype.read = function (delayTime)
 {
-    let numSamples = Math.floor(sampleRate * delayTime);
+    let numSamples = Math.floor(this.sampleRate * delayTime);
 
     if (numSamples >= this.buffer.length)
     {

@@ -16,7 +16,7 @@ class NCAudioWorklet extends AudioWorkletProcessor
         this.port.onmessage = this.onmessage.bind(this);
 
         // Audio generation graph
-        this.audioGraph = new AudioGraph();
+        this.audioGraph = new AudioGraph(44100);
     }
 
     /// Receive messages from the message port
