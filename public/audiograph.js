@@ -49,10 +49,31 @@ export class AudioGraph
                 AudioNode
             );
 
-            // If a node with this nodeId is already mapped, it must have the same type
-            assert (!this.nodes[nodeId] || this.nodes[nodeId] instanceof nodeClass);
+            // If a node with this nodeId is already mapped
+            if (this.nodes[nodeId])
+            {
+                // The existing node must have the same type
+                assert (this.nodes[nodeId] instanceof nodeClass);
+
+                // Don't recreate it because that would reset its state
+                return;
+            }
+
+            // Create a new audio node
             this.nodes[nodeId] = new nodeClass(nodeState);
         }
+    }
+
+    /**
+     * Set a parameter value on a given node
+     */
+    setParam(nodeId, paramName, value)
+    {
+        assert (nodeId in this.nodes);
+        let node = this.nodes[nodeId];
+        assert (paramName in node.params);
+        assert (typeof value == 'number');
+        node.params[paramName] = value;
     }
 
     /**

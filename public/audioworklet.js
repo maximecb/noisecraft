@@ -31,7 +31,7 @@ class NCAudioWorklet extends AudioWorkletProcessor
             break;
 
             case 'SET_PARAM':
-            // TODO
+            this.audioGraph.setParam(msg.nodeId, msg.paramName, msg.value);
             break;
 
             default:

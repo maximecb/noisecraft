@@ -42,7 +42,7 @@ export class AudioView
 
         if (action instanceof model.SetParam)
         {
-            // TODO
+            this.setParam(action.nodeId, action.paramName, action.value);
             return;
         }
 
@@ -95,17 +95,16 @@ export class AudioView
         this.audioWorklet = null;
     }
 
-    setParam(nodeId, value)
+    setParam(nodeId, paramName, value)
     {
         if (!this.audioWorklet)
             return;
 
-        /*
-        audioWorklet.port.postMessage({
+        this.audioWorklet.port.postMessage({
             type: 'SET_PARAM',
-            ctrlId: ctrlId,
+            nodeId: nodeId,
+            paramName: paramName,
             value: value
         });
-        */
     }
 }
