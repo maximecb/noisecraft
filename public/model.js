@@ -449,16 +449,18 @@ export class DeleteNodes extends Action
     constructor(nodeIds)
     {
         super();
+        assert (nodeIds instanceof Array);
         this.nodeIds = nodeIds;
     }
 
     update(model)
     {
-        console.log('deleting nodes');
+        console.log('deleting nodes', this.nodeIds);
 
         // For each node to be deleted
         for (let nodeId of this.nodeIds)
         {
+            assert (nodeId in model.state.nodes);
             delete model.state.nodes[nodeId];
         }
 

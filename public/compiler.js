@@ -271,11 +271,9 @@ export function compile(graph)
     // Split delay nodes
     //graph = splitDelays(graph);
 
-    let numNodes = Object.keys(graph.nodes).length
-    console.log('num nodes: ', numNodes);
-
     // Produce a topological sort of the graph
     let order = topoSort(graph);
+    console.log('num nodes in topoSort: ', order.length);
 
     /*
     for (let node of order)

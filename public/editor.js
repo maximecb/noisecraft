@@ -712,7 +712,7 @@ class Node
             if (evt.shiftKey && !this.editor.edge)
             {
                 this.editor.model.update(
-                    new model.DeleteNodes(this.nodeId)
+                    new model.DeleteNodes([this.nodeId])
                 );
             }
 
