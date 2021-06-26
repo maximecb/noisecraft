@@ -366,12 +366,8 @@ export function compile(graph)
 
         if (node.type == 'Const')
         {
-            //let params = addObj('const', node.params);
-            //addLet(outName(nodeId, 0), params + '.value');
-
-            // FIXME: we need a proper UI node
-            // The logic will be the same as for knobs
-            addLet(outName(nodeId, 0), node.params.value);
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].params.value`);
             continue;
         }
 
@@ -436,14 +432,12 @@ export function compile(graph)
         }
         */
 
-        /*
         if (node.type == 'Knob')
         {
-            let params = addObj('knob', node.params);
-            addLet(outName(node, 0), params + '.value');
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].params.value`);
             continue;
         }
-        */
 
         /*
         if (node.type == 'MidiIn')

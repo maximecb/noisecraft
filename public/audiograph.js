@@ -43,8 +43,11 @@ export class AudioGraph
 
             let nodeState = unit.nodes[nodeId];
 
-            assert (nodeState.type in NODE_CLASSES);
-            let nodeClass = NODE_CLASSES[nodeState.type];
+            let nodeClass = (
+                nodeState.type in NODE_CLASSES?
+                NODE_CLASSES[nodeState.type]:
+                AudioNode
+            );
 
             // If a node with this nodeId is already mapped, it must have the same type
             assert (!this.nodes[nodeId] || this.nodes[nodeId] instanceof nodeClass);
@@ -69,7 +72,7 @@ class AudioNode
 {
     constructor(state)
     {
-        this.state = state;
+        this.params = state.params;
     }
 }
 
@@ -93,8 +96,8 @@ class SineOsc extends AudioNode
     {
         const sampleTime = 1 / 44100;
 
-        let minVal = this.state.params.minVal;
-        let maxVal = this.state.params.maxVal;
+        let minVal = this.params.minVal;
+        let maxVal = this.params.maxVal;
 
         if (!this.syncSgn && sync > 0)
             this.phase = 0;
