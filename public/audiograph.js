@@ -2,6 +2,9 @@ import { assert } from './utils.js';
 import * as synth from './synth.js';
 import * as music from './music.js';
 
+// Amount of time that elapses for each sample
+const sampleTime = 1 / 44100;
+
 /**
  * Stateful graph that generates audio samples
  */
@@ -24,12 +27,6 @@ export class AudioGraph
      */
     update(unit)
     {
-        this._genSample = new Function(
-            'time',
-            'nodes',
-            unit.src
-        );
-
         // Note that we don't delete any nodes, even if existing nodes are
         // currently not listed in the compiled unit, because currently
         // disconnected nodes may get reconnected, and deleting things like
@@ -56,12 +53,19 @@ export class AudioGraph
                 assert (this.nodes[nodeId] instanceof nodeClass);
 
                 // Don't recreate it because that would reset its state
-                return;
+                continue;
             }
 
             // Create a new audio node
             this.nodes[nodeId] = new nodeClass(nodeState);
         }
+
+        // Create the sample generation function
+        this._genSample = new Function(
+            'time',
+            'nodes',
+            unit.src
+        );
     }
 
     /**
@@ -98,6 +102,30 @@ class AudioNode
 }
 
 /**
+ * Sawtooth wave oscillator
+ */
+class SawOsc extends AudioNode
+{
+    constructor(state)
+    {
+        super(state);
+
+        // Current time position
+        this.phase = 0;
+
+        // Current sync input sign (positive/negative)
+        this.syncSgn = false;
+    }
+
+    update(freq)
+    {
+        this.phase += sampleTime * freq;
+        let cyclePos = this.phase % 1;
+        return -1 + 2 * cyclePos;
+    }
+}
+
+/**
  * Sine wave oscillator
  */
 class SineOsc extends AudioNode
@@ -115,8 +143,6 @@ class SineOsc extends AudioNode
 
     update(freq, sync)
     {
-        const sampleTime = 1 / 44100;
-
         let minVal = this.params.minVal;
         let maxVal = this.params.maxVal;
 
@@ -140,5 +166,6 @@ class SineOsc extends AudioNode
  */
 let NODE_CLASSES =
 {
+    Saw: SawOsc,
     Sine: SineOsc,
 };

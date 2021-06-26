@@ -488,14 +488,13 @@ export function compile(graph)
         }
         */
 
-        /*
         if (node.type == 'Saw')
         {
-            let obj = addObj('saw', nodeObj);
-            addDef(node, obj + '.update(' + inVal(node, 0) + ', sampleTime)');
+            audioNodes[nodeId] = node;
+            //addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)}, ${inVal(node, 1)})`);
+            addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)})`);
             continue;
         }
-        */
 
         /*
         if (node.type == 'Scope')

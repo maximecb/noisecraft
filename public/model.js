@@ -76,6 +76,7 @@ export const NODE_SCHEMA =
         description: 'add input waveforms',
     },
 
+    /*
     'ADSR': {
         ins: [
             { name: 'gate', default: 0 },
@@ -88,6 +89,7 @@ export const NODE_SCHEMA =
         params: [],
         description: 'ADSR envelope generator',
     },
+    */
 
     'AudioOut': {
         ins: [
@@ -99,6 +101,7 @@ export const NODE_SCHEMA =
         description: 'stereo sound output',
     },
 
+    /*
     'Clock': {
         ins: [],
         outs: [''],
@@ -110,6 +113,7 @@ export const NODE_SCHEMA =
         ],
         description: 'MIDI clock signal source with tempo in BPM',
     },
+    */
 
     // Commented out because we'll start without MIDI output support
     /*
@@ -132,6 +136,7 @@ export const NODE_SCHEMA =
         description: 'editable constant value',
     },
 
+    /*
     'Delay': {
         ins: [
             { name: 'in', default: 0 },
@@ -141,6 +146,7 @@ export const NODE_SCHEMA =
         params: [],
         description: 'delay line',
     },
+    */
 
     // Used during compilation, reads from a delay line
     'delay_read': {
@@ -162,6 +168,7 @@ export const NODE_SCHEMA =
         params: [],
     },
 
+    /*
     'Distort': {
         ins: [
             { name: 'in', default: 0 },
@@ -171,6 +178,7 @@ export const NODE_SCHEMA =
         params: [],
         description: 'overdrive-style distortion',
     },
+    */
 
     'Div': {
         ins: [
@@ -182,6 +190,7 @@ export const NODE_SCHEMA =
         description: 'divide one input by another',
     },
 
+    /*
     'Filter': {
         ins: [
             { name: 'in', default: 0 },
@@ -192,6 +201,7 @@ export const NODE_SCHEMA =
         params: [],
         description: 'low-pass filter',
     },
+    */
 
     'Knob': {
         ins: [],
@@ -252,6 +262,7 @@ export const NODE_SCHEMA =
     },
     */
 
+    /*
     'Pulse': {
         ins: [
             { name: 'freq', default: 0 },
@@ -261,6 +272,7 @@ export const NODE_SCHEMA =
         params: [],
         description: 'pulse/square oscillator',
     },
+    */
 
     'Saw': {
         ins: [
@@ -322,6 +334,7 @@ export const NODE_SCHEMA =
         description: 'subtract input waveforms',
     },
 
+    /*
     'Tri': {
         ins: [
             { name: 'freq', default: 0 }
@@ -330,6 +343,7 @@ export const NODE_SCHEMA =
         params: [],
         description: 'triangle oscillator',
     },
+    */
 
     'Module': {
         internal: true,
