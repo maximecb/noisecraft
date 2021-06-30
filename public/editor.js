@@ -1,4 +1,5 @@
-import { Dialog, assert, makeSvg, setSvg, getSvg, getBrightColor } from './utils.js';
+import { assert, makeSvg, setSvg, getSvg, getBrightColor } from './utils.js';
+import { Dialog } from './dialog.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
 import { Knob } from './knob.js';
@@ -880,8 +881,9 @@ class Node
     paramsDialog()
     {
         let node = this;
-        let newName = this.data.name;
-        let newParams = Object.assign({}, this.data.params);
+        let nodeState = this.editor.model.getNodeState(this.nodeId);
+        let newName = nodeState.name;
+        let newParams = Object.assign({}, nodeState.params);
 
         // Dialog contents
         var div = document.createElement('div');
@@ -896,7 +898,7 @@ class Node
         typeElem.type = 'text';
         typeElem.size = 14;
         typeElem.disabled = true;
-        typeElem.value = this.type;
+        typeElem.value = this.nodeType;
         typeDiv.appendChild(typeElem);
 
         // Node name editing
@@ -908,7 +910,7 @@ class Node
         input.type = 'text';
         input.size = 14;
         input.maxLength = 12;
-        input.value = this.data.name;
+        input.value = nodeState.name;
         paramDiv.appendChild(input);
 
         input.oninput = function (evt)
@@ -917,7 +919,7 @@ class Node
         }
 
         // For each parameter
-        for (let param of this.desc.params)
+        for (let param of this.schema.params)
         {
             let paramDiv = document.createElement('div');
             paramDiv.className = 'form_div';
@@ -930,7 +932,7 @@ class Node
             input.type = 'text';
             input.size = 12;
             input.maxLength = 10;
-            input.value = this.data.params[param.name];
+            input.value = nodeState.params[param.name];
             paramDiv.appendChild(input);
 
             input.oninput = function (evt)
@@ -985,7 +987,7 @@ class Node
         }
 
         // Save the parameters and close if enter is pressed
-        dialog.addKeyListener(function (key)
+        dialog.on('keydown', function (key)
         {
             if (key == "Enter")
                 saveParams();

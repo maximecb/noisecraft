@@ -892,6 +892,15 @@ export class Model
     }
 
     /**
+     * Get the current state for a given nodeId
+     */
+    getNodeState(nodeId)
+    {
+        assert (nodeId in this.state.nodes);
+        return this.state.nodes[nodeId];
+    }
+
+    /**
      * Check if the graph contains a specific type of node
      * */
     hasNode(nodeType)
