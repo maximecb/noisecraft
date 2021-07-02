@@ -956,13 +956,17 @@ class Node
         deleteBtn.className = 'form_btn';
         div.appendChild(deleteBtn);
 
+        // TODO: we should move saveParams into a method
+        // and to some validation based on the schema at save time
         function saveParams()
         {
             // Model updates may fail for some values
             try
             {
-                // TODO: node name update
-                //newName
+                this.editor.model.update(new model.SetNodeName(
+                    this.nodeId,
+                    newName
+                ));
 
                 // For each parameter
                 for (let param of this.schema.params)
@@ -983,6 +987,7 @@ class Node
             catch (e)
             {
                 // If model updates fail, we don't close the dialog
+                console.log(e);
             }
         }
 
@@ -1111,6 +1116,11 @@ class ConstNode extends Node
             }
 
             resize();
+        }
+
+        input.ondblclick = function (evt)
+        {
+            evt.stopPropagation();
         }
 
         input.value = state.params.value;

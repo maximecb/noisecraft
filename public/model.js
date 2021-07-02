@@ -502,6 +502,26 @@ export class DeleteNodes extends Action
 /**
  * Set a node parameter to a given value
  * */
+export class SetNodeName extends Action
+{
+    constructor(nodeId, name)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.name = name;
+    }
+
+    update(model)
+    {
+        let node = model.state.nodes[this.nodeId];
+        assert (this.name.length > 0);
+        node.name = this.name;
+    }
+}
+
+/**
+ * Set a node parameter to a given value
+ * */
 export class SetParam extends Action
 {
     constructor(nodeId, paramName, value)
@@ -533,6 +553,18 @@ export class SetParam extends Action
     {
         let node = model.state.nodes[this.nodeId];
         assert (this.paramName in node.params);
+
+        switch (this.paramName)
+        {
+            case "minVal":
+            case "maxVal":
+            case "value":
+            assert (typeof this.value == "number");
+
+            default:
+            break;
+        }
+
         node.params[this.paramName] = this.value;
     }
 }
