@@ -106,9 +106,9 @@ export const NODE_SCHEMA =
         ins: [],
         outs: [''],
         params: [
-            { name: 'value', default: 120 },
             { name: 'minVal', default: 60 },
             { name: 'maxVal', default: 240 },
+            { name: 'value', default: 120 },
             { name: 'controlNo', default: null },
         ],
         description: 'MIDI clock signal source with tempo in BPM',
@@ -205,9 +205,9 @@ export const NODE_SCHEMA =
         ins: [],
         outs: [''],
         params: [
-            { name: 'value', default: 0 },
             { name: 'minVal', default: 0 },
             { name: 'maxVal', default: 1 },
+            { name: 'value', default: 0 },
             { name: 'controlNo', default: null },
         ],
         description: 'parameter control knob',

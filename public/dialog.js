@@ -45,6 +45,11 @@ export class Dialog extends Eventable
         body.addEventListener('keydown', this.keyHandler);
     }
 
+    // TODO: method to create a named button with the right styling
+
+    // TODO: method to display an error string
+    // e.g. form validation error
+
     /**
      * Close the dialog window
      */

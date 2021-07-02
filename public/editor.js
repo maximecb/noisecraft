@@ -958,22 +958,35 @@ class Node
 
         function saveParams()
         {
-            node.headerDiv.textContent = input.value;
-            node.data.name = newName;
-
-            // TODO: put this in a try block, don't close if invalid?
-            // actually, no need for the try block
+            // Model updates may fail for some values
             try
             {
-                node.saveParams(newParams);
+                // TODO: node name update
+                //newName
+
+                // For each parameter
+                for (let param of this.schema.params)
+                {
+                    if (newParams[param.name] == nodeState.params[param.name])
+                        continue;
+
+                    this.editor.model.update(new model.SetParam(
+                        this.nodeId,
+                        param.name,
+                        newParams[param.name]
+                    ));
+                }
+
                 dialog.close();
             }
+
             catch (e)
             {
+                // If model updates fail, we don't close the dialog
             }
         }
 
-        saveBtn.onclick = saveParams;
+        saveBtn.onclick = saveParams.bind(this);
 
         cancelBtn.onclick = function ()
         {
@@ -990,7 +1003,7 @@ class Node
         dialog.on('keydown', function (key)
         {
             if (key == "Enter")
-                saveParams();
+                saveBtn.onclick();
         });
 
         return div;
@@ -1132,23 +1145,8 @@ class KnobNode extends Node
         }
 
         this.knob.on('change', knobChange);
-        //this.knob.addBindListener(controlNo => this.data.params.controlNo = controlNo);
+        //this.knob.on('bind', controlNo => this.data.params.controlNo = controlNo);
     }
-
-    // FIXME: for the node params dialog
-    /*
-    KnobNode.prototype.saveParams = function (newParams)
-    {
-        GraphNode.prototype.saveParams.call(this, newParams);
-
-        this.knob.minVal = newParams.minVal;
-        this.knob.maxVal = newParams.maxVal;
-        this.knob.value = newParams.value;
-
-        // Redraw the knob
-        this.knob.drawKnob();
-    }
-    */
 }
 
 // Map of node types to specialized node classes
