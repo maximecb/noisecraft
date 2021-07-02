@@ -1,4 +1,5 @@
-import { Dialog, assert, makeSvg, setSvg, getSvg, getBrightColor } from './utils.js';
+import { assert, makeSvg, setSvg, getSvg, getBrightColor } from './utils.js';
+import { Dialog } from './dialog.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
 import { Knob } from './knob.js';
@@ -458,7 +459,7 @@ export class Editor
 
 /**
  * Connection between two UI nodes
- * */
+ */
 class Edge
 {
     constructor()
@@ -638,7 +639,7 @@ class Edge
 
 /**
  * Represent a node in the UI
- * */
+ */
 class Node
 {
     constructor(id, state, editor)
@@ -681,7 +682,9 @@ class Node
         this.genNodeDOM(state.name);
     }
 
-    // Setup DOM elements for this node
+    /**
+     * Setup DOM elements for this node
+     */
     genNodeDOM()
     {
         function startDrag(evt)
@@ -712,7 +715,7 @@ class Node
             if (evt.shiftKey && !this.editor.edge)
             {
                 this.editor.model.update(
-                    new model.DeleteNodes(this.nodeId)
+                    new model.DeleteNodes([this.nodeId])
                 );
             }
 
@@ -778,7 +781,9 @@ class Node
         }
     }
 
-    // Setup DOM nodes for a connection port
+    /**
+     * Setup DOM nodes for a connection port
+     */
     genPortDOM(parentDiv, portIdx, portName, side)
     {
         let editor = this.editor;
@@ -871,6 +876,127 @@ class Node
     }
 
     /**
+     * Show a modal dialog to edit node parameters
+     */
+    paramsDialog()
+    {
+        let node = this;
+        let nodeState = this.editor.model.getNodeState(this.nodeId);
+        let newName = nodeState.name;
+        let newParams = Object.assign({}, nodeState.params);
+
+        // Dialog contents
+        var div = document.createElement('div');
+        var dialog = new Dialog('Node Parameters', div);
+
+        // Node type
+        let typeDiv = document.createElement('div');
+        typeDiv.className = 'form_div';
+        div.appendChild(typeDiv);
+        typeDiv.appendChild(document.createTextNode('Node type '));
+        let typeElem = document.createElement('input');
+        typeElem.type = 'text';
+        typeElem.size = 14;
+        typeElem.disabled = true;
+        typeElem.value = this.nodeType;
+        typeDiv.appendChild(typeElem);
+
+        // Node name editing
+        let paramDiv = document.createElement('div');
+        paramDiv.className = 'form_div';
+        div.appendChild(paramDiv);
+        paramDiv.appendChild(document.createTextNode('Node name '));
+        let input = document.createElement('input');
+        input.type = 'text';
+        input.size = 14;
+        input.maxLength = 12;
+        input.value = nodeState.name;
+        paramDiv.appendChild(input);
+
+        input.oninput = function (evt)
+        {
+            newName = input.value;
+        }
+
+        // For each parameter
+        for (let param of this.schema.params)
+        {
+            let paramDiv = document.createElement('div');
+            paramDiv.className = 'form_div';
+            div.appendChild(paramDiv);
+
+            let name = document.createTextNode(param.name + ' ');
+            paramDiv.appendChild(name);
+
+            let input = document.createElement('input');
+            input.type = 'text';
+            input.size = 12;
+            input.maxLength = 10;
+            input.value = nodeState.params[param.name];
+            paramDiv.appendChild(input);
+
+            input.oninput = function (evt)
+            {
+                newParams[param.name] = Number(input.value);
+            }
+        }
+
+        let saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Save';
+        saveBtn.className = 'form_btn';
+        div.appendChild(saveBtn);
+
+        let cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.className = 'form_btn';
+        div.appendChild(cancelBtn);
+
+        let deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.className = 'form_btn';
+        div.appendChild(deleteBtn);
+
+        function saveParams()
+        {
+            node.headerDiv.textContent = input.value;
+            node.data.name = newName;
+
+            // TODO: put this in a try block, don't close if invalid?
+            // actually, no need for the try block
+            try
+            {
+                node.saveParams(newParams);
+                dialog.close();
+            }
+            catch (e)
+            {
+            }
+        }
+
+        saveBtn.onclick = saveParams;
+
+        cancelBtn.onclick = function ()
+        {
+            dialog.close()
+        }
+
+        deleteBtn.onclick = function ()
+        {
+            node.editor.delNode(node);
+            dialog.close()
+        }
+
+        // Save the parameters and close if enter is pressed
+        dialog.on('keydown', function (key)
+        {
+            if (key == "Enter")
+                saveParams();
+        });
+
+        return div;
+    }
+
+    /**
      * Get the position of the center of a port connector relative
      * to the editor canvas.
      */
@@ -887,6 +1013,9 @@ class Node
         return [x, y];
     }
 
+    /**
+     * Move this node and its connected edges
+     */
     move(dx, dy)
     {
         // Move the node
@@ -913,21 +1042,11 @@ class Node
         // Adjust the graph to fit this node
         //this.editor.fitNode(this, true);
     }
-
-    /**
-     * Show a modal dialog to edit node parameters
-     * */
-    paramsDialog()
-    {
-        console.log('params dialog');
-
-        // TODO
-    }
 }
 
 /**
  * Constant value node
- * */
+ */
 class ConstNode extends Node
 {
     constructor(id, state, editor)
@@ -988,7 +1107,7 @@ class ConstNode extends Node
 
 /**
  * Rotary knob control
- * */
+ */
 class KnobNode extends Node
 {
     constructor(id, state, editor)

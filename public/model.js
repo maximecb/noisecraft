@@ -76,6 +76,7 @@ export const NODE_SCHEMA =
         description: 'add input waveforms',
     },
 
+    /*
     'ADSR': {
         ins: [
             { name: 'gate', default: 0 },
@@ -88,6 +89,7 @@ export const NODE_SCHEMA =
         params: [],
         description: 'ADSR envelope generator',
     },
+    */
 
     'AudioOut': {
         ins: [
@@ -99,6 +101,7 @@ export const NODE_SCHEMA =
         description: 'stereo sound output',
     },
 
+    /*
     'Clock': {
         ins: [],
         outs: [''],
@@ -110,6 +113,7 @@ export const NODE_SCHEMA =
         ],
         description: 'MIDI clock signal source with tempo in BPM',
     },
+    */
 
     // Commented out because we'll start without MIDI output support
     /*
@@ -162,6 +166,7 @@ export const NODE_SCHEMA =
         params: [],
     },
 
+    /*
     'Distort': {
         ins: [
             { name: 'in', default: 0 },
@@ -171,6 +176,7 @@ export const NODE_SCHEMA =
         params: [],
         description: 'overdrive-style distortion',
     },
+    */
 
     'Div': {
         ins: [
@@ -182,6 +188,7 @@ export const NODE_SCHEMA =
         description: 'divide one input by another',
     },
 
+    /*
     'Filter': {
         ins: [
             { name: 'in', default: 0 },
@@ -192,6 +199,7 @@ export const NODE_SCHEMA =
         params: [],
         description: 'low-pass filter',
     },
+    */
 
     'Knob': {
         ins: [],
@@ -252,6 +260,7 @@ export const NODE_SCHEMA =
     },
     */
 
+    /*
     'Pulse': {
         ins: [
             { name: 'freq', default: 0 },
@@ -261,6 +270,7 @@ export const NODE_SCHEMA =
         params: [],
         description: 'pulse/square oscillator',
     },
+    */
 
     'Saw': {
         ins: [
@@ -322,6 +332,7 @@ export const NODE_SCHEMA =
         description: 'subtract input waveforms',
     },
 
+    /*
     'Tri': {
         ins: [
             { name: 'freq', default: 0 }
@@ -330,6 +341,7 @@ export const NODE_SCHEMA =
         params: [],
         description: 'triangle oscillator',
     },
+    */
 
     'Module': {
         internal: true,
@@ -449,16 +461,18 @@ export class DeleteNodes extends Action
     constructor(nodeIds)
     {
         super();
+        assert (nodeIds instanceof Array);
         this.nodeIds = nodeIds;
     }
 
     update(model)
     {
-        console.log('deleting nodes');
+        console.log('deleting nodes', this.nodeIds);
 
         // For each node to be deleted
         for (let nodeId of this.nodeIds)
         {
+            assert (nodeId in model.state.nodes);
             delete model.state.nodes[nodeId];
         }
 
@@ -875,6 +889,15 @@ export class Model
         let nodeId = this.nextFreeId++;
         assert (!(nodeId in this.state.nodes));
         return nodeId;
+    }
+
+    /**
+     * Get the current state for a given nodeId
+     */
+    getNodeState(nodeId)
+    {
+        assert (nodeId in this.state.nodes);
+        return this.state.nodes[nodeId];
     }
 
     /**
