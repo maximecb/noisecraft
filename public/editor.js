@@ -152,6 +152,7 @@ export class Editor
         // recreating all the nodes.
 
         // Remove existing nodes and edges
+        this.edge = null;
         while (this.graphDiv.firstChild)
             this.graphDiv.removeChild(this.graphDiv.firstChild);
         while (this.svg.firstChild)

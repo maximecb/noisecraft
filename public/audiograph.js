@@ -86,6 +86,9 @@ export class AudioGraph
      */
     genSample()
     {
+        if (!this._genSample)
+            return [0, 0];
+
         this.playPos += 1 / 44100;
         return this._genSample(this.playPos, this.nodes);
     }
