@@ -122,6 +122,26 @@ class Delay extends AudioNode
 }
 
 /**
+Pulse wave oscillator
+*/
+class PulseOsc extends AudioNode
+{
+    constructor(state, sampleRate)
+    {
+        super(state, sampleRate);
+
+        this.phase = 0;
+    }
+
+    update(freq, duty)
+    {
+        this.phase += this.sampleTime * freq;
+        let cyclePos = this.phase % 1;
+        return (cyclePos < duty)? -1:1;
+    }
+}
+
+/**
  * Sawtooth wave oscillator
  */
 class SawOsc extends AudioNode
@@ -187,6 +207,7 @@ class SineOsc extends AudioNode
 let NODE_CLASSES =
 {
     Delay: Delay,
+    Pulse: PulseOsc,
     Saw: SawOsc,
     Sine: SineOsc,
 };

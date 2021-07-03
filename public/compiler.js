@@ -435,19 +435,16 @@ export function compile(graph)
             continue;
         }
 
-        /*
         if (node.type == 'Pulse')
         {
-            let obj = addObj('pulse', nodeObj);
-            addDef(node, obj + '.update(' + inVal(node, 0) + ', ' + inVal(node, 1) + ', sampleTime)');
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)}, ${inVal(node, 1)})`);
             continue;
         }
-        */
 
         if (node.type == 'Saw')
         {
             audioNodes[nodeId] = node;
-            //addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)}, ${inVal(node, 1)})`);
             addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)})`);
             continue;
         }

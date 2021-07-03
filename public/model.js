@@ -260,7 +260,6 @@ export const NODE_SCHEMA =
     },
     */
 
-    /*
     'Pulse': {
         ins: [
             { name: 'freq', default: 0 },
@@ -270,7 +269,6 @@ export const NODE_SCHEMA =
         params: [],
         description: 'pulse/square oscillator',
     },
-    */
 
     'Saw': {
         ins: [
