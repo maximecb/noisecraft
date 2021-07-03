@@ -370,21 +370,15 @@ export function compile(graph)
             continue;
         }
 
-        /*
         if (node.type == 'Filter')
         {
-            let obj = addObj('filter', new synth.TwoPoleFilter);
+            audioNodes[nodeId] = node;
             addDef(
-                node,
-                obj + '.apply(' +
-                inVal(node, 0) + ', ' +
-                inVal(node, 1) + ', ' +
-                inVal(node, 2) + ')'
+                nodeId,
+                `nodes[${nodeId}].update(${inVal(node, 0)}, ${inVal(node, 1)}, ${inVal(node, 2)})`
             );
-
             continue;
         }
-        */
 
         if (node.type == 'Knob')
         {

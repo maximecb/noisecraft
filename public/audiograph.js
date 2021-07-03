@@ -203,6 +203,24 @@ class SineOsc extends AudioNode
 }
 
 /**
+ * Two-pole low-pass filter
+ */
+ class Filter extends AudioNode
+ {
+     constructor(state, sampleRate)
+     {
+         super(state, sampleRate);
+
+         this.filter = new synth.TwoPoleFilter();
+     }
+
+     update(input, cutoff, reso)
+     {
+        return this.filter.apply(input, cutoff, reso);
+     }
+}
+
+/**
  * Monophonic note sequencer
  */
 class MonoSeq extends AudioNode
@@ -311,5 +329,6 @@ let NODE_CLASSES =
     Pulse: PulseOsc,
     Saw: SawOsc,
     Sine: SineOsc,
+    Filter: Filter,
     MonoSeq: MonoSeq,
 };

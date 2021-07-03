@@ -188,7 +188,6 @@ export const NODE_SCHEMA =
         description: 'divide one input by another',
     },
 
-    /*
     'Filter': {
         ins: [
             { name: 'in', default: 0 },
@@ -197,9 +196,8 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
-        description: 'low-pass filter',
+        description: 'classic two-pole low-pass filter',
     },
-    */
 
     'Knob': {
         ins: [],
