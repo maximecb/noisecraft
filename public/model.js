@@ -223,7 +223,6 @@ export const NODE_SCHEMA =
     },
     */
 
-    /*
     'MonoSeq': {
         ins: [
             { name: 'clock', default: 0 },
@@ -232,7 +231,6 @@ export const NODE_SCHEMA =
         params: [],
         description: 'monophonic step sequencer',
     },
-    */
 
     'Mul': {
         ins: [

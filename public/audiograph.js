@@ -101,6 +101,7 @@ class AudioNode
 {
     constructor(state, sampleRate)
     {
+        this.state = state;
         this.params = state.params;
         this.sampleRate = sampleRate;
         this.sampleTime = 1 / sampleRate;
@@ -202,6 +203,106 @@ class SineOsc extends AudioNode
 }
 
 /**
+ * Monophonic note sequencer
+ */
+class MonoSeq extends AudioNode
+{
+    constructor(state, sampleRate)
+    {
+        super(state, sampleRate);
+
+        // Current clock sign (positive/negative)
+        this.clockSgn = false;
+
+        // Number of clock ticks since playback start
+        this.clockCnt = 0;
+
+        // Currently highlighted step
+        this.curStep = false;
+
+        // Time the last note was triggered
+        this.trigTime = 0;
+
+        // Amount of time the gate stays open for each step
+        // This is currently not configurable
+        this.gateTime = 0.1;
+
+        // Output frequency and gate values
+        this.freq = 0;
+        this.gate = 0;
+
+        // Next pattern that is queued for playback
+        this.nextPat = undefined;
+    }
+
+    /**
+     * Takes the current time and clock signal as input.
+     * Produces frequency and gate signals as output.
+     */
+    update(time, clock)
+    {
+        if (!this.clockSgn && clock > 0)
+        {
+            // If we are at the beginning of a new sequencer step
+            if (this.clockCnt % music.CLOCK_PPS == 0)
+            {
+                var grid = this.state.patterns[this.patIdx];
+
+                var stepIdx = (this.clockCnt / music.CLOCK_PPS);
+                assert (stepIdx < grid.length);
+
+                this.gate = 0;
+                this.trigTime = 0;
+
+                for (var rowIdx = 0; rowIdx < this.numRows; ++rowIdx)
+                {
+                    if (!grid[stepIdx][rowIdx])
+                        continue
+
+                    let note = this.scale[rowIdx];
+                    this.freq = note.getFreq();
+                    this.gate = 1;
+                    this.trigTime = time;
+                }
+
+                // TODO: transmit info back to UI view?
+                // Highlight the current step
+                //this.highlight(stepIdx);
+
+                // If this is the last step of this pattern
+                if (stepIdx === grid.length - 1)
+                {
+                    this.clockCnt -= grid.length * music.CLOCK_PPS;
+
+                    if (this.nextPat !== undefined)
+                    {
+                        this.select(this.nextPat);
+                    }
+                }
+            }
+
+            this.clockCnt++;
+        }
+
+        // If we are past the end of the note
+        if (this.gate > 0)
+        {
+            if (time - this.trigTime > gateTime)
+            {
+                this.gate = 0;
+                this.trigTime = 0;
+            }
+        }
+
+        this.clockSgn = (clock > 0);
+
+        assert (!isNaN(this.freq), 'MonoSeq freq is NaN');
+        assert (!isNaN(this.gate), 'MonoSeq gate is NaN');
+        return [this.freq, this.gate];
+    }
+}
+
+/**
  * Map of node types to classes
  */
 let NODE_CLASSES =
@@ -210,4 +311,5 @@ let NODE_CLASSES =
     Pulse: PulseOsc,
     Saw: SawOsc,
     Sine: SineOsc,
+    MonoSeq: MonoSeq,
 };

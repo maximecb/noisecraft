@@ -1160,9 +1160,30 @@ class KnobNode extends Node
     }
 }
 
+/**
+ * Monophonic note sequencer
+ */
+ class MonoSeq extends Node
+ {
+     constructor(id, state, editor)
+     {
+         super(id, state, editor);
+
+
+
+
+
+
+
+
+
+    }
+ }
+
 // Map of node types to specialized node classes
 const NODE_CLASSES =
 {
     'Const': ConstNode,
     'Knob': KnobNode,
+    'MonoSeq': MonoSeq,
 }

@@ -403,19 +403,17 @@ export function compile(graph)
         }
         */
 
-        /*
         if (node.type == 'MonoSeq')
         {
-            let seq = addObj('seq', nodeObj);
+            audioNodes[nodeId] = node;
 
             addLine(
-                'let [' + outName(node, 0) + ', ' + outName(node, 1) + '] = ' +
-                seq + '.update(time, ' + inVal(node, 0) + ', ' + inVal(node, 1) + ')'
+                `let [${outName(nodeId, 0)}, ${outName(nodeId, 1)}] = ` +
+                `nodes[${nodeId}].update(time, ${inVal(node, 0)})`
             );
 
             continue;
         }
-        */
 
         if (node.type == 'Mul')
         {
