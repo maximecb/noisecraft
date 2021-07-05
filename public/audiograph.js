@@ -123,6 +123,22 @@ class Delay extends AudioNode
 }
 
 /**
+Overdrive-style distortion
+*/
+class Distort extends AudioNode
+{
+    constructor(state, sampleRate)
+    {
+        super(state, sampleRate);
+    }
+
+    update(input, amount)
+    {
+        return synth.distort(input, amount);
+    }
+}
+
+/**
 Pulse wave oscillator
 */
 class PulseOsc extends AudioNode
@@ -348,6 +364,7 @@ class MonoSeq extends AudioNode
 let NODE_CLASSES =
 {
     Delay: Delay,
+    Distort: Distort,
     Pulse: PulseOsc,
     Saw: SawOsc,
     Sine: SineOsc,

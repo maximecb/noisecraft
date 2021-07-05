@@ -166,7 +166,6 @@ export const NODE_SCHEMA =
         params: [],
     },
 
-    /*
     'Distort': {
         ins: [
             { name: 'in', default: 0 },
@@ -176,7 +175,6 @@ export const NODE_SCHEMA =
         params: [],
         description: 'overdrive-style distortion',
     },
-    */
 
     'Div': {
         ins: [
