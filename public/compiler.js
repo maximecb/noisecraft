@@ -472,14 +472,12 @@ export function compile(graph)
             continue;
         }
 
-        /*
         if (node.type == 'Tri')
         {
-            let obj = addObj('tri', nodeObj);
-            addDef(node, obj + '.update(' + inVal(node, 0) + ', sampleTime)');
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)})`);
             continue;
         }
-        */
 
         throw 'unknown node type "' + node.type + '"';
     }

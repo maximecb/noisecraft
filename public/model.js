@@ -63,7 +63,7 @@ import { assert, treeCopy, treeEq, isString, isObject } from './utils.js';
 
 /**
  * High-level description/schema for each type of node
- * */
+ */
 export const NODE_SCHEMA =
 {
     'Add': {
@@ -326,18 +326,18 @@ export const NODE_SCHEMA =
         description: 'subtract input waveforms',
     },
 
-    /*
     'Tri': {
         ins: [
             { name: 'freq', default: 0 }
         ],
         outs: ['out'],
         params: [],
-        description: 'triangle oscillator',
+        description: 'triangle wave oscillator',
     },
-    */
 
     'Module': {
+        // Marked internal because you can't create a module
+        // from the node creation menu
         internal: true,
         ins: [],
         outs: [],
@@ -350,7 +350,7 @@ export const NODE_SCHEMA =
  * Base class for all model update actions.
  * As a general rule, we only create actions for things we can undo.
  * Moving nodes is an action, but selecting or copying nodes is not.
- * */
+ */
 export class Action
 {
     // Test if this action can be combined with the previous
@@ -376,7 +376,7 @@ export class Action
 
 /**
  * Create a new node
- * */
+ */
 export class CreateNode extends Action
 {
     constructor(nodeType, x, y)
@@ -414,7 +414,7 @@ export class CreateNode extends Action
 
 /**
  * Move one or more nodes
- * */
+ */
 export class MoveNodes extends Action
 {
     constructor(nodeIds, dx, dy)
@@ -449,7 +449,7 @@ export class MoveNodes extends Action
 
 /**
  * Delete one or more nodes
- * */
+ */
 export class DeleteNodes extends Action
 {
     constructor(nodeIds)
@@ -495,7 +495,7 @@ export class DeleteNodes extends Action
 
 /**
  * Set a node parameter to a given value
- * */
+ */
 export class SetNodeName extends Action
 {
     constructor(nodeId, name)
@@ -515,7 +515,7 @@ export class SetNodeName extends Action
 
 /**
  * Set a node parameter to a given value
- * */
+ */
 export class SetParam extends Action
 {
     constructor(nodeId, paramName, value)
@@ -565,7 +565,7 @@ export class SetParam extends Action
 
 /**
  * Connect two nodes with an edge
- * */
+ */
 export class ConnectNodes extends Action
 {
     constructor(srcId, srcPort, dstId, dstPort)
@@ -592,7 +592,7 @@ export class ConnectNodes extends Action
 
 /**
  * Remove the connection attached to an input port
- * */
+ */
 export class Disconnect extends Action
 {
     constructor(dstId, dstPort)
@@ -618,7 +618,7 @@ export class Disconnect extends Action
  * to rename module input and output ports after the module is created. We
  * could make it possible to expose specific knobs inside the group on the
  * module's UI.
- * */
+ */
 export class GroupNodes extends Action
 {
     constructor(nodeIds)
@@ -760,7 +760,7 @@ export class GroupNodes extends Action
 
 /**
  * Start playbacks
- * */
+ */
 export class Play extends Action
 {
     constructor()
@@ -780,7 +780,7 @@ export class Play extends Action
 
 /**
  * Stop playback
- * */
+ */
  export class Stop extends Action
  {
     constructor()
@@ -800,7 +800,7 @@ export class Play extends Action
 
 /**
  * Graph of nodes model, operates on internal state data
- * */
+ */
 export class Model
 {
     constructor()
@@ -883,7 +883,7 @@ export class Model
     /**
      * Tries to deserialize a JSON string representation of a model
      * Returns true if successfully deserialized and loaded, false otherwise
-     * */
+     */
     deserialize(data)
     {
         if (!isString(data))
@@ -909,7 +909,7 @@ export class Model
 
     /**
      * Get the next available nodeId
-     * */
+     */
     getFreeId()
     {
         let nodeId = this.nextFreeId++;
@@ -928,7 +928,7 @@ export class Model
 
     /**
      * Check if the graph contains a specific type of node
-     * */
+     */
     hasNode(nodeType)
     {
         // Compute the next available id

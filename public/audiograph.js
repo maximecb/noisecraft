@@ -153,9 +153,6 @@ class SawOsc extends AudioNode
 
         // Current time position
         this.phase = 0;
-
-        // Current sync input sign (positive/negative)
-        this.syncSgn = false;
     }
 
     update(freq)
@@ -199,6 +196,31 @@ class SineOsc extends AudioNode
         let normVal = (v + 1) / 2;
 
         return minVal + normVal * (maxVal - minVal);
+    }
+}
+
+/**
+ * Triangle wave oscillator
+ */
+class TriOsc extends AudioNode
+{
+    constructor(state, sampleRate)
+    {
+        super(state, sampleRate);
+
+        // Current time position
+        this.phase = 0;
+    }
+
+    update(freq)
+    {
+        this.phase += this.sampleTime * freq;
+        let cyclePos = this.phase % 1;
+
+        if (cyclePos < 0.5)
+            return -1 + (4 * cyclePos);
+
+        return 1 - (4 * (cyclePos - 0.5));
     }
 }
 
@@ -329,6 +351,7 @@ let NODE_CLASSES =
     Pulse: PulseOsc,
     Saw: SawOsc,
     Sine: SineOsc,
+    Tri: TriOsc,
     Filter: Filter,
     MonoSeq: MonoSeq,
 };
