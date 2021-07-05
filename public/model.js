@@ -60,6 +60,7 @@ or it's a special undoable action.
 */
 
 import { assert, treeCopy, treeEq, isString, isObject } from './utils.js';
+import * as music from './music.js';
 
 /**
  * High-level description/schema for each type of node
