@@ -350,19 +350,12 @@ export function compile(graph)
             continue;
         }
 
-        /*
         if (node.type == 'Distort')
         {
-            addDef(
-                nodeId,
-                'lib.distort(' +
-                inVal(node, 0) + ', ' +
-                inVal(node, 1) + ')'
-            );
-
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)}, ${inVal(node, 1)})`);
             continue;
         }
-        */
 
         if (node.type == 'Div')
         {
@@ -370,21 +363,15 @@ export function compile(graph)
             continue;
         }
 
-        /*
         if (node.type == 'Filter')
         {
-            let obj = addObj('filter', new synth.TwoPoleFilter);
+            audioNodes[nodeId] = node;
             addDef(
-                node,
-                obj + '.apply(' +
-                inVal(node, 0) + ', ' +
-                inVal(node, 1) + ', ' +
-                inVal(node, 2) + ')'
+                nodeId,
+                `nodes[${nodeId}].update(${inVal(node, 0)}, ${inVal(node, 1)}, ${inVal(node, 2)})`
             );
-
             continue;
         }
-        */
 
         if (node.type == 'Knob')
         {
@@ -403,19 +390,17 @@ export function compile(graph)
         }
         */
 
-        /*
         if (node.type == 'MonoSeq')
         {
-            let seq = addObj('seq', nodeObj);
+            audioNodes[nodeId] = node;
 
             addLine(
-                'let [' + outName(node, 0) + ', ' + outName(node, 1) + '] = ' +
-                seq + '.update(time, ' + inVal(node, 0) + ', ' + inVal(node, 1) + ')'
+                `let [${outName(nodeId, 0)}, ${outName(nodeId, 1)}] = ` +
+                `nodes[${nodeId}].update(time, ${inVal(node, 0)})`
             );
 
             continue;
         }
-        */
 
         if (node.type == 'Mul')
         {
@@ -435,19 +420,16 @@ export function compile(graph)
             continue;
         }
 
-        /*
         if (node.type == 'Pulse')
         {
-            let obj = addObj('pulse', nodeObj);
-            addDef(node, obj + '.update(' + inVal(node, 0) + ', ' + inVal(node, 1) + ', sampleTime)');
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)}, ${inVal(node, 1)})`);
             continue;
         }
-        */
 
         if (node.type == 'Saw')
         {
             audioNodes[nodeId] = node;
-            //addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)}, ${inVal(node, 1)})`);
             addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)})`);
             continue;
         }
@@ -483,14 +465,12 @@ export function compile(graph)
             continue;
         }
 
-        /*
         if (node.type == 'Tri')
         {
-            let obj = addObj('tri', nodeObj);
-            addDef(node, obj + '.update(' + inVal(node, 0) + ', sampleTime)');
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)})`);
             continue;
         }
-        */
 
         throw 'unknown node type "' + node.type + '"';
     }

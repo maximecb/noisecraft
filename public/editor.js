@@ -152,6 +152,7 @@ export class Editor
         // recreating all the nodes.
 
         // Remove existing nodes and edges
+        this.edge = null;
         while (this.graphDiv.firstChild)
             this.graphDiv.removeChild(this.graphDiv.firstChild);
         while (this.svg.firstChild)
@@ -956,24 +957,42 @@ class Node
         deleteBtn.className = 'form_btn';
         div.appendChild(deleteBtn);
 
+        // TODO: we should move saveParams into a method
+        // and to some validation based on the schema at save time
         function saveParams()
         {
-            node.headerDiv.textContent = input.value;
-            node.data.name = newName;
-
-            // TODO: put this in a try block, don't close if invalid?
-            // actually, no need for the try block
+            // Model updates may fail for some values
             try
             {
-                node.saveParams(newParams);
+                this.editor.model.update(new model.SetNodeName(
+                    this.nodeId,
+                    newName
+                ));
+
+                // For each parameter
+                for (let param of this.schema.params)
+                {
+                    if (newParams[param.name] == nodeState.params[param.name])
+                        continue;
+
+                    this.editor.model.update(new model.SetParam(
+                        this.nodeId,
+                        param.name,
+                        newParams[param.name]
+                    ));
+                }
+
                 dialog.close();
             }
+
             catch (e)
             {
+                // If model updates fail, we don't close the dialog
+                console.log(e);
             }
         }
 
-        saveBtn.onclick = saveParams;
+        saveBtn.onclick = saveParams.bind(this);
 
         cancelBtn.onclick = function ()
         {
@@ -990,7 +1009,7 @@ class Node
         dialog.on('keydown', function (key)
         {
             if (key == "Enter")
-                saveParams();
+                saveBtn.onclick();
         });
 
         return div;
@@ -1100,6 +1119,11 @@ class ConstNode extends Node
             resize();
         }
 
+        input.ondblclick = function (evt)
+        {
+            evt.stopPropagation();
+        }
+
         input.value = state.params.value;
         resize();
     }
@@ -1132,23 +1156,187 @@ class KnobNode extends Node
         }
 
         this.knob.on('change', knobChange);
-        //this.knob.addBindListener(controlNo => this.data.params.controlNo = controlNo);
+        //this.knob.on('bind', controlNo => this.data.params.controlNo = controlNo);
     }
+}
 
-    // FIXME: for the node params dialog
-    /*
-    KnobNode.prototype.saveParams = function (newParams)
+/**
+ * Monophonic note sequencer
+ */
+class MonoSeq extends Node
+{
+    constructor(id, state, editor)
     {
-        GraphNode.prototype.saveParams.call(this, newParams);
+        super(id, state, editor);
 
-        this.knob.minVal = newParams.minVal;
-        this.knob.maxVal = newParams.maxVal;
-        this.knob.value = newParams.value;
+        /*
+        // Initialize the pattern data
+        if (!('patterns' in data))
+        {
+            data.scaleRoot = 'C2';
+            data.scaleName = 'minor pentatonic';
+            data.numOcts = 1;
 
-        // Redraw the knob
-        this.knob.drawKnob();
+            // Pattern grids
+            data.patterns = [];
+        }
+        */
+
+        var div = document.createElement('div');
+        div.style['padding'] = '4px';
+        div.style['text-align'] = 'center';
+        this.centerDiv.append(div)
+
+        // Buttons and drop boxes
+        let btnDiv = document.createElement('div');
+        btnDiv.style.display = 'flex';
+        btnDiv.style['justify-content'] = 'center';
+        btnDiv.style['flex-wrap'] = 'nowrap';
+        btnDiv.style['margin-bottom'] = 4;
+        div.appendChild(btnDiv);
+
+        // Root and scale selection boxes
+        var selectNum = document.createElement("select");
+        var selectRoot = document.createElement("select");
+        var selectScale = document.createElement("select");
+        btnDiv.appendChild(selectNum);
+        btnDiv.appendChild(selectRoot);
+        btnDiv.appendChild(selectScale);
+
+        // Shrink and extend pattern buttons
+        let shrinkBtn = document.createElement("button");
+        let extendBtn = document.createElement("button");
+        let copyBtn = document.createElement("button");
+        shrinkBtn.appendChild(document.createTextNode("←"));
+        extendBtn.appendChild(document.createTextNode("→"));
+        copyBtn.appendChild(document.createTextNode("⇒"));
+        btnDiv.appendChild(shrinkBtn);
+        btnDiv.appendChild(extendBtn);
+        btnDiv.appendChild(copyBtn);
+        shrinkBtn.onclick = evt => this.shrink();
+        extendBtn.onclick = evt => this.extend();
+        copyBtn.onclick = evt => this.extendCopy();
+        shrinkBtn.ondblclick = evt => evt.stopPropagation();
+        extendBtn.ondblclick = evt => evt.stopPropagation();
+        copyBtn.ondblclick = evt => evt.stopPropagation();
+
+        function scaleChange()
+        {
+            let scaleRoot = selectRoot.options[selectRoot.selectedIndex].value;
+            let scaleName = selectScale.options[selectScale.selectedIndex].value;
+            let numOcts = selectNum.options[selectNum.selectedIndex].value;
+            this.setScale(scaleRoot, scaleName, numOcts);
+        }
+
+        selectNum.onchange = scaleChange.bind(this);
+        selectRoot.onchange = scaleChange.bind(this);
+        selectScale.onchange = scaleChange.bind(this);
+
+        // Populate the num octaves selection
+        for (let numOcts = 1; numOcts <= 3; ++numOcts)
+        {
+            var opt = document.createElement("option");
+            opt.setAttribute('value', numOcts);
+            opt.appendChild(document.createTextNode(numOcts));
+            //opt.selected = (numOcts == data.numOcts);
+            selectNum.appendChild(opt);
+        }
+
+        // TODO: need to populate based on schema
+        /*
+        // Populate the root note selection
+        var rootNote = music.Note('C1');
+        for (let i = 0; i < 5 * music.NOTES_PER_OCTAVE; ++i)
+        {
+            var noteName = rootNote.getName();
+            var opt = document.createElement("option");
+            opt.setAttribute('value', noteName);
+            opt.appendChild(document.createTextNode(noteName));
+            //opt.selected = (noteName == data.scaleRoot);
+            selectRoot.appendChild(opt);
+            rootNote = rootNote.offset(1);
+        }
+
+        // Populate the scale selection
+        for (let scale of music.SCALE_NAMES)
+        {
+            var opt = document.createElement("option");
+            opt.setAttribute('value', scale);
+            opt.appendChild(document.createTextNode(scale));
+            //opt.selected = (scale == data.scaleName);
+            selectScale.appendChild(opt);
+        }
+        */
+
+        // Div to contain the sequencer grid
+        this.gridDiv = document.createElement('div');
+        this.gridDiv.style['margin-top'] = 4;
+        this.gridDiv.style['padding-top'] = 4;
+        this.gridDiv.style['padding-bottom'] = 4;
+        this.gridDiv.style.background = '#111';
+        this.gridDiv.style.border = '1px solid #AAA';
+        this.gridDiv.style['text-align'] = 'left';
+        this.gridDiv.style.width = '325';
+        this.gridDiv.style['overflow-x'] = 'scroll';
+        this.gridDiv.style['overscroll-behavior-x'] = 'none';
+        this.gridDiv.style['white-space'] = 'nowrap';
+        div.appendChild(this.gridDiv);
+
+        // Prevent double-click handling from propagating to node
+        // This is needed because clicks on grid cells are frequent
+        this.gridDiv.ondblclick = evt => evt.stopPropagation();
+
+        // Pattern grid containers, indexed by pattern
+        this.patDivs = [];
+
+        // Divs for grid cells, indexed by pattern
+        this.cellDivs = [];
+
+        // Pattern selection block
+        let selDiv = document.createElement('div');
+        selDiv.style.display = 'flex';
+        selDiv.style['justify-content'] = 'center';
+        selDiv.style['flex-wrap'] = 'nowrap';
+        selDiv.style['margin-top'] = 4;
+        div.appendChild(selDiv);
+
+        // Pattern selection buttons
+        this.patBtns = []
+
+        // Pattern selection bar
+        for (let i = 0; i < 8; ++i)
+        {
+            let patSel = document.createElement('div');
+            patSel.className = 'patsel_btn';
+            patSel.textContent = String(i+1);
+
+            // When clicked, select this pattern
+            patSel.onclick = evt => this.queue(i);
+
+            selDiv.appendChild(patSel);
+            this.patBtns.push(patSel);
+        }
+
+        // Create the scale
+        //this.scale = music.genScale(data.scaleRoot, data.scaleName, data.numOcts);
+        //this.numRows = this.scale.length;
+
+        // Currently selected pattern
+        this.patIdx = 0;
     }
-    */
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 // Map of node types to specialized node classes
@@ -1156,4 +1344,5 @@ const NODE_CLASSES =
 {
     'Const': ConstNode,
     'Knob': KnobNode,
+    'MonoSeq': MonoSeq,
 }

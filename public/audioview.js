@@ -76,12 +76,13 @@ export class AudioView
             'sample-generator',
             { outputChannelCount: [2] }
         );
-        this.audioWorklet.connect(this.audioCtx.destination);
 
         this.audioWorklet.port.postMessage({
             type: 'NEW_UNIT',
             unit: this.unit
         });
+
+        this.audioWorklet.connect(this.audioCtx.destination);
     }
 
     /** Stop audio playback */
