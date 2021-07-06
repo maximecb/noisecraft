@@ -944,61 +944,38 @@ export class Model
     // Returns the minimum information required to copy a set of nodes
     copy(nodeIds)
     {
-        let result = {
-            // Complete information about the nodes of focus. These are the
-            // nodes being copied and pasted. They may or may not be connected
-            // to each other.
-            subjectNodes: {},
+        let result = {};
 
-            // Partial information about nodes providing input to subject nodes.
-            // If these nodes appear to exist at the paste destination, their
-            // connection with the subject nodes will be replicated.
-            sourceNodes: {}
-        };
+        if (!nodeIds instanceof Array)
+            return result;
 
-        // Start by copying the subject node states into an object. This will be
-        // the basis of our returned result, and a way to quickly check if a
-        // nodeId is in the nodeIds array.
+        // Start by fully copying node information. This will be the basis of
+        // our returned result, and a way to quickly check if a nodeId is in the
+        // nodeIds array
         for (let nodeId of nodeIds)
         {
             let node = this.nodes[nodeId];
-            if (!isObject(node))
+            if (!node instanceof Object)
                 continue;
 
-            result.subjectNodes[nodeId] = treeCopy(node);
+            result[nodeId] = treeCopy(node);
         }
 
-        // Filter connections and save relevant source nodes.
-        //
-        // Valid input information is always retained, just in case the paste
-        // destination can recreate the connection.
+        // Filter port connections. We only retain connections that begin and
+        // end within the given nodes
         for (let nodeId of nodeIds)
         {
-            let node = result.subjectNodes[nodeId];
+            let node = result[nodeId];
 
             node.ins = node.ins.map((input) => {
-                if (!isArray(input))
+                // Filter out unexpected values
+                if (!input instanceof Array)
                     return null;
 
+                // Filter out connections outside the copied nodes
                 let [inputNodeId] = input;
-
-                // Check if this connection starts at a subject node.
-                if (isObject(result.subjectNodes[inputNodeId]))
-                    return input;
-
-                // Check if we already know about this non-subject source node.
-                if (isObject(result.sourceNodes[inputNodeId]))
-                    return input;
-
-                // Ensure the new source node exists.
-                let sourceNode = this.nodes[inputNodeId];
-                if (!isObject(sourceNode))
+                if (!result[inputNodeId])
                     return null;
-
-                // Save source node.
-                result.sourceNodes[sourceNode.nodeId] = {
-                    type: sourceNode.type
-                };
 
                 return input;
             });
