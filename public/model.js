@@ -60,10 +60,11 @@ or it's a special undoable action.
 */
 
 import { assert, treeCopy, treeEq, isArray, isString, isObject } from './utils.js';
+import * as music from './music.js';
 
 /**
  * High-level description/schema for each type of node
- * */
+ */
 export const NODE_SCHEMA =
 {
     'Add': {
@@ -76,6 +77,7 @@ export const NODE_SCHEMA =
         description: 'add input waveforms',
     },
 
+    /*
     'ADSR': {
         ins: [
             { name: 'gate', default: 0 },
@@ -88,6 +90,7 @@ export const NODE_SCHEMA =
         params: [],
         description: 'ADSR envelope generator',
     },
+    */
 
     'AudioOut': {
         ins: [
@@ -99,17 +102,19 @@ export const NODE_SCHEMA =
         description: 'stereo sound output',
     },
 
+    /*
     'Clock': {
         ins: [],
         outs: [''],
         params: [
-            { name: 'value', default: 120 },
             { name: 'minVal', default: 60 },
             { name: 'maxVal', default: 240 },
+            { name: 'value', default: 120 },
             { name: 'controlNo', default: null },
         ],
         description: 'MIDI clock signal source with tempo in BPM',
     },
+    */
 
     // Commented out because we'll start without MIDI output support
     /*
@@ -190,16 +195,16 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
-        description: 'low-pass filter',
+        description: 'classic two-pole low-pass filter',
     },
 
     'Knob': {
         ins: [],
         outs: [''],
         params: [
-            { name: 'value', default: 0 },
             { name: 'minVal', default: 0 },
             { name: 'maxVal', default: 1 },
+            { name: 'value', default: 0 },
             { name: 'controlNo', default: null },
         ],
         description: 'parameter control knob',
@@ -215,7 +220,6 @@ export const NODE_SCHEMA =
     },
     */
 
-    /*
     'MonoSeq': {
         ins: [
             { name: 'clock', default: 0 },
@@ -224,7 +228,6 @@ export const NODE_SCHEMA =
         params: [],
         description: 'monophonic step sequencer',
     },
-    */
 
     'Mul': {
         ins: [
@@ -328,10 +331,12 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
-        description: 'triangle oscillator',
+        description: 'triangle wave oscillator',
     },
 
     'Module': {
+        // Marked internal because you can't create a module
+        // from the node creation menu
         internal: true,
         ins: [],
         outs: [],
@@ -344,7 +349,7 @@ export const NODE_SCHEMA =
  * Base class for all model update actions.
  * As a general rule, we only create actions for things we can undo.
  * Moving nodes is an action, but selecting or copying nodes is not.
- * */
+ */
 export class Action
 {
     // Test if this action can be combined with the previous
@@ -370,7 +375,7 @@ export class Action
 
 /**
  * Create a new node
- * */
+ */
 export class CreateNode extends Action
 {
     constructor(nodeType, x, y)
@@ -408,7 +413,7 @@ export class CreateNode extends Action
 
 /**
  * Move one or more nodes
- * */
+ */
 export class MoveNodes extends Action
 {
     constructor(nodeIds, dx, dy)
@@ -443,22 +448,24 @@ export class MoveNodes extends Action
 
 /**
  * Delete one or more nodes
- * */
+ */
 export class DeleteNodes extends Action
 {
     constructor(nodeIds)
     {
         super();
+        assert (nodeIds instanceof Array);
         this.nodeIds = nodeIds;
     }
 
     update(model)
     {
-        console.log('deleting nodes');
+        console.log('deleting nodes', this.nodeIds);
 
         // For each node to be deleted
         for (let nodeId of this.nodeIds)
         {
+            assert (nodeId in model.state.nodes);
             delete model.state.nodes[nodeId];
         }
 
@@ -487,7 +494,27 @@ export class DeleteNodes extends Action
 
 /**
  * Set a node parameter to a given value
- * */
+ */
+export class SetNodeName extends Action
+{
+    constructor(nodeId, name)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.name = name;
+    }
+
+    update(model)
+    {
+        let node = model.state.nodes[this.nodeId];
+        assert (this.name.length > 0);
+        node.name = this.name;
+    }
+}
+
+/**
+ * Set a node parameter to a given value
+ */
 export class SetParam extends Action
 {
     constructor(nodeId, paramName, value)
@@ -519,13 +546,25 @@ export class SetParam extends Action
     {
         let node = model.state.nodes[this.nodeId];
         assert (this.paramName in node.params);
+
+        switch (this.paramName)
+        {
+            case "minVal":
+            case "maxVal":
+            case "value":
+            assert (typeof this.value == "number");
+
+            default:
+            break;
+        }
+
         node.params[this.paramName] = this.value;
     }
 }
 
 /**
  * Connect two nodes with an edge
- * */
+ */
 export class ConnectNodes extends Action
 {
     constructor(srcId, srcPort, dstId, dstPort)
@@ -552,7 +591,7 @@ export class ConnectNodes extends Action
 
 /**
  * Remove the connection attached to an input port
- * */
+ */
 export class Disconnect extends Action
 {
     constructor(dstId, dstPort)
@@ -578,7 +617,7 @@ export class Disconnect extends Action
  * to rename module input and output ports after the module is created. We
  * could make it possible to expose specific knobs inside the group on the
  * module's UI.
- * */
+ */
 export class GroupNodes extends Action
 {
     constructor(nodeIds)
@@ -720,7 +759,7 @@ export class GroupNodes extends Action
 
 /**
  * Start playbacks
- * */
+ */
 export class Play extends Action
 {
     constructor()
@@ -740,7 +779,7 @@ export class Play extends Action
 
 /**
  * Stop playback
- * */
+ */
  export class Stop extends Action
  {
     constructor()
@@ -760,7 +799,7 @@ export class Play extends Action
 
 /**
  * Graph of nodes model, operates on internal state data
- * */
+ */
 export class Model
 {
     constructor()
@@ -843,7 +882,7 @@ export class Model
     /**
      * Tries to deserialize a JSON string representation of a model
      * Returns true if successfully deserialized and loaded, false otherwise
-     * */
+     */
     deserialize(data)
     {
         if (!isString(data))
@@ -869,7 +908,7 @@ export class Model
 
     /**
      * Get the next available nodeId
-     * */
+     */
     getFreeId()
     {
         let nodeId = this.nextFreeId++;
@@ -878,8 +917,17 @@ export class Model
     }
 
     /**
+     * Get the current state for a given nodeId
+     */
+    getNodeState(nodeId)
+    {
+        assert (nodeId in this.state.nodes);
+        return this.state.nodes[nodeId];
+    }
+
+    /**
      * Check if the graph contains a specific type of node
-     * */
+     */
     hasNode(nodeType)
     {
         // Compute the next available id

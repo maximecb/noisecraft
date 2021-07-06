@@ -42,7 +42,7 @@ export class AudioView
 
         if (action instanceof model.SetParam)
         {
-            // TODO
+            this.setParam(action.nodeId, action.paramName, action.value);
             return;
         }
 
@@ -76,12 +76,13 @@ export class AudioView
             'sample-generator',
             { outputChannelCount: [2] }
         );
-        this.audioWorklet.connect(this.audioCtx.destination);
 
         this.audioWorklet.port.postMessage({
             type: 'NEW_UNIT',
             unit: this.unit
         });
+
+        this.audioWorklet.connect(this.audioCtx.destination);
     }
 
     /** Stop audio playback */
@@ -95,17 +96,16 @@ export class AudioView
         this.audioWorklet = null;
     }
 
-    setParam(nodeId, value)
+    setParam(nodeId, paramName, value)
     {
         if (!this.audioWorklet)
             return;
 
-        /*
-        audioWorklet.port.postMessage({
+        this.audioWorklet.port.postMessage({
             type: 'SET_PARAM',
-            ctrlId: ctrlId,
+            nodeId: nodeId,
+            paramName: paramName,
             value: value
         });
-        */
     }
 }
