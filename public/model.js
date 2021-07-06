@@ -102,7 +102,6 @@ export const NODE_SCHEMA =
         description: 'stereo sound output',
     },
 
-    /*
     'Clock': {
         ins: [],
         outs: [''],
@@ -114,7 +113,6 @@ export const NODE_SCHEMA =
         ],
         description: 'MIDI clock signal source with tempo in BPM',
     },
-    */
 
     // Commented out because we'll start without MIDI output support
     /*
@@ -794,6 +792,54 @@ export class Play extends Action
     get undoable()
     {
         return false;
+    }
+}
+
+/**
+ * Change the scale for a sequencer
+ */
+export class SetScale extends Action
+{
+    constructor(nodeId, scaleRoot, scaleName, numOcts)
+    {
+    }
+
+    update(model)
+    {
+    }
+}
+
+/**
+ * Set the current/next pattern for a sequencer
+ */
+export class SetPattern extends Action
+{
+    constructor(nodeId, patIdx)
+    {
+    }
+
+    update(model)
+    {
+        // TODO: this will need to behave differently when
+        // playing audio vs not playing
+        //
+        // When playing, it will queue the next pattern,
+        // but when not playing, it will set it immediately
+        // How are we going to differentiate the behavior?
+    }
+}
+
+/**
+ * Set the value of a grid cell for a sequencer
+ */
+export class SetGrid extends Action
+{
+    constructor(nodeId, stepIdx, rowIdx, value)
+    {
+    }
+
+    update(model)
+    {
     }
 }
 

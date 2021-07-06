@@ -1161,6 +1161,17 @@ class KnobNode extends Node
 }
 
 /**
+ * Clock signal source, with tempo in BPM
+ */
+class ClockNode extends KnobNode
+{
+    constructor(id, state, editor)
+    {
+        super(id, state, editor);
+    }
+}
+
+/**
  * Monophonic note sequencer
  */
 class MonoSeq extends Node
@@ -1342,6 +1353,7 @@ class MonoSeq extends Node
 // Map of node types to specialized node classes
 const NODE_CLASSES =
 {
+    'Clock': ClockNode,
     'Const': ConstNode,
     'Knob': KnobNode,
     'MonoSeq': MonoSeq,
