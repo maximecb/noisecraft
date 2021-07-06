@@ -59,7 +59,7 @@ undo, however. It could be more of a direct state update,
 or it's a special undoable action.
 */
 
-import { assert, treeCopy, treeEq, isArray, isString, isObject } from './utils.js';
+import { assert, treeCopy, treeEq, isString, isObject } from './utils.js';
 import * as music from './music.js';
 
 /**
