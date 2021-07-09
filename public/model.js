@@ -510,6 +510,13 @@ export class DeleteNodes extends Action
     }
 }
 
+/**
+ * Pastes one or more nodes
+ *
+ * Data is expected to be given serialized. The constructor will throw an
+ * exception if it is not pastable, or if the paste would have no effect on the
+ * model.
+ */
 export class Paste extends Action
 {
     constructor(data)
@@ -518,6 +525,7 @@ export class Paste extends Action
 
         this.nodesData = JSON.parse(data);
         assert (this.nodesData instanceof Object);
+        assert (Object.keys(this.nodesData).length);
 
         for (let nodeId in this.nodesData)
         {
@@ -574,7 +582,7 @@ export class Paste extends Action
             model.state.nodes[mappedNodeId] = node;
         }
 
-        // Now that the nodes all have mapped IDs, fill in the port connections.
+        // Now that all the nodes have mapped IDs, fill in the port connections.
         for (let nodeId in this.nodesData)
         {
             let mappedNodeId = nodeIdMap[nodeId];
