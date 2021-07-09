@@ -119,6 +119,27 @@ window.onkeydown = function (event)
     }
 }
 
+document.onpaste = function(e)
+{
+    // Only detect general pastes. We don't want to perform a paste on the
+    // document level when the user is focused on a specific element.
+    //
+    // We detect general pastes by inspecting the document's active element, as
+    // the paste event's dispatch target can be unintuitive. When a user focuses
+    // on an input element, clicks away to a div element, then performs a paste,
+    // the dispatch target is still the input element.
+    let ele = document.activeElement;
+    if (ele && ele.tagName === 'INPUT' || ele.tagName === 'SELECT')
+        return;
+
+    try
+    {
+        model.update(new model.Paste(e.clipboardData.getData('text')));
+    }
+
+    catch(e) { }
+}
+
 function importModel(serializedModelData)
 {
     // Stop playback to avoid glitching
