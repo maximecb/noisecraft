@@ -403,6 +403,26 @@ export class CreateNode extends Action
             node.params[param.name] = param.default;
         }
 
+        // If this is a sequencer
+        if (this.nodeType == 'MonoSeq')
+        {
+            // Set the default scale
+            node.scaleName = 'minor pentatonic';
+            node.scaleRoot = 'C2';
+            node.numOcts = '1';
+
+            // Initialize an empty pattern
+            let numRows = 6;
+            let numSteps = 16;
+            let grid = new Array(numSteps);
+            for (let step = 0; step < grid.length; ++step)
+            {
+                grid[step] = new Array(numRows);
+                grid[step].fill(0);
+            }
+            node.patterns = [grid];
+        }
+
         // Add the node to the state
         let nodeId = model.getFreeId();
         model.state.nodes[nodeId] = node;
@@ -504,8 +524,10 @@ export class SetNodeName extends Action
 
     update(model)
     {
+        if (this.name.length == 0)
+            throw TypeError('node name cannot be empty');
+
         let node = model.state.nodes[this.nodeId];
-        assert (this.name.length > 0);
         node.name = this.name;
     }
 }

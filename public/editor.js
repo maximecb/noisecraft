@@ -988,6 +988,7 @@ class Node
             catch (e)
             {
                 // If model updates fail, we don't close the dialog
+                dialog.showError(e);
                 console.log(e);
             }
         }
@@ -1332,22 +1333,186 @@ class MonoSeq extends Node
         //this.scale = music.genScale(data.scaleRoot, data.scaleName, data.numOcts);
         //this.numRows = this.scale.length;
 
-        // Currently selected pattern
-        this.patIdx = 0;
+        // Select the currently active pattern
+        this.select(0);
     }
 
+    /**
+     * (Re)generate the grid DOM elements
+     */
+    genGridDOM(patIdx, grid)
+    {
+        console.log('generating grid dom, patIdx=', patIdx);
+        assert (patIdx !== undefined);
+
+        //let seq = this;
+        //let grid = this.data.patterns[patIdx];
+        let numSteps = grid.length;
+        let numRows = this.numRows;
+        assert (grid instanceof Array);
+
+        // Two-dimensional array of cell square divs (stepIdx, rowIdx)
+        let cellDivs = this.cellDivs[patIdx] = [];
+
+        function makeCell(i, j)
+        {
+            const onColor = 'rgb(255,0,0)';
+            const offColor = 'rgb(150,0,0)';
+
+            var cellOn = grid[i][j];
+
+            // The outer cell div is the element reacting to clicks
+            // It's larger and therefore easier to click
+            var cell = document.createElement('div');
+            cell.style['display'] = 'inline-block';
+
+            // The inner div is the colored/highlighted element
+            var inner = document.createElement('div');
+            inner.style['display'] = 'inline-block';
+            inner.style['width'] = '14px';
+            inner.style['height'] = '14px';
+            inner.style['margin'] = '2px';
+            inner.style['margin-left'] = (i%4 == 0)? '3px':'2px';
+            inner.style['margin-right'] = (i%4 == 3)? '3px':'2px';
+            inner.style['background-color'] = cellOn? onColor:offColor;
+            cell.appendChild(inner);
+
+            /*
+            cell.onclick = function ()
+            {
+                console.log('clicked ' + i + ', ' + j);
+
+                var cellOn = grid[i][j];
+
+                for (var row = 0; row < numRows; ++row)
+                {
+                    grid[i][row] = 0;
+                    let color = seq.getCellColor(i, row);
+                    cellDivs[i][row].style['background-color'] = color;
+                }
+
+                cellOn = cellOn? 0:1;
+                grid[i][j] = cellOn;
+                let color = seq.getCellColor(i, j);
+                inner.style['background-color'] = color;
+            };
+            */
+
+            if (!(i in cellDivs))
+                cellDivs[i] = [];
+
+            cellDivs[i][j] = inner;
+
+            return cell;
+        }
+
+        function makeBar(barIdx)
+        {
+            var bar = document.createElement('div');
+            bar.style['display'] = 'inline-block';
+            bar.style['margin'] = '0px 2px';
+
+            for (var j = 0; j < numRows; ++j)
+            {
+                var row = document.createElement('div');
+
+                for (var i = 0; i < 16; ++i)
+                {
+                    var stepIdx = barIdx * 16 + i;
+                    var cell = makeCell(stepIdx, numRows - j - 1);
+                    row.appendChild(cell);
+                }
+
+                bar.appendChild(row);
+            }
+
+            return bar;
+        }
+
+        // Remove the old grid div
+        if (this.patDivs[patIdx])
+            this.gridDiv.removeChild(this.patDivs[patIdx]);
+
+        // Create a div for the pattern (initially invisible)
+        let patDiv = this.patDivs[patIdx] = document.createElement('div');
+        patDiv.style.display = 'none';
+        this.gridDiv.appendChild(patDiv);
+
+        assert (numSteps % 16 == 0);
+        var numBars = numSteps / 16;
+
+        // For each bar of the pattern
+        for (var barIdx = 0; barIdx < numBars; ++barIdx)
+        {
+            var barDiv = document.createElement('div');
+            barDiv.style['display'] = 'inline-block';
+            patDiv.appendChild(barDiv);
+
+            var bar = makeBar(barIdx);
+            barDiv.appendChild(bar);
+
+            // If this is not the last bar, add a separator
+            if (barIdx < numBars - 1)
+            {
+                var barHeight = this.numRows * 18;
+                var sep = document.createElement('div');
+                sep.style['display'] = 'inline-block';
+                sep.style['width'] = '3px';
+                sep.style['height'] = (barHeight - 4) + 'px';
+                sep.style['background'] = '#900';
+                sep.style['margin'] = '2px 1px';
+                barDiv.appendChild(sep);
+            }
+        }
+
+
+
+    }
+
+    /**
+     * Select a pattern by index
+     */
+    select(patIdx)
+    {
+        /*
+        let data = this.data;
+
+        // Initialize this pattern if it doesn't exist yet
+        if (!data.patterns[patIdx])
+        {
+            data.patterns[patIdx] = this.newGrid(16, this.numRows);
+            this.genGridDOM(patIdx);
+        }
+
+        // Un-highlight the last step of the current pattern
+        this.highlight(undefined);
+
+        // Remove whichever pattern was queued
+        this.nextPat = undefined;
+        clearTimeout(this.blinkTimer);
+
+        this.patIdx = patIdx;
+        */
+
+        // TODO: lazily call genGridDOM
 
 
 
 
 
+        // Update the pattern selection bar, highlight current pattern
+        for (var i = 0; i < this.patBtns.length; ++i)
+        {
+            this.patBtns[i].className = (i == patIdx)? 'patsel_btn_on':'patsel_btn';
+        }
 
-
-
-
-
-
-
+        // Make the pattern visible, hide all other patterns
+        for (let i = 0; i < this.gridDiv.children.length; ++i)
+        {
+            let patDiv = this.gridDiv.children[i];
+            patDiv.style.display = (patDiv === this.patDivs[patIdx])? 'block':'none';
+        }
+    }
 }
 
 // Map of node types to specialized node classes

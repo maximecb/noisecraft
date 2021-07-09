@@ -17,17 +17,27 @@ export class Dialog extends Eventable
 
         this.div = document.createElement('div');
         this.div.className = 'dialog';
+
+        // Form title
         let titleDiv = document.createElement('div');
         titleDiv.className = 'dialog_title';
         titleDiv.appendChild(document.createTextNode(title));
         this.div.appendChild(titleDiv);
+
+        // Form contents
         this.div.appendChild(div);
+
+        // Form validation error message (hidden by default)
+        this.errorDiv = document.createElement('div');
+        this.errorDiv.className = 'form_error';
+        this.div.appendChild(this.errorDiv);
 
         // Used to detect/prevent clicks outside dialog
         this.bgDiv = document.createElement('div');
         this.bgDiv.className = 'dark_overlay';
         this.bgDiv.onclick = bgClick.bind(this);
 
+        // Add the form to the document
         var body = document.getElementsByTagName("body")[0];
         body.appendChild(this.div);
         body.appendChild(this.bgDiv);
@@ -47,8 +57,22 @@ export class Dialog extends Eventable
 
     // TODO: method to create a named button with the right styling
 
-    // TODO: method to display an error string
-    // e.g. form validation error
+    /**
+     * Show an error message (e.g. for form validation)
+     */
+    showError(msg)
+    {
+        this.errorDiv.textContent = msg;
+        this.errorDiv.style.display = 'block';
+    }
+
+    /**
+     * Hide the form error message
+     */
+    hideError()
+    {
+        this.errorDiv.style.display = 'none';
+    }
 
     /**
      * Close the dialog window
