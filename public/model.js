@@ -578,7 +578,7 @@ export class Paste extends Action
 
             // Add the node and track the new ID.
             let mappedNodeId = model.getFreeId();
-            nodeIdMap[nodeId] = mappedNodeId;
+            nodeIdMap[nodeId] = mappedNodeId.toFixed(0);
             model.state.nodes[mappedNodeId] = node;
         }
 
@@ -587,10 +587,16 @@ export class Paste extends Action
         {
             let mappedNodeId = nodeIdMap[nodeId];
             let node = model.state.nodes[mappedNodeId];
+            let schema = NODE_SCHEMA[node.type];
 
-            node.ins = this.nodesData[nodeId].ins.map(inputNodeId => {
-                if (inputNodeId in nodeIdMap)
-                    return nodeIdMap[inputNodeId];
+            node.ins = this.nodesData[nodeId].ins.map(input => {
+                if (!(input instanceof Array) || input.length != 2)
+                    return null;
+
+                let [inputNodeId, inputPortId] = input;
+                if (inputNodeId in nodeIdMap && inputPortId < schema.outs.length)
+                    return [nodeIdMap[inputNodeId], inputPortId];
+
                 return null;
             });
         }
@@ -1124,7 +1130,7 @@ export class Model
 
             node.ins = node.ins.map((input) => {
                 // Filter out unexpected values
-                if (!input instanceof Array)
+                if (!(input instanceof Array))
                     return null;
 
                 // Filter out connections outside the copied nodes
