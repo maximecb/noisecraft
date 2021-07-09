@@ -1329,9 +1329,11 @@ class MonoSeq extends Node
             this.patBtns.push(patSel);
         }
 
-        // Create the scale
-        //this.scale = music.genScale(data.scaleRoot, data.scaleName, data.numOcts);
-        //this.numRows = this.scale.length;
+        // Create the DOM elements for each pattern
+        for (let patIdx = 0; patIdx < state.patterns.length; ++patIdx)
+        {
+            this.genGridDOM(patIdx, state.patterns[patIdx]);
+        }
 
         // Select the currently active pattern
         this.select(0);
@@ -1342,13 +1344,12 @@ class MonoSeq extends Node
      */
     genGridDOM(patIdx, grid)
     {
-        console.log('generating grid dom, patIdx=', patIdx);
         assert (patIdx !== undefined);
 
         //let seq = this;
         //let grid = this.data.patterns[patIdx];
         let numSteps = grid.length;
-        let numRows = this.numRows;
+        let numRows = grid[0].length;
         assert (grid instanceof Array);
 
         // Two-dimensional array of cell square divs (stepIdx, rowIdx)
@@ -1493,12 +1494,6 @@ class MonoSeq extends Node
 
         this.patIdx = patIdx;
         */
-
-        // TODO: lazily call genGridDOM
-
-
-
-
 
         // Update the pattern selection bar, highlight current pattern
         for (var i = 0; i < this.patBtns.length; ++i)
