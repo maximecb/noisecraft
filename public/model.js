@@ -102,7 +102,6 @@ export const NODE_SCHEMA =
         description: 'stereo sound output',
     },
 
-    /*
     'Clock': {
         ins: [],
         outs: [''],
@@ -114,7 +113,6 @@ export const NODE_SCHEMA =
         ],
         description: 'MIDI clock signal source with tempo in BPM',
     },
-    */
 
     // Commented out because we'll start without MIDI output support
     /*
@@ -405,6 +403,26 @@ export class CreateNode extends Action
             node.params[param.name] = param.default;
         }
 
+        // If this is a sequencer
+        if (this.nodeType == 'MonoSeq')
+        {
+            // Set the default scale
+            node.scaleName = 'minor pentatonic';
+            node.scaleRoot = 'C2';
+            node.numOcts = '1';
+
+            // Initialize an empty pattern
+            let numRows = 6;
+            let numSteps = 16;
+            let grid = new Array(numSteps);
+            for (let step = 0; step < grid.length; ++step)
+            {
+                grid[step] = new Array(numRows);
+                grid[step].fill(0);
+            }
+            node.patterns = [grid];
+        }
+
         // Add the node to the state
         let nodeId = model.getFreeId();
         model.state.nodes[nodeId] = node;
@@ -585,8 +603,10 @@ export class SetNodeName extends Action
 
     update(model)
     {
+        if (this.name.length == 0)
+            throw TypeError('node name cannot be empty');
+
         let node = model.state.nodes[this.nodeId];
-        assert (this.name.length > 0);
         node.name = this.name;
     }
 }
@@ -873,6 +893,54 @@ export class Play extends Action
     get undoable()
     {
         return false;
+    }
+}
+
+/**
+ * Change the scale for a sequencer
+ */
+export class SetScale extends Action
+{
+    constructor(nodeId, scaleRoot, scaleName, numOcts)
+    {
+    }
+
+    update(model)
+    {
+    }
+}
+
+/**
+ * Set the current/next pattern for a sequencer
+ */
+export class SetPattern extends Action
+{
+    constructor(nodeId, patIdx)
+    {
+    }
+
+    update(model)
+    {
+        // TODO: this will need to behave differently when
+        // playing audio vs not playing
+        //
+        // When playing, it will queue the next pattern,
+        // but when not playing, it will set it immediately
+        // How are we going to differentiate the behavior?
+    }
+}
+
+/**
+ * Set the value of a grid cell for a sequencer
+ */
+export class SetGrid extends Action
+{
+    constructor(nodeId, stepIdx, rowIdx, value)
+    {
+    }
+
+    update(model)
+    {
     }
 }
 

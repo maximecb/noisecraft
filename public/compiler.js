@@ -308,14 +308,12 @@ export function compile(graph)
             continue;
         }
 
-        /*
         if (node.type == 'Clock')
         {
-            let params = addObj('clock', node.params);
-            addDef(node, 'lib.pulse(time, ' + music.CLOCK_PPQ + ' * ' + params + '.value/60, 0.5)');
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update()`);
             continue;
         }
-        */
 
         /*
         if (node.type == 'ClockOut')

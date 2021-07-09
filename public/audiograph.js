@@ -109,6 +109,28 @@ class AudioNode
 }
 
 /**
+Clock source, with tempo in BPM
+*/
+class Clock extends AudioNode
+{
+    constructor(state, sampleRate)
+    {
+        super(state, sampleRate);
+
+        this.phase = 0;
+    }
+
+    update()
+    {
+        let freq = music.CLOCK_PPQ * this.params.value / 60;
+        let duty = 0.5;
+        this.phase += this.sampleTime * freq;
+        let cyclePos = this.phase % 1;
+        return (cyclePos < duty)? -1:1;
+    }
+}
+
+/**
 Delay line node
 */
 class Delay extends AudioNode
@@ -363,6 +385,7 @@ class MonoSeq extends AudioNode
  */
 let NODE_CLASSES =
 {
+    Clock: Clock,
     Delay: Delay,
     Distort: Distort,
     Pulse: PulseOsc,
