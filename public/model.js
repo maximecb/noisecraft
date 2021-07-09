@@ -588,7 +588,7 @@ export class Paste extends Action
             let mappedNodeId = nodeIdMap[nodeId];
             let node = model.state.nodes[mappedNodeId];
 
-            node.ins = this.nodesData.ins.map(inputNodeId => {
+            node.ins = this.nodesData[nodeId].ins.map(inputNodeId => {
                 if (inputNodeId in nodeIdMap)
                     return nodeIdMap[inputNodeId];
                 return null;
@@ -1109,7 +1109,7 @@ export class Model
         // nodeIds array
         for (let nodeId of nodeIds)
         {
-            let node = this.nodes[nodeId];
+            let node = this.state.nodes[nodeId];
             if (!node instanceof Object)
                 continue;
 

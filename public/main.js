@@ -1,4 +1,4 @@
-import { Model, Play, Stop } from './model.js';
+import { Model, Paste, Play, Stop } from './model.js';
 import { Editor } from './editor.js';
 import { AudioView } from './audioview.js';
 
@@ -126,7 +126,7 @@ document.onpaste = function(e)
 
     try
     {
-        model.update(new model.Paste(e.clipboardData.getData('text/plain')));
+        model.update(new Paste(e.clipboardData.getData('text/plain')));
         e.preventDefault();
     }
 
