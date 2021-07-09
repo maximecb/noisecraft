@@ -492,6 +492,85 @@ export class DeleteNodes extends Action
     }
 }
 
+export class Paste extends Action
+{
+    constructor(data)
+    {
+        super();
+
+        this.nodesData = JSON.parse(data);
+        assert (this.nodesData instanceof Object);
+
+        for (let nodeId in this.nodesData)
+        {
+            assert (/^\d+$/.test(nodeId));
+
+            let nodeData = this.nodesData[nodeId];
+            assert (nodeData instanceof Object);
+            assert (typeof nodeData.name === 'string');
+            assert (typeof nodeData.x === 'number');
+            assert (typeof nodeData.y === 'number');
+
+            let schema = NODE_SCHEMA[nodeData.type];
+            assert (schema instanceof Object);
+            assert (nodeData.ins instanceof Array);
+            assert (nodeData.ins.length === schema.ins.length);
+            assert (nodeData.params instanceof Object);
+        }
+    }
+
+    update(model)
+    {
+        let nodeIdMap = {};
+
+        // Start by adding the pasted nodes without port connections.
+        for (let nodeId in this.nodesData)
+        {
+            let nodeData = this.nodesData[nodeId];
+            let schema = NODE_SCHEMA[nodeData.type];
+
+            let node = {
+                type: nodeData.type,
+                name: nodeData.name,
+                x: nodeData.x,
+                y: nodeData.y,
+                params: {}
+            };
+
+            // Keep param values that are aligned with the schema. They must be
+            // null or match the schema's default value type, otherwise the
+            // default value will be assigned.
+            for (let param of schema.params)
+            {
+                let value = nodeData.params[param.name];
+
+                if (value !== null && typeof value !== typeof param.default)
+                    value = param.default;
+
+                node.params[param.name] = value;
+            }
+
+            // Add the node and track the new ID.
+            let mappedNodeId = model.getFreeId();
+            nodeIdMap[nodeId] = mappedNodeId;
+            model.state.nodes[mappedNodeId] = node;
+        }
+
+        // Now that the nodes all have mapped IDs, fill in the port connections.
+        for (let nodeId in this.nodesData)
+        {
+            let mappedNodeId = nodeIdMap[nodeId];
+            let node = model.state.nodes[mappedNodeId];
+
+            node.ins = this.nodesData.ins.map(inputNodeId => {
+                if (inputNodeId in nodeIdMap)
+                    return nodeIdMap[inputNodeId];
+                return null;
+            });
+        }
+    }
+}
+
 /**
  * Set a node parameter to a given value
  */
