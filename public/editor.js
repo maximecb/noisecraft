@@ -1243,6 +1243,7 @@ class MonoSeq extends Node
         btnDiv.appendChild(selectRoot);
         btnDiv.appendChild(selectScale);
 
+        /*
         // Shrink and extend pattern buttons
         let shrinkBtn = document.createElement("button");
         let extendBtn = document.createElement("button");
@@ -1259,6 +1260,7 @@ class MonoSeq extends Node
         shrinkBtn.ondblclick = evt => evt.stopPropagation();
         extendBtn.ondblclick = evt => evt.stopPropagation();
         copyBtn.ondblclick = evt => evt.stopPropagation();
+        */
 
         function scaleChange()
         {
