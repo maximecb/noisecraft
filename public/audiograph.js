@@ -315,6 +315,9 @@ class MonoSeq extends AudioNode
 
         // Next pattern that is queued for playback
         this.nextPat = undefined;
+
+        // Generate the scale notes
+        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOcts);
     }
 
     /**
@@ -328,6 +331,8 @@ class MonoSeq extends AudioNode
             // If we are at the beginning of a new sequencer step
             if (this.clockCnt % music.CLOCK_PPS == 0)
             {
+                console.log('step');
+
                 var grid = this.state.patterns[this.patIdx];
 
                 var stepIdx = (this.clockCnt / music.CLOCK_PPS);
@@ -336,7 +341,7 @@ class MonoSeq extends AudioNode
                 this.gate = 0;
                 this.trigTime = 0;
 
-                for (var rowIdx = 0; rowIdx < this.numRows; ++rowIdx)
+                for (var rowIdx = 0; rowIdx < this.scale.length; ++rowIdx)
                 {
                     if (!grid[stepIdx][rowIdx])
                         continue
@@ -369,7 +374,7 @@ class MonoSeq extends AudioNode
         // If we are past the end of the note
         if (this.gate > 0)
         {
-            if (time - this.trigTime > gateTime)
+            if (time - this.trigTime > this.gateTime)
             {
                 this.gate = 0;
                 this.trigTime = 0;
