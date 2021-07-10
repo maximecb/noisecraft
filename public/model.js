@@ -856,12 +856,24 @@ export class SetPattern extends Action
  */
 export class SetGrid extends Action
 {
-    constructor(nodeId, stepIdx, rowIdx, value)
+    constructor(nodeId, patIdx, stepIdx, rowIdx, value)
     {
+        this.nodeId = nodeId;
+        this.patIdx = patIdx;
+        this.stepIdx = stepIdx;
+        this.rowIdx = rowIdx;
+        this.value = value;
     }
 
     update(model)
     {
+        let node = model.state.nodes[nodeId];
+        assert (node.type == 'MonoSeq');
+        let grid = node.patterns[patIdx];
+        assert (grid instanceof Array);
+        assert (stepIdx < grid.length);
+        assert (rowIdx < grid[stepIdx].length);
+        grid[stepIdx][rowIdx] = value;
     }
 }
 
