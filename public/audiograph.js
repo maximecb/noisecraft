@@ -309,6 +309,10 @@ class MonoSeq extends AudioNode
         this.freq = 0;
         this.gate = 0;
 
+        // FIXME: this should probably be on the state?
+        // Currently playing pattern
+        this.patIdx = 0;
+
         // Next pattern that is queued for playback
         this.nextPat = undefined;
     }

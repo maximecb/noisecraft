@@ -723,7 +723,7 @@ class Node
             // Only delete on shift + click
             if (evt.shiftKey && !this.editor.edge)
             {
-                this.editor.model.update(
+                this.send(
                     new model.DeleteNodes([this.nodeId])
                 );
             }
@@ -972,7 +972,7 @@ class Node
             // Model updates may fail for some values
             try
             {
-                this.editor.model.update(new model.SetNodeName(
+                this.send(new model.SetNodeName(
                     this.nodeId,
                     newName
                 ));
@@ -983,7 +983,7 @@ class Node
                     if (newParams[param.name] == nodeState.params[param.name])
                         continue;
 
-                    this.editor.model.update(new model.SetParam(
+                    this.send(new model.SetParam(
                         this.nodeId,
                         param.name,
                         newParams[param.name]
@@ -1069,6 +1069,14 @@ class Node
         // TODO: move this into the Editor class
         // Adjust the graph to fit this node
         //this.editor.fitNode(this, true);
+    }
+
+    /**
+     * Send an action to the model
+     */
+    send(action)
+    {
+        this.editor.model.update(action);
     }
 }
 
@@ -1408,26 +1416,16 @@ class MonoSeq extends Node
             inner.style['background-color'] = cellOn? onColor:offColor;
             cell.appendChild(inner);
 
-            /*
-            cell.onclick = function ()
+            cell.onclick = () =>
             {
                 console.log('clicked ' + i + ', ' + j);
-
-                var cellOn = grid[i][j];
-
-                for (var row = 0; row < numRows; ++row)
-                {
-                    grid[i][row] = 0;
-                    let color = seq.getCellColor(i, row);
-                    cellDivs[i][row].style['background-color'] = color;
-                }
-
-                cellOn = cellOn? 0:1;
-                grid[i][j] = cellOn;
-                let color = seq.getCellColor(i, j);
-                inner.style['background-color'] = color;
+                this.send(new model.ToggleCell(
+                    this.nodeId,
+                    patIdx,
+                    i,
+                    j
+                ));
             };
-            */
 
             if (!(i in cellDivs))
                 cellDivs[i] = [];
@@ -1450,7 +1448,7 @@ class MonoSeq extends Node
                 for (var i = 0; i < 16; ++i)
                 {
                     var stepIdx = barIdx * 16 + i;
-                    var cell = makeCell(stepIdx, numRows - j - 1);
+                    var cell = makeCell.call(this, stepIdx, numRows - j - 1);
                     row.appendChild(cell);
                 }
 
@@ -1479,7 +1477,7 @@ class MonoSeq extends Node
             barDiv.style['display'] = 'inline-block';
             patDiv.appendChild(barDiv);
 
-            var bar = makeBar(barIdx);
+            var bar = makeBar.call(this, barIdx);
             barDiv.appendChild(bar);
 
             // If this is not the last bar, add a separator
@@ -1495,9 +1493,6 @@ class MonoSeq extends Node
                 barDiv.appendChild(sep);
             }
         }
-
-
-
     }
 
     /**

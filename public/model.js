@@ -852,28 +852,35 @@ export class SetPattern extends Action
 }
 
 /**
- * Set the value of a grid cell for a sequencer
+ * Toggle the value of a grid cell for a sequencer
  */
-export class SetGrid extends Action
+export class ToggleCell extends Action
 {
-    constructor(nodeId, patIdx, stepIdx, rowIdx, value)
+    constructor(nodeId, patIdx, stepIdx, rowIdx)
     {
+        super();
         this.nodeId = nodeId;
         this.patIdx = patIdx;
         this.stepIdx = stepIdx;
         this.rowIdx = rowIdx;
-        this.value = value;
     }
 
     update(model)
     {
-        let node = model.state.nodes[nodeId];
+        let node = model.state.nodes[this.nodeId];
         assert (node.type == 'MonoSeq');
-        let grid = node.patterns[patIdx];
+        let grid = node.patterns[this.patIdx];
         assert (grid instanceof Array);
-        assert (stepIdx < grid.length);
-        assert (rowIdx < grid[stepIdx].length);
-        grid[stepIdx][rowIdx] = value;
+        assert (this.stepIdx < grid.length);
+        assert (this.rowIdx < grid[this.stepIdx].length);
+
+        let curVal = grid[this.stepIdx][this.rowIdx];
+        let newVal = curVal? 0:1;
+        grid[this.stepIdx][this.rowIdx] = newVal;
+
+        // Tag the new value on the action to make
+        // view updates easier
+        this.value = newVal;
     }
 }
 
