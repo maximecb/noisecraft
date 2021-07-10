@@ -151,6 +151,14 @@ export class Editor
         // For example, MoveNodes is trivial to implement without
         // recreating all the nodes.
 
+        // Optimize value changes
+        if (action instanceof model.SetParam && action.paramName == "value")
+        {
+            let node = this.nodes.get(action.nodeId);
+            node.setValue(action.value);
+            return;
+        }
+
         // Remove existing nodes and edges
         this.edge = null;
         while (this.graphDiv.firstChild)
@@ -1120,6 +1128,15 @@ class ConstNode extends Node
             resize();
         }
 
+        input.onkeydown = function (evt)
+        {
+            if (evt.key === "Enter")
+            {
+                input.blur();
+                return;
+            }
+        }
+
         input.ondblclick = function (evt)
         {
             evt.stopPropagation();
@@ -1127,6 +1144,11 @@ class ConstNode extends Node
 
         input.value = state.params.value;
         resize();
+    }
+
+    setValue(value)
+    {
+        this.input.value = value;
     }
 }
 
@@ -1158,6 +1180,12 @@ class KnobNode extends Node
 
         this.knob.on('change', knobChange);
         //this.knob.on('bind', controlNo => this.data.params.controlNo = controlNo);
+    }
+
+    setValue(value)
+    {
+        this.knob.value = value;
+        this.knob.drawKnob();
     }
 }
 
