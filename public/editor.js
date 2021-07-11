@@ -1010,7 +1010,7 @@ class Node
 
         deleteBtn.onclick = function ()
         {
-            node.editor.delNode(node);
+            node.send(new model.DeleteNodes([node.nodeId]));
             dialog.close()
         }
 
