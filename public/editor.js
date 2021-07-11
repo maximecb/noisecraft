@@ -1395,9 +1395,6 @@ class MonoSeq extends Node
 
         function makeCell(i, j)
         {
-            const onColor = 'rgb(255,0,0)';
-            const offColor = 'rgb(150,0,0)';
-
             var cellOn = grid[i][j];
 
             // The outer cell div is the element reacting to clicks
@@ -1405,16 +1402,28 @@ class MonoSeq extends Node
             var cell = document.createElement('div');
             cell.style['display'] = 'inline-block';
 
+            // 4-step beat separator
+            if (i % 4 == 0)
+            {
+                var sep = document.createElement('div');
+                sep.style['display'] = 'inline-block';
+                sep.style['width'] = '1px';
+                cell.appendChild(sep);
+            }
+
             // The inner div is the colored/highlighted element
             var inner = document.createElement('div');
-            inner.style['display'] = 'inline-block';
-            inner.style['width'] = '14px';
-            inner.style['height'] = '14px';
-            inner.style['margin'] = '2px';
-            inner.style['margin-left'] = (i%4 == 0)? '3px':'2px';
-            inner.style['margin-right'] = (i%4 == 3)? '3px':'2px';
-            inner.style['background-color'] = cellOn? onColor:offColor;
+            inner.className = cellOn? 'cell_on':'cell_off';
             cell.appendChild(inner);
+
+            // 4-step beat separator
+            if (i % 4 == 3)
+            {
+                var sep = document.createElement('div');
+                sep.style['display'] = 'inline-block';
+                sep.style['width'] = '1px';
+                cell.appendChild(sep);
+            }
 
             cell.onclick = () =>
             {

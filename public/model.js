@@ -873,12 +873,14 @@ export class ToggleCell extends Action
         let numRows = grid[this.stepIdx].length;
         assert (this.rowIdx < numRows);
 
+        // Get the current value of this cell
+        let curVal = grid[this.stepIdx][this.rowIdx];
+        let newVal = curVal? 0:1;
+
         // Zero-out all other cells at this step
         for (let i = 0; i < numRows; ++i)
             grid[this.stepIdx][i] = 0;
 
-        let curVal = grid[this.stepIdx][this.rowIdx];
-        let newVal = curVal? 0:1;
         grid[this.stepIdx][this.rowIdx] = newVal;
 
         // Tag the new value on the action to make
