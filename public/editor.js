@@ -1533,6 +1533,65 @@ class MonoSeq extends Node
             patDiv.style.display = (patDiv === this.patDivs[patIdx])? 'block':'none';
         }
     }
+
+    setGridCell(patIdx, stepIdx, rowIdx, value)
+    {
+        /*
+        for (var row = 0; row < numRows; ++row)
+        {
+            grid[i][row] = 0;
+            let color = seq.getCellColor(i, row);
+            cellDivs[i][row].style['background-color'] = color;
+        }
+
+        cellOn = cellOn? 0:1;
+        grid[i][j] = cellOn;
+        let color = seq.getCellColor(i, j);
+        inner.style['background-color'] = color;
+        */
+
+
+
+    }
+}
+
+/**
+Textual notes
+*/
+class Notes extends Node
+{
+    constructor(id, state, editor)
+    {
+        super(id, state, editor);
+
+        var textArea = document.createElement('textarea');
+        textArea.placeholder = 'Write notes here.';
+        textArea.rows = 10;
+        textArea.cols = 40;
+        textArea.maxLength = 4000;
+        textArea.style.margin = '4px';
+        textArea.style.resize = 'none';
+        textArea.style.background = '#333';
+        textArea.style.color = '#FFF';
+        this.centerDiv.append(textArea)
+
+        function oninput(evt)
+        {
+            this.send(new model.SetParam(
+                this.nodeId,
+                'text',
+                textArea.value.trimEnd()
+            ));
+        }
+
+        textArea.onchange = oninput.bind(this);
+        textArea.onmousedown = evt => evt.stopPropagation();
+        textArea.onmouseup = evt => evt.stopPropagation();
+        textArea.ondblclick = evt => evt.stopPropagation();
+        textArea.onkeydown = evt => evt.stopPropagation();
+
+        textArea.value = state.params.text;
+    }
 }
 
 // Map of node types to specialized node classes
@@ -1542,4 +1601,5 @@ const NODE_CLASSES =
     'Const': ConstNode,
     'Knob': KnobNode,
     'MonoSeq': MonoSeq,
+    'Notes': Notes,
 }

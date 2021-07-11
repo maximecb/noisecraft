@@ -242,14 +242,14 @@ export const NODE_SCHEMA =
         description: 'white noise source',
     },
 
-    /*
     'Notes': {
         ins: [],
         outs: [],
-        params: [],
+        params: [
+            { name: 'text', default: '' },
+        ],
         description: 'text notes',
     },
-    */
 
     'Pulse': {
         ins: [
@@ -870,7 +870,12 @@ export class ToggleCell extends Action
         let grid = node.patterns[this.patIdx];
         assert (grid instanceof Array);
         assert (this.stepIdx < grid.length);
-        assert (this.rowIdx < grid[this.stepIdx].length);
+        let numRows = grid[this.stepIdx].length;
+        assert (this.rowIdx < numRows);
+
+        // Zero-out all other cells at this step
+        for (let i = 0; i < numRows; ++i)
+            grid[this.stepIdx][i] = 0;
 
         let curVal = grid[this.stepIdx][this.rowIdx];
         let newVal = curVal? 0:1;
