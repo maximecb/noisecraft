@@ -62,6 +62,9 @@ or it's a special undoable action.
 import { assert, treeCopy, treeEq, isString, isObject } from './utils.js';
 import * as music from './music.js';
 
+// Maximum number of undo steps we support
+const MAX_UNDO_STEPS = 400;
+
 /**
  * High-level description/schema for each type of node
  */
@@ -1069,6 +1072,13 @@ export class Model
     // Add an action to the undo queue
     addUndo(action)
     {
+        // Limit the maximum undo stack length
+        if (this.undoStack.length >= MAX_UNDO_STEPS)
+        {
+            this.undoStack.shift();
+        }
+
+        // If there is a previous undo action
         if (this.undoStack.length > 0 && this.lastAction)
         {
             let prev = this.undoStack[this.undoStack.length-1];
