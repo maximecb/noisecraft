@@ -77,7 +77,6 @@ export const NODE_SCHEMA =
         description: 'add input waveforms',
     },
 
-    /*
     'ADSR': {
         ins: [
             { name: 'gate', default: 0 },
@@ -90,7 +89,6 @@ export const NODE_SCHEMA =
         params: [],
         description: 'ADSR envelope generator',
     },
-    */
 
     'AudioOut': {
         ins: [

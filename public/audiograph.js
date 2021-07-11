@@ -109,8 +109,25 @@ class AudioNode
 }
 
 /**
-Clock source, with tempo in BPM
-*/
+ * ADSR envelope
+ */
+class ADSRNode extends AudioNode
+{
+    constructor(state, sampleRate)
+    {
+        super(state, sampleRate);
+        this.env = new synth.ADSREnv();
+    }
+
+    update(time, gate, attack, decay, susVal, release)
+    {
+        return this.env.eval(time, gate, attack, decay, susVal, release)
+    }
+}
+
+/**
+ * Clock source, with tempo in BPM
+ */
 class Clock extends AudioNode
 {
     constructor(state, sampleRate)
@@ -131,8 +148,8 @@ class Clock extends AudioNode
 }
 
 /**
-Delay line node
-*/
+ * Delay line node
+ */
 class Delay extends AudioNode
 {
     constructor(state, sampleRate)
@@ -145,8 +162,8 @@ class Delay extends AudioNode
 }
 
 /**
-Overdrive-style distortion
-*/
+ * Overdrive-style distortion
+ */
 class Distort extends AudioNode
 {
     constructor(state, sampleRate)
@@ -161,8 +178,8 @@ class Distort extends AudioNode
 }
 
 /**
-Pulse wave oscillator
-*/
+ * Pulse wave oscillator
+ */
 class PulseOsc extends AudioNode
 {
     constructor(state, sampleRate)
@@ -394,6 +411,7 @@ class MonoSeq extends AudioNode
  */
 let NODE_CLASSES =
 {
+    ADSR: ADSRNode,
     Clock: Clock,
     Delay: Delay,
     Distort: Distort,
