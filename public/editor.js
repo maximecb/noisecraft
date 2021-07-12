@@ -151,11 +151,26 @@ export class Editor
         // For example, MoveNodes is trivial to implement without
         // recreating all the nodes.
 
+        // Find the node this action refers to, if any
+        let node = action? this.nodes.get(action.nodeId):null;
+
         // Optimize value changes
         if (action instanceof model.SetParam && action.paramName == "value")
         {
-            let node = this.nodes.get(action.nodeId);
             node.setValue(action.value);
+            return;
+        }
+
+        // Toggle grid sequencer cell on/off
+        if (action instanceof model.ToggleCell)
+        {
+            node.setGridCell(
+                action.patIdx,
+                action.stepIdx,
+                action.rowIdx,
+                action.value
+            );
+
             return;
         }
 
@@ -1545,22 +1560,17 @@ class MonoSeq extends Node
 
     setGridCell(patIdx, stepIdx, rowIdx, value)
     {
-        /*
-        for (var row = 0; row < numRows; ++row)
-        {
-            grid[i][row] = 0;
-            let color = seq.getCellColor(i, row);
-            cellDivs[i][row].style['background-color'] = color;
-        }
+        assert (patIdx in this.cellDivs);
+        let cellDivs = this.cellDivs[patIdx];
+        assert (stepIdx < cellDivs.length);
+        let row = cellDivs[stepIdx];
+        assert (rowIdx < row.length);
 
-        cellOn = cellOn? 0:1;
-        grid[i][j] = cellOn;
-        let color = seq.getCellColor(i, j);
-        inner.style['background-color'] = color;
-        */
+        // Clear all other cells in this row
+        for (let i = 0; i < row.length; ++i)
+            row[i].className = 'cell_off';
 
-
-
+        row[rowIdx].className = value? 'cell_on':'cell_off';
     }
 }
 
