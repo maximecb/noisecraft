@@ -1440,7 +1440,10 @@ class MonoSeq extends Node
                 cell.appendChild(sep);
             }
 
-            cell.onclick = () =>
+            cell.onmousedown = (evt) => evt.stopPropagation();
+            cell.onmouseup = (evt) => evt.stopPropagation();
+
+            cell.onclick = (evt) =>
             {
                 console.log('clicked ' + i + ', ' + j);
                 this.send(new model.ToggleCell(
@@ -1449,6 +1452,8 @@ class MonoSeq extends Node
                     i,
                     j
                 ));
+
+                evt.stopPropagation();
             };
 
             if (!(i in cellDivs))

@@ -82,6 +82,16 @@ export class AudioGraph
     }
 
     /**
+     * Set a given cell in a step sequencer
+     */
+    setCell(nodeId, patIdx, stepIdx, rowIdx, value)
+    {
+        assert (nodeId in this.nodes);
+        let node = this.nodes[nodeId];
+        node.state.patterns[patIdx][stepIdx][rowIdx] = value;
+    }
+
+    /**
      * Generate one [left, right] pair of audio samples
      */
     genSample()
