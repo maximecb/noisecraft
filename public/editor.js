@@ -140,7 +140,7 @@ export class Editor
         // If the window is resized, adjust the graph size
         window.onresize = this.resize.bind(this);
 
-        // Initialize the graph size to fill the window
+        // Initialize the editor size to fill the window
         this.resize();
     }
 
@@ -234,6 +234,9 @@ export class Editor
             let node = this.nodes.get(nodeId);
             node.nodeDiv.style['border-color'] = '#F00';
         }
+
+        // Resize the editor to fit all the nodes
+        this.resize();
     }
 
     // Update an in progress selection
@@ -313,20 +316,22 @@ export class Editor
     resize()
     {
         // Initialize the graph size to the edit tab size
-        setSvg(this.svg, 'width', this.editorDiv.clientWidth);
-        setSvg(this.svg, 'height', this.editorDiv.clientHeight);
-        this.graphDiv.style.width = this.editorDiv.clientWidth;
-        this.graphDiv.style.height = this.editorDiv.clientHeight;
+        let maxWidth = this.editorDiv.clientWidth;
+        let maxHeight = this.editorDiv.clientHeight;
 
-        /*
-        // Make sure the div fits all the nodes
-        for (let id in this.graph.nodes)
+        let editRect = this.svg.getBoundingClientRect();
+
+        // For each node
+        for (let [nodeId, node] of this.nodes)
         {
-            let data = this.graph.nodes[id];
-            let node = this.nodes.get(data);
-            this.fitNode(node);
+            maxWidth = Math.max(maxWidth, node.x + node.nodeDiv.offsetWidth);
+            maxHeight = Math.max(maxHeight, node.y + node.nodeDiv.offsetHeight);
         }
-        */
+
+        setSvg(this.svg, 'width', maxWidth);
+        setSvg(this.svg, 'height', maxHeight);
+        this.graphDiv.style.width = maxWidth;
+        this.graphDiv.style.height = maxHeight;
     }
 
     // Transform the mouse position of a mouse event relative to the SVG canvas
@@ -403,6 +408,10 @@ export class Editor
     // Start dragging/moving nodes
     startDrag(nodeId, mousePos)
     {
+        // Can't start a drag if one is already in progress
+        if (this.dragNodes.length > 0)
+            return;
+
         console.log('starting drag');
 
         if (this.selected.indexOf(nodeId) != -1)
