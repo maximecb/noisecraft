@@ -77,18 +77,19 @@ export class AudioView
         });
     }
 
-    /** Start audio playback */
+    /**
+     * Start audio playback
+     */
     async playAudio()
     {
-        if (!this.audioCtx)
-        {
-            this.audioCtx = new AudioContext({
-                latencyHint: 'interactive',
-                sampleRate: 44100
-            });
+        assert (!this.audioCtx);
 
-            await this.audioCtx.audioWorklet.addModule('audioworklet.js');
-        }
+        this.audioCtx = new AudioContext({
+            latencyHint: 'interactive',
+            sampleRate: 44100
+        });
+
+        await this.audioCtx.audioWorklet.addModule('audioworklet.js');
 
         this.audioWorklet = new AudioWorkletNode(
             this.audioCtx,
@@ -109,12 +110,13 @@ export class AudioView
      */
     stopAudio()
     {
-        if (!this.audioWorklet)
-            return;
+        assert (this.audioCtx);
 
-        // Disconnect the worklet
         this.audioWorklet.disconnect();
         this.audioWorklet = null;
+
+        this.audioCtx.close();
+        this.audioCtx = null;
     }
 
     /**
