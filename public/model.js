@@ -13,50 +13,6 @@ Each node has:
   - pairs of (node_id, out_port_idx), no property if no connection
 - private state that is used for audio
   - this is not persisted and not tracked by the model
-
-For example, the currently active step in the sequencer needs to
-be synced between the GUI and audio, but is not user-editable and
-also not persisted across playback.
-
-Actions
-=======
-
-Here is a tentative list of various types of actions that can be performed on the model:
-
-// Set the project title
-set_title <new_title>
-
-create_node <type> <init_state> // Init state can be null if creating new node
-delete_node <id>
-connect <src_node> <out_port> <dst_node> <out_port>
-disconnect <src_node> <out_port> <dst_node> <out_port>
-
-// Creating a module will cause the model to
-// Move nodes inside the module
-create_module <list_of_node_ids>
-ungroup_module <node_id>
-
-// Sent by the play/stop buttons (but not undo-able)
-play
-stop
-
-// Sent by the audio thread so the UI can reflect playback position
-set_play_pos <time>
-
-// Actions to edit the settings/parameters of nodes
-set_node_name <node_id> <name>
-set_param <node_id> <param_name> <new_val>
-
-// To visualize audio data in the UI
-// Maybe this needs to be updated without an action
-// because it's not something we can undo.
-send_audio_data <node_id> <float array>
-
-We may also need to send a set_param from the audio thread to
-set the current position of MonoSeqs, because this is dependent
-on a clock input node. Again this isn't something people can
-undo, however. It could be more of a direct state update,
-or it's a special undoable action.
 */
 
 import { assert, treeCopy, treeEq, isString, isObject } from './utils.js';
@@ -893,6 +849,23 @@ export class ToggleCell extends Action
 }
 
 /**
+ * Set the current step to be highlighted in a sequencer
+ */
+ export class SetCurStep extends Action
+ {
+     constructor(nodeId, stepIdx)
+     {
+         super();
+         this.nodeId = nodeId;
+         this.stepIdx = stepIdx;
+     }
+
+     update(model)
+     {
+     }
+}
+
+/**
  * Graph of nodes model, operates on internal state data
  */
 export class Model
@@ -1006,7 +979,7 @@ export class Model
      */
     getFreeId()
     {
-        let nodeId = this.nextFreeId++;
+        let nodeId = String(this.nextFreeId++);
         assert (!(nodeId in this.state.nodes));
         return nodeId;
     }
