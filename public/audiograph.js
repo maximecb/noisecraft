@@ -7,7 +7,7 @@ import * as music from './music.js';
  */
 export class AudioGraph
 {
-    constructor(sampleRate)
+    constructor(sampleRate, send)
     {
         assert (sampleRate == 44100);
         this.sampleRate = sampleRate;
@@ -17,6 +17,9 @@ export class AudioGraph
 
         // Compiled code to generate audio samples
         this._genSample = null;
+
+        // Method to send messages to the main thread
+        this.send = send;
 
         // Stateful audio processing nodes, indexed by nodeId
         this.nodes = [];
@@ -56,8 +59,10 @@ export class AudioGraph
 
             // Create a new audio node
             this.nodes[nodeId] = new nodeClass(
+                nodeId,
                 nodeState,
-                this.sampleRate
+                this.sampleRate,
+                this.send
             );
         }
 
@@ -109,12 +114,14 @@ export class AudioGraph
  */
 class AudioNode
 {
-    constructor(state, sampleRate)
+    constructor(id, state, sampleRate, send)
     {
+        this.nodeId = id;
         this.state = state;
         this.params = state.params;
         this.sampleRate = sampleRate;
         this.sampleTime = 1 / sampleRate;
+        this.send = send;
     }
 }
 
@@ -123,9 +130,9 @@ class AudioNode
  */
 class ADSRNode extends AudioNode
 {
-    constructor(state, sampleRate)
+    constructor(id, state, sampleRate, send)
     {
-        super(state, sampleRate);
+        super(id, state, sampleRate, send);
         this.env = new synth.ADSREnv();
     }
 
@@ -140,10 +147,9 @@ class ADSRNode extends AudioNode
  */
 class Clock extends AudioNode
 {
-    constructor(state, sampleRate)
+    constructor(id, state, sampleRate, send)
     {
-        super(state, sampleRate);
-
+        super(id, state, sampleRate, send);
         this.phase = 0;
     }
 
@@ -162,9 +168,9 @@ class Clock extends AudioNode
  */
 class Delay extends AudioNode
 {
-    constructor(state, sampleRate)
+    constructor(id, state, sampleRate, send)
     {
-        super(state, sampleRate);
+        super(id, state, sampleRate, send);
 
         // Stateful delay line object
         this.delay = new synth.Delay(sampleRate);
@@ -176,9 +182,9 @@ class Delay extends AudioNode
  */
 class Distort extends AudioNode
 {
-    constructor(state, sampleRate)
+    constructor(id, state, sampleRate, send)
     {
-        super(state, sampleRate);
+        super(id, state, sampleRate, send);
     }
 
     update(input, amount)
@@ -192,9 +198,9 @@ class Distort extends AudioNode
  */
 class PulseOsc extends AudioNode
 {
-    constructor(state, sampleRate)
+    constructor(id, state, sampleRate, send)
     {
-        super(state, sampleRate);
+        super(id, state, sampleRate, send);
 
         this.phase = 0;
     }
@@ -212,9 +218,9 @@ class PulseOsc extends AudioNode
  */
 class SawOsc extends AudioNode
 {
-    constructor(state, sampleRate)
+    constructor(id, state, sampleRate, send)
     {
-        super(state, sampleRate);
+        super(id, state, sampleRate, send);
 
         // Current time position
         this.phase = 0;
@@ -233,9 +239,9 @@ class SawOsc extends AudioNode
  */
 class SineOsc extends AudioNode
 {
-    constructor(state, sampleRate)
+    constructor(id, state, sampleRate, send)
     {
-        super(state, sampleRate);
+        super(id, state, sampleRate, send);
 
         // Current time position
         this.phase = 0;
@@ -269,9 +275,9 @@ class SineOsc extends AudioNode
  */
 class TriOsc extends AudioNode
 {
-    constructor(state, sampleRate)
+    constructor(id, state, sampleRate, send)
     {
-        super(state, sampleRate);
+        super(id, state, sampleRate, send);
 
         // Current time position
         this.phase = 0;
@@ -294,9 +300,9 @@ class TriOsc extends AudioNode
  */
  class Filter extends AudioNode
  {
-     constructor(state, sampleRate)
+     constructor(id, state, sampleRate, send)
      {
-         super(state, sampleRate);
+         super(id, state, sampleRate, send);
 
          this.filter = new synth.TwoPoleFilter();
      }
@@ -312,9 +318,9 @@ class TriOsc extends AudioNode
  */
 class MonoSeq extends AudioNode
 {
-    constructor(state, sampleRate)
+    constructor(id, state, sampleRate, send)
     {
-        super(state, sampleRate);
+        super(id, state, sampleRate, send);
 
         // Current clock sign (positive/negative)
         this.clockSgn = false;
@@ -364,6 +370,13 @@ class MonoSeq extends AudioNode
 
                 var stepIdx = (this.clockCnt / music.CLOCK_PPS);
                 assert (stepIdx < grid.length);
+
+                // Send the current step back to the main thread
+                this.send({
+                    type: 'SET_CUR_STEP',
+                    nodeId: this.nodeId,
+                    stepIdx: stepIdx
+                });
 
                 this.gate = 0;
                 this.trigTime = 0;

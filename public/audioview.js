@@ -25,7 +25,8 @@ export class AudioView
         console.log('audio view update');
 
         if (action instanceof model.MoveNodes ||
-            action instanceof model.SetNodeName)
+            action instanceof model.SetNodeName ||
+            action instanceof model.SetCurStep)
         {
             return;
         }
@@ -97,6 +98,9 @@ export class AudioView
             { outputChannelCount: [2] }
         );
 
+        // Callback to receive messages from the audioworklet
+        this.audioWorklet.port.onmessage = this.onmessage.bind(this);
+
         this.audioWorklet.port.postMessage({
             type: 'NEW_UNIT',
             unit: this.unit
@@ -130,5 +134,20 @@ export class AudioView
             return;
 
         this.audioWorklet.port.postMessage(msg);
+    }
+
+    /**
+     * Receive a message fro the audio thread (audio worklet)
+     */
+    onmessage(event)
+    {
+        let msg = event.data;
+
+        switch (msg.type)
+        {
+            case 'SET_CUR_STEP':
+            this.model.update(new model.SetCurStep(msg.nodeId, msg.stepIdx));
+            break;
+        }
     }
 }

@@ -314,7 +314,7 @@ div.cell_off
     width: 14px;
     height: 14px;
     margin: 2px;
-    background: rgb(150,0,0);
+    background: rgb(150, 0, 0);
 }
 
 div.cell_on
@@ -323,7 +323,17 @@ div.cell_on
     width: 14px;
     height: 14px;
     margin: 2px;
-    background: rgb(255,0,0);
+    background: rgb(255, 0, 0);
+}
+
+/* Sequencer cell with highlighting */
+div.cell_high
+{
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin: 2px;
+    background: rgb(255, 255, 255);
 }
 
 /****************************************************************************/

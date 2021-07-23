@@ -174,6 +174,16 @@ export class Editor
             return;
         }
 
+        // Set current active step in a sequencer
+        if (action instanceof model.SetCurStep)
+        {
+            node.highlight(
+                action.stepIdx,
+            );
+
+            return;
+        }
+
         // Remove existing nodes and edges
         this.edge = null;
         while (this.graphDiv.firstChild)
@@ -1397,7 +1407,13 @@ class MonoSeq extends Node
             this.genGridDOM(patIdx, state.patterns[patIdx]);
         }
 
-        // Select the currently active pattern
+        // Currently active pattern
+        this.patIdx = 0;
+
+        // Currently active step
+        this.curStep = undefined;
+
+        // Set the currently active pattern
         this.select(0);
     }
 
@@ -1554,9 +1570,9 @@ class MonoSeq extends Node
         // Remove whichever pattern was queued
         this.nextPat = undefined;
         clearTimeout(this.blinkTimer);
+        */
 
         this.patIdx = patIdx;
-        */
 
         // Update the pattern selection bar, highlight current pattern
         for (var i = 0; i < this.patBtns.length; ++i)
@@ -1572,6 +1588,9 @@ class MonoSeq extends Node
         }
     }
 
+    /**
+     * Set a grid cell on or off
+     */
     setGridCell(patIdx, stepIdx, rowIdx, value)
     {
         assert (patIdx in this.cellDivs);
@@ -1585,6 +1604,39 @@ class MonoSeq extends Node
             row[i].className = 'cell_off';
 
         row[rowIdx].className = value? 'cell_on':'cell_off';
+    }
+
+    /**
+     * Highlight a given step of the current pattern
+     */
+    highlight(stepIdx)
+    {
+        console.log(stepIdx);
+
+        let patIdx = this.patIdx;
+        let cellDivs = this.cellDivs[patIdx];
+        let prevStep = this.curStep;
+        this.curStep = stepIdx;
+
+        // If a step is already highlighted, clear the highlighting
+        if (prevStep !== false && prevStep < cellDivs.length)
+        {
+            for (var rowIdx = 0; rowIdx < cellDivs[prevStep].length; ++rowIdx)
+            {
+                let div = cellDivs[prevStep][rowIdx];
+                div.className = (div.className == 'cell_off')? 'cell_off':'cell_on';
+            }
+        }
+
+        // Highlight the current step
+        if (stepIdx !== undefined)
+        {
+            for (var rowIdx = 0; rowIdx < cellDivs[stepIdx].length; ++rowIdx)
+            {
+                let div = cellDivs[stepIdx][rowIdx];
+                div.className = (div.className == 'cell_off')? 'cell_off':'cell_high';
+            }
+        }
     }
 }
 
