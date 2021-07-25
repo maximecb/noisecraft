@@ -1611,8 +1611,6 @@ class MonoSeq extends Node
      */
     highlight(stepIdx)
     {
-        console.log(stepIdx);
-
         let patIdx = this.patIdx;
         let cellDivs = this.cellDivs[patIdx];
         let prevStep = this.curStep;

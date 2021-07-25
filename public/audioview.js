@@ -22,8 +22,6 @@ export class AudioView
     /** Update the audio view */
     update(state, action)
     {
-        console.log('audio view update');
-
         if (action instanceof model.MoveNodes ||
             action instanceof model.SetNodeName ||
             action instanceof model.SetCurStep)
@@ -68,6 +66,8 @@ export class AudioView
 
             return;
         }
+
+        console.log('recompile unit');
 
         // Compile a new unit from the project state
         this.unit = compile(state);

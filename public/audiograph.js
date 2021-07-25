@@ -93,7 +93,17 @@ export class AudioGraph
     {
         assert (nodeId in this.nodes);
         let node = this.nodes[nodeId];
-        node.state.patterns[patIdx][stepIdx][rowIdx] = value;
+
+        // NOTE: in the future, we may want to replace this with a
+        // setState(nodeId, newState) update, which is much more general.
+
+        let pattern = node.state.patterns[patIdx];
+        let numRows = pattern[stepIdx].length;
+
+        for (let i = 0; i < numRows; ++i)
+            pattern[stepIdx][i] = 0;
+
+        pattern[stepIdx][rowIdx] = value;
     }
 
     /**
@@ -364,7 +374,7 @@ class MonoSeq extends AudioNode
             // If we are at the beginning of a new sequencer step
             if (this.clockCnt % music.CLOCK_PPS == 0)
             {
-                console.log('step');
+                //console.log('step');
 
                 var grid = this.state.patterns[this.patIdx];
 
