@@ -1395,7 +1395,9 @@ class MonoSeq extends Node
             patSel.textContent = String(i+1);
 
             // When clicked, select this pattern
-            patSel.onclick = evt => this.queue(i);
+            patSel.onmousedown = evt => evt.stopPropagation();
+            patSel.onmouseup = evt => evt.stopPropagation();
+            patSel.onclick = evt => this.queuePattern(i);
 
             selDiv.appendChild(patSel);
             this.patBtns.push(patSel);
@@ -1414,7 +1416,7 @@ class MonoSeq extends Node
         this.curStep = undefined;
 
         // Set the currently active pattern
-        this.select(0);
+        this.setPattern(0);
     }
 
     /**
@@ -1550,9 +1552,32 @@ class MonoSeq extends Node
     }
 
     /**
+     * Queue the next pattern to be played
+     */
+    queuePattern(patIdx)
+    {
+        // If audio is playing, queue the next pattern,
+        // otherwise immediately set the next pattern
+        if (this.editor.model.playing)
+        {
+            this.send(new model.QueuePattern(
+                this.nodeId,
+                patIdx
+            ));
+        }
+        else
+        {
+            this.send(new model.SetPattern(
+                this.nodeId,
+                patIdx
+            ));
+        }
+    }
+
+    /**
      * Select a pattern by index
      */
-    select(patIdx)
+    setPattern(patIdx)
     {
         /*
         let data = this.data;

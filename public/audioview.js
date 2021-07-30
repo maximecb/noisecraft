@@ -24,7 +24,8 @@ export class AudioView
     {
         if (action instanceof model.MoveNodes ||
             action instanceof model.SetNodeName ||
-            action instanceof model.SetCurStep)
+            action instanceof model.SetCurStep ||
+            action instanceof model.SetPattern)
         {
             return;
         }
