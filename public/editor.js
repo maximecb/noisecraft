@@ -147,10 +147,6 @@ export class Editor
     // Update the GUI view
     update(newState, action)
     {
-        // TODO: we can optimize this method based on the action
-        // For example, MoveNodes is trivial to implement without
-        // recreating all the nodes.
-
         // Find the node this action refers to, if any
         let node = action? this.nodes.get(action.nodeId):null;
 
@@ -322,12 +318,13 @@ export class Editor
         this.selected = [];
     }
 
-    // Resize the graph to fit all nodes
+    // Resize the editor to fit all nodes
     resize()
     {
         // Initialize the graph size to the edit tab size
-        let maxWidth = this.editorDiv.clientWidth;
-        let maxHeight = this.editorDiv.clientHeight;
+        // This includes off-screen content
+        let maxWidth = this.editorDiv.scrollWidth;
+        let maxHeight = this.editorDiv.scrollHeight;
 
         let editRect = this.svg.getBoundingClientRect();
 
@@ -347,6 +344,7 @@ export class Editor
     // Transform the mouse position of a mouse event relative to the SVG canvas
     getMousePos(evt)
     {
+        // Get the transformation matrix from the user units to screen coordinates
         var CTM = this.svg.getScreenCTM();
 
         if (evt.touches)
@@ -475,6 +473,12 @@ export class Editor
             let node = this.nodes.get(nodeId);
             node.move(dx, dy);
         }
+
+        // Resize the editor to fit all the nodes
+        this.resize();
+
+        // TODO: we probably want to scroll a bit to follow the node
+        // when moving a node off-screen.
     }
 
     // Delete the currently selected nodes
@@ -1099,10 +1103,6 @@ class Node
                 edge.moveSrc(dx, dy);
             }
         }
-
-        // TODO: move this into the Editor class
-        // Adjust the graph to fit this node
-        //this.editor.fitNode(this, true);
     }
 
     /**
