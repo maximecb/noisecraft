@@ -746,6 +746,7 @@ export class Play extends Action
 
     update(model)
     {
+        model.playing = true;
     }
 
     get undoable()
@@ -766,6 +767,7 @@ export class Play extends Action
 
     update(model)
     {
+        model.playing = false;
     }
 
     get undoable()
@@ -785,26 +787,6 @@ export class SetScale extends Action
 
     update(model)
     {
-    }
-}
-
-/**
- * Set the current/next pattern for a sequencer
- */
-export class SetPattern extends Action
-{
-    constructor(nodeId, patIdx)
-    {
-    }
-
-    update(model)
-    {
-        // TODO: this will need to behave differently when
-        // playing audio vs not playing
-        //
-        // When playing, it will queue the next pattern,
-        // but when not playing, it will set it immediately
-        // How are we going to differentiate the behavior?
     }
 }
 
@@ -851,18 +833,68 @@ export class ToggleCell extends Action
 /**
  * Set the current step to be highlighted in a sequencer
  */
- export class SetCurStep extends Action
- {
-     constructor(nodeId, stepIdx)
-     {
-         super();
-         this.nodeId = nodeId;
-         this.stepIdx = stepIdx;
-     }
+export class SetCurStep extends Action
+{
+    constructor(nodeId, stepIdx)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.stepIdx = stepIdx;
+    }
 
-     update(model)
-     {
-     }
+    update(model)
+    {
+    }
+
+    get undoable()
+    {
+        return false;
+    }
+}
+
+/**
+ * Queue the next pattern to play for a sequencer.
+ */
+export class QueuePattern extends Action
+{
+    constructor(nodeId, patIdx)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.patIdx = patIdx;
+    }
+
+    update(model)
+    {
+    }
+
+    get undoable()
+    {
+        return false;
+    }
+}
+
+/**
+ * Immediately set the currently playing pattern in a sequencer
+ * Note that the editor never sends this action, it sends QueuePattern.
+ */
+export class SetPattern extends Action
+{
+    constructor(nodeId, patIdx)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.patIdx = patIdx;
+    }
+
+    update(model)
+    {
+    }
+
+    get undoable()
+    {
+        return false;
+    }
 }
 
 /**
@@ -929,11 +961,11 @@ export class Model
         // Stack of actions tracked for redo
         this.redoStack = [];
 
-        // Current playback position
-        this.playPos = 0;
-
         // Store the new state
         this.state = state;
+
+        // Flag indicating if we're playing audio or not
+        this.playing = false;
 
         // Broadcast state update
         this.broadcast(this.state, null);

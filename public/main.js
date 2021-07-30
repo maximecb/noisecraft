@@ -12,9 +12,6 @@ let btnOpen = document.getElementById('btn_open');
 let btnPlay = document.getElementById('btn_play');
 let btnStop = document.getElementById('btn_stop');
 
-// Playing/stopped flag
-let playing = false;
-
 // Project model/state
 let model = new Model();
 
@@ -67,7 +64,7 @@ window.onkeydown = function (event)
     // Spacebar triggers play/stop
     if (event.code == 'Space')
     {
-        if (playing)
+        if (model.playing)
         {
             btnStop.onclick();
         }
@@ -208,7 +205,7 @@ export function saveModelFile()
 
 export function startPlayback()
 {
-    if (playing)
+    if (model.playing)
         return;
 
     console.log('starting playback');
@@ -221,13 +218,11 @@ export function startPlayback()
 
     // Send the play action to the model
     model.update(new Play());
-
-    playing = true;
 }
 
 export function stopPlayback()
 {
-    if (!playing)
+    if (!model.playing)
         return;
 
     console.log('stopping playback');
@@ -241,8 +236,6 @@ export function stopPlayback()
 
     // Send the stop action to the model
     model.update(new Stop());
-
-    playing = false;
 }
 
 btnSave.onclick = saveModelFile;
