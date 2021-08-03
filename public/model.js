@@ -329,6 +329,23 @@ export class Action
 }
 
 /**
+ * Set the project title
+ */
+export class SetTitle extends Action
+{
+    constructor(title)
+    {
+        super();
+        this.title = title;
+    }
+
+    update(model)
+    {
+        model.state.title = title;
+    }
+}
+
+/**
  * Create a new node
  */
 export class CreateNode extends Action
