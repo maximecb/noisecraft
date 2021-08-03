@@ -28,6 +28,9 @@ export class Editor
         // Text instructing the user on how to create the first node
         this.bgText = document.getElementById('graph_bg_text');
 
+        // Input field for the project title
+        this.title = document.getElementById('project_title');
+
         // Group selection div
         this.selectDiv = null;
 
@@ -201,6 +204,9 @@ export class Editor
         // Show/hide node creation instructions
         let graphEmpty = (Object.keys(newState.nodes).length == 0);
         this.bgText.style.display = graphEmpty? 'block':'none';
+
+        // Set the project title
+        this.title.value = newState.title;
 
         // Create the nodes
         for (let nodeId in newState.nodes)
