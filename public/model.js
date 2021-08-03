@@ -554,7 +554,7 @@ export class Paste extends Action
 
             // Add the node and track the new ID.
             let mappedNodeId = model.getFreeId();
-            nodeIdMap[nodeId] = mappedNodeId.toFixed(0);
+            nodeIdMap[nodeId] = mappedNodeId;
             model.state.nodes[mappedNodeId] = node;
         }
 
