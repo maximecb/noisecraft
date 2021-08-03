@@ -24,6 +24,9 @@ let editor = new Editor(model);
 // Audio view of the model
 let audioView = new AudioView(model);
 
+// Most recent location of a mouse or touch event
+let cursor = { x: 0, y: 0 };
+
 document.body.onload = function ()
 {
     // Create a new blank project
@@ -56,6 +59,9 @@ window.onunload = function ()
     // Save the graph when unloading the page
     localStorage.setItem('latestModelData', model.serialize());
 }
+
+window.onmousedown = handleMouseEvent;
+window.onmousemove = handleMouseEvent;
 
 window.onkeydown = function (event)
 {
@@ -126,7 +132,7 @@ document.onpaste = function(e)
 
     try
     {
-        model.update(new Paste(e.clipboardData.getData('text/plain')));
+        model.update(new Paste(e.clipboardData.getData('text/plain'), cursor));
         e.preventDefault();
     }
 
@@ -144,6 +150,12 @@ document.oncopy = function(e)
     let data = JSON.stringify(model.copy(editor.selected));
     e.clipboardData.setData('text/plain', data);
     e.preventDefault();
+}
+
+function handleMouseEvent(e)
+{
+    cursor.x = e.offsetX;
+    cursor.y = e.offsetY;
 }
 
 function isAnyInputActive()
