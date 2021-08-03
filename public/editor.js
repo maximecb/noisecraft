@@ -180,6 +180,16 @@ export class Editor
             return;
         }
 
+        // Set current active pattern in a sequencer
+        if (action instanceof model.SetPattern)
+        {
+            node.setPattern(
+                action.patIdx,
+            );
+
+            return;
+        }
+
         // Remove existing nodes and edges
         this.edge = null;
         while (this.graphDiv.firstChild)
