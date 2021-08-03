@@ -519,7 +519,7 @@ export class DeleteNodes extends Action
  */
 export class Paste extends Action
 {
-    constructor(data)
+    constructor(data, position)
     {
         super();
 
@@ -543,11 +543,30 @@ export class Paste extends Action
             assert (nodeData.ins.length === schema.ins.length);
             assert (nodeData.params instanceof Object);
         }
+
+        this.position = position;
+        assert (typeof this.position.x == 'number');
+        assert (typeof this.position.y == 'number');
     }
 
     update(model)
     {
         let nodeIdMap = {};
+
+        // Before adding any nodes, determine their final offsets.
+        let offset = { x: Infinity, y: Infinity };
+        for (let nodeId in this.nodesData)
+        {
+            let nodeData = this.nodesData[nodeId];
+
+            offset.x = Math.min(nodeData.x, offset.x);
+            offset.y = Math.min(nodeData.y, offset.y);
+        }
+
+        assert (offset.x !== Infinity && offset.y !== Infinity);
+
+        offset.x = this.position.x - offset.x;
+        offset.y = this.position.y - offset.y;
 
         // Start by adding the pasted nodes without port connections.
         for (let nodeId in this.nodesData)
@@ -558,8 +577,8 @@ export class Paste extends Action
             let node = {
                 type: nodeData.type,
                 name: nodeData.name,
-                x: nodeData.x,
-                y: nodeData.y,
+                x: nodeData.x + offset.x,
+                y: nodeData.y + offset.y,
                 params: {}
             };
 
