@@ -140,16 +140,45 @@ export class Editor
         // If the window is resized, adjust the graph size
         window.onresize = this.resize.bind(this);
 
-        // Initialize the graph size to fill the window
+        // Initialize the editor size to fill the window
         this.resize();
     }
 
     // Update the GUI view
     update(newState, action)
     {
-        // TODO: we can optimize this method based on the action
-        // For example, MoveNodes is trivial to implement without
-        // recreating all the nodes.
+        // Find the node this action refers to, if any
+        let node = action? this.nodes.get(action.nodeId):null;
+
+        // Optimize value changes
+        if (action instanceof model.SetParam && action.paramName == "value")
+        {
+            node.setValue(action.value);
+            return;
+        }
+
+        // Toggle grid sequencer cell on/off
+        if (action instanceof model.ToggleCell)
+        {
+            node.setGridCell(
+                action.patIdx,
+                action.stepIdx,
+                action.rowIdx,
+                action.value
+            );
+
+            return;
+        }
+
+        // Set current active step in a sequencer
+        if (action instanceof model.SetCurStep)
+        {
+            node.highlight(
+                action.stepIdx,
+            );
+
+            return;
+        }
 
         // Remove existing nodes and edges
         this.edge = null;
@@ -211,6 +240,9 @@ export class Editor
             let node = this.nodes.get(nodeId);
             node.nodeDiv.style['border-color'] = '#F00';
         }
+
+        // Resize the editor to fit all the nodes
+        this.resize();
     }
 
     // Update an in progress selection
@@ -286,29 +318,33 @@ export class Editor
         this.selected = [];
     }
 
-    // Resize the graph to fit all nodes
+    // Resize the editor to fit all nodes
     resize()
     {
         // Initialize the graph size to the edit tab size
-        setSvg(this.svg, 'width', this.editorDiv.clientWidth);
-        setSvg(this.svg, 'height', this.editorDiv.clientHeight);
-        this.graphDiv.style.width = this.editorDiv.clientWidth;
-        this.graphDiv.style.height = this.editorDiv.clientHeight;
+        // This includes off-screen content
+        let maxWidth = this.editorDiv.scrollWidth;
+        let maxHeight = this.editorDiv.scrollHeight;
 
-        /*
-        // Make sure the div fits all the nodes
-        for (let id in this.graph.nodes)
+        let editRect = this.svg.getBoundingClientRect();
+
+        // For each node
+        for (let [nodeId, node] of this.nodes)
         {
-            let data = this.graph.nodes[id];
-            let node = this.nodes.get(data);
-            this.fitNode(node);
+            maxWidth = Math.max(maxWidth, node.x + node.nodeDiv.offsetWidth);
+            maxHeight = Math.max(maxHeight, node.y + node.nodeDiv.offsetHeight);
         }
-        */
+
+        setSvg(this.svg, 'width', maxWidth);
+        setSvg(this.svg, 'height', maxHeight);
+        this.graphDiv.style.width = maxWidth;
+        this.graphDiv.style.height = maxHeight;
     }
 
     // Transform the mouse position of a mouse event relative to the SVG canvas
     getMousePos(evt)
     {
+        // Get the transformation matrix from the user units to screen coordinates
         var CTM = this.svg.getScreenCTM();
 
         if (evt.touches)
@@ -380,6 +416,10 @@ export class Editor
     // Start dragging/moving nodes
     startDrag(nodeId, mousePos)
     {
+        // Can't start a drag if one is already in progress
+        if (this.dragNodes.length > 0)
+            return;
+
         console.log('starting drag');
 
         if (this.selected.indexOf(nodeId) != -1)
@@ -433,6 +473,12 @@ export class Editor
             let node = this.nodes.get(nodeId);
             node.move(dx, dy);
         }
+
+        // Resize the editor to fit all the nodes
+        this.resize();
+
+        // TODO: we probably want to scroll a bit to follow the node
+        // when moving a node off-screen.
     }
 
     // Delete the currently selected nodes
@@ -715,7 +761,7 @@ class Node
             // Only delete on shift + click
             if (evt.shiftKey && !this.editor.edge)
             {
-                this.editor.model.update(
+                this.send(
                     new model.DeleteNodes([this.nodeId])
                 );
             }
@@ -964,7 +1010,7 @@ class Node
             // Model updates may fail for some values
             try
             {
-                this.editor.model.update(new model.SetNodeName(
+                this.send(new model.SetNodeName(
                     this.nodeId,
                     newName
                 ));
@@ -975,7 +1021,7 @@ class Node
                     if (newParams[param.name] == nodeState.params[param.name])
                         continue;
 
-                    this.editor.model.update(new model.SetParam(
+                    this.send(new model.SetParam(
                         this.nodeId,
                         param.name,
                         newParams[param.name]
@@ -1002,7 +1048,7 @@ class Node
 
         deleteBtn.onclick = function ()
         {
-            node.editor.delNode(node);
+            node.send(new model.DeleteNodes([node.nodeId]));
             dialog.close()
         }
 
@@ -1057,10 +1103,14 @@ class Node
                 edge.moveSrc(dx, dy);
             }
         }
+    }
 
-        // TODO: move this into the Editor class
-        // Adjust the graph to fit this node
-        //this.editor.fitNode(this, true);
+    /**
+     * Send an action to the model
+     */
+    send(action)
+    {
+        this.editor.model.update(action);
     }
 }
 
@@ -1120,6 +1170,15 @@ class ConstNode extends Node
             resize();
         }
 
+        input.onkeydown = function (evt)
+        {
+            if (evt.key === "Enter")
+            {
+                input.blur();
+                return;
+            }
+        }
+
         input.ondblclick = function (evt)
         {
             evt.stopPropagation();
@@ -1127,6 +1186,11 @@ class ConstNode extends Node
 
         input.value = state.params.value;
         resize();
+    }
+
+    setValue(value)
+    {
+        this.input.value = value;
     }
 }
 
@@ -1158,6 +1222,12 @@ class KnobNode extends Node
 
         this.knob.on('change', knobChange);
         //this.knob.on('bind', controlNo => this.data.params.controlNo = controlNo);
+    }
+
+    setValue(value)
+    {
+        this.knob.value = value;
+        this.knob.drawKnob();
     }
 }
 
@@ -1215,6 +1285,7 @@ class MonoSeq extends Node
         btnDiv.appendChild(selectRoot);
         btnDiv.appendChild(selectScale);
 
+        /*
         // Shrink and extend pattern buttons
         let shrinkBtn = document.createElement("button");
         let extendBtn = document.createElement("button");
@@ -1231,6 +1302,7 @@ class MonoSeq extends Node
         shrinkBtn.ondblclick = evt => evt.stopPropagation();
         extendBtn.ondblclick = evt => evt.stopPropagation();
         copyBtn.ondblclick = evt => evt.stopPropagation();
+        */
 
         function scaleChange()
         {
@@ -1323,18 +1395,28 @@ class MonoSeq extends Node
             patSel.textContent = String(i+1);
 
             // When clicked, select this pattern
-            patSel.onclick = evt => this.queue(i);
+            patSel.onmousedown = evt => evt.stopPropagation();
+            patSel.onmouseup = evt => evt.stopPropagation();
+            patSel.onclick = evt => this.queuePattern(i);
 
             selDiv.appendChild(patSel);
             this.patBtns.push(patSel);
         }
 
-        // Create the scale
-        //this.scale = music.genScale(data.scaleRoot, data.scaleName, data.numOcts);
-        //this.numRows = this.scale.length;
+        // Create the DOM elements for each pattern
+        for (let patIdx = 0; patIdx < state.patterns.length; ++patIdx)
+        {
+            this.genGridDOM(patIdx, state.patterns[patIdx]);
+        }
 
-        // Select the currently active pattern
-        this.select(0);
+        // Currently active pattern
+        this.patIdx = 0;
+
+        // Currently active step
+        this.curStep = undefined;
+
+        // Set the currently active pattern
+        this.setPattern(0);
     }
 
     /**
@@ -1342,13 +1424,12 @@ class MonoSeq extends Node
      */
     genGridDOM(patIdx, grid)
     {
-        console.log('generating grid dom, patIdx=', patIdx);
         assert (patIdx !== undefined);
 
         //let seq = this;
         //let grid = this.data.patterns[patIdx];
         let numSteps = grid.length;
-        let numRows = this.numRows;
+        let numRows = grid[0].length;
         assert (grid instanceof Array);
 
         // Two-dimensional array of cell square divs (stepIdx, rowIdx)
@@ -1356,9 +1437,6 @@ class MonoSeq extends Node
 
         function makeCell(i, j)
         {
-            const onColor = 'rgb(255,0,0)';
-            const offColor = 'rgb(150,0,0)';
-
             var cellOn = grid[i][j];
 
             // The outer cell div is the element reacting to clicks
@@ -1366,37 +1444,44 @@ class MonoSeq extends Node
             var cell = document.createElement('div');
             cell.style['display'] = 'inline-block';
 
+            // 4-step beat separator
+            if (i % 4 == 0)
+            {
+                var sep = document.createElement('div');
+                sep.style['display'] = 'inline-block';
+                sep.style['width'] = '1px';
+                cell.appendChild(sep);
+            }
+
             // The inner div is the colored/highlighted element
             var inner = document.createElement('div');
-            inner.style['display'] = 'inline-block';
-            inner.style['width'] = '14px';
-            inner.style['height'] = '14px';
-            inner.style['margin'] = '2px';
-            inner.style['margin-left'] = (i%4 == 0)? '3px':'2px';
-            inner.style['margin-right'] = (i%4 == 3)? '3px':'2px';
-            inner.style['background-color'] = cellOn? onColor:offColor;
+            inner.className = cellOn? 'cell_on':'cell_off';
             cell.appendChild(inner);
 
-            /*
-            cell.onclick = function ()
+            // 4-step beat separator
+            if (i % 4 == 3)
+            {
+                var sep = document.createElement('div');
+                sep.style['display'] = 'inline-block';
+                sep.style['width'] = '1px';
+                cell.appendChild(sep);
+            }
+
+            cell.onmousedown = (evt) => evt.stopPropagation();
+            cell.onmouseup = (evt) => evt.stopPropagation();
+
+            cell.onclick = (evt) =>
             {
                 console.log('clicked ' + i + ', ' + j);
+                this.send(new model.ToggleCell(
+                    this.nodeId,
+                    patIdx,
+                    i,
+                    j
+                ));
 
-                var cellOn = grid[i][j];
-
-                for (var row = 0; row < numRows; ++row)
-                {
-                    grid[i][row] = 0;
-                    let color = seq.getCellColor(i, row);
-                    cellDivs[i][row].style['background-color'] = color;
-                }
-
-                cellOn = cellOn? 0:1;
-                grid[i][j] = cellOn;
-                let color = seq.getCellColor(i, j);
-                inner.style['background-color'] = color;
+                evt.stopPropagation();
             };
-            */
 
             if (!(i in cellDivs))
                 cellDivs[i] = [];
@@ -1419,7 +1504,7 @@ class MonoSeq extends Node
                 for (var i = 0; i < 16; ++i)
                 {
                     var stepIdx = barIdx * 16 + i;
-                    var cell = makeCell(stepIdx, numRows - j - 1);
+                    var cell = makeCell.call(this, stepIdx, numRows - j - 1);
                     row.appendChild(cell);
                 }
 
@@ -1448,7 +1533,7 @@ class MonoSeq extends Node
             barDiv.style['display'] = 'inline-block';
             patDiv.appendChild(barDiv);
 
-            var bar = makeBar(barIdx);
+            var bar = makeBar.call(this, barIdx);
             barDiv.appendChild(bar);
 
             // If this is not the last bar, add a separator
@@ -1464,15 +1549,35 @@ class MonoSeq extends Node
                 barDiv.appendChild(sep);
             }
         }
+    }
 
-
-
+    /**
+     * Queue the next pattern to be played
+     */
+    queuePattern(patIdx)
+    {
+        // If audio is playing, queue the next pattern,
+        // otherwise immediately set the next pattern
+        if (this.editor.model.playing)
+        {
+            this.send(new model.QueuePattern(
+                this.nodeId,
+                patIdx
+            ));
+        }
+        else
+        {
+            this.send(new model.SetPattern(
+                this.nodeId,
+                patIdx
+            ));
+        }
     }
 
     /**
      * Select a pattern by index
      */
-    select(patIdx)
+    setPattern(patIdx)
     {
         /*
         let data = this.data;
@@ -1490,15 +1595,9 @@ class MonoSeq extends Node
         // Remove whichever pattern was queued
         this.nextPat = undefined;
         clearTimeout(this.blinkTimer);
-
-        this.patIdx = patIdx;
         */
 
-        // TODO: lazily call genGridDOM
-
-
-
-
+        this.patIdx = patIdx;
 
         // Update the pattern selection bar, highlight current pattern
         for (var i = 0; i < this.patBtns.length; ++i)
@@ -1513,6 +1612,94 @@ class MonoSeq extends Node
             patDiv.style.display = (patDiv === this.patDivs[patIdx])? 'block':'none';
         }
     }
+
+    /**
+     * Set a grid cell on or off
+     */
+    setGridCell(patIdx, stepIdx, rowIdx, value)
+    {
+        assert (patIdx in this.cellDivs);
+        let cellDivs = this.cellDivs[patIdx];
+        assert (stepIdx < cellDivs.length);
+        let row = cellDivs[stepIdx];
+        assert (rowIdx < row.length);
+
+        // Clear all other cells in this row
+        for (let i = 0; i < row.length; ++i)
+            row[i].className = 'cell_off';
+
+        row[rowIdx].className = value? 'cell_on':'cell_off';
+    }
+
+    /**
+     * Highlight a given step of the current pattern
+     */
+    highlight(stepIdx)
+    {
+        let patIdx = this.patIdx;
+        let cellDivs = this.cellDivs[patIdx];
+        let prevStep = this.curStep;
+        this.curStep = stepIdx;
+
+        // If a step is already highlighted, clear the highlighting
+        if (prevStep !== false && prevStep < cellDivs.length)
+        {
+            for (var rowIdx = 0; rowIdx < cellDivs[prevStep].length; ++rowIdx)
+            {
+                let div = cellDivs[prevStep][rowIdx];
+                div.className = (div.className == 'cell_off')? 'cell_off':'cell_on';
+            }
+        }
+
+        // Highlight the current step
+        if (stepIdx !== undefined)
+        {
+            for (var rowIdx = 0; rowIdx < cellDivs[stepIdx].length; ++rowIdx)
+            {
+                let div = cellDivs[stepIdx][rowIdx];
+                div.className = (div.className == 'cell_off')? 'cell_off':'cell_high';
+            }
+        }
+    }
+}
+
+/**
+Textual notes
+*/
+class Notes extends Node
+{
+    constructor(id, state, editor)
+    {
+        super(id, state, editor);
+
+        var textArea = document.createElement('textarea');
+        textArea.placeholder = 'Write notes here.';
+        textArea.rows = 10;
+        textArea.cols = 40;
+        textArea.maxLength = 4000;
+        textArea.style.margin = '4px';
+        textArea.style.resize = 'none';
+        textArea.style.background = '#333';
+        textArea.style.color = '#FFF';
+        this.centerDiv.append(textArea)
+
+        function oninput(evt)
+        {
+            this.send(new model.SetParam(
+                this.nodeId,
+                'text',
+                textArea.value.trimEnd()
+            ));
+        }
+
+        textArea.onchange = oninput.bind(this);
+        textArea.onmousedown = evt => evt.stopPropagation();
+        textArea.onmouseup = evt => evt.stopPropagation();
+        textArea.ondblclick = evt => evt.stopPropagation();
+        textArea.onkeydown = evt => evt.stopPropagation();
+
+        textArea.value = state.params.text;
+    }
 }
 
 // Map of node types to specialized node classes
@@ -1522,4 +1709,5 @@ const NODE_CLASSES =
     'Const': ConstNode,
     'Knob': KnobNode,
     'MonoSeq': MonoSeq,
+    'Notes': Notes,
 }

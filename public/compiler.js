@@ -281,24 +281,23 @@ export function compile(graph)
             continue;
         }
 
-        /*
         if (node.type == 'ADSR')
         {
-            let obj = addObj('adsr', nodeObj.env);
+            audioNodes[nodeId] = node;
 
             addDef(
-                node,
-                obj + '.eval(time, ' +
-                inVal(node, 0) + ', ' +
-                inVal(node, 1) + ', ' +
-                inVal(node, 2) + ', ' +
-                inVal(node, 3) + ', ' +
-                inVal(node, 4) + ')'
+                nodeId,
+                `nodes[${nodeId}].update(` +
+                `time,` +
+                `${inVal(node, 0)},` +
+                `${inVal(node, 1)},` +
+                `${inVal(node, 2)},` +
+                `${inVal(node, 3)},` +
+                `${inVal(node, 4)})`
             );
 
             continue;
         }
-        */
 
         if (node.type == 'AudioOut')
         {

@@ -1,3 +1,4 @@
+import { assert } from './utils.js';
 import * as model from './model.js';
 import { compile } from './compiler.js';
 
@@ -21,9 +22,10 @@ export class AudioView
     /** Update the audio view */
     update(state, action)
     {
-        console.log('audio view update');
-
-        if (action instanceof model.MoveNodes)
+        if (action instanceof model.MoveNodes ||
+            action instanceof model.SetNodeName ||
+            action instanceof model.SetCurStep ||
+            action instanceof model.SetPattern)
         {
             return;
         }
@@ -42,40 +44,63 @@ export class AudioView
 
         if (action instanceof model.SetParam)
         {
-            this.setParam(action.nodeId, action.paramName, action.value);
+            this.send({
+                type: 'SET_PARAM',
+                nodeId: action.nodeId,
+                paramName: action.paramName,
+                value: action.value
+            });
+
             return;
         }
+
+        if (action instanceof model.ToggleCell)
+        {
+            this.send({
+                type: 'SET_CELL',
+                nodeId: action.nodeId,
+                patIdx: action.patIdx,
+                stepIdx: action.stepIdx,
+                rowIdx: action.rowIdx,
+                value: action.value
+            });
+
+            return;
+        }
+
+        console.log('recompile unit');
 
         // Compile a new unit from the project state
         this.unit = compile(state);
 
-        if (this.audioWorklet)
-        {
-            this.audioWorklet.port.postMessage({
-                type: 'NEW_UNIT',
-                unit: this.unit
-            });
-        }
+        this.send({
+            type: 'NEW_UNIT',
+            unit: this.unit
+        });
     }
 
-    /** Start audio playback */
+    /**
+     * Start audio playback
+     */
     async playAudio()
     {
-        if (!this.audioCtx)
-        {
-            this.audioCtx = new AudioContext({
-                latencyHint: 'interactive',
-                sampleRate: 44100
-            });
+        assert (!this.audioCtx);
 
-            await this.audioCtx.audioWorklet.addModule('audioworklet.js');
-        }
+        this.audioCtx = new AudioContext({
+            latencyHint: 'interactive',
+            sampleRate: 44100
+        });
+
+        await this.audioCtx.audioWorklet.addModule('audioworklet.js');
 
         this.audioWorklet = new AudioWorkletNode(
             this.audioCtx,
             'sample-generator',
             { outputChannelCount: [2] }
         );
+
+        // Callback to receive messages from the audioworklet
+        this.audioWorklet.port.onmessage = this.onmessage.bind(this);
 
         this.audioWorklet.port.postMessage({
             type: 'NEW_UNIT',
@@ -85,27 +110,45 @@ export class AudioView
         this.audioWorklet.connect(this.audioCtx.destination);
     }
 
-    /** Stop audio playback */
+    /**
+     * Stop audio playback
+     */
     stopAudio()
     {
-        if (!this.audioWorklet)
-            return;
+        assert (this.audioCtx);
 
-        // Disconnect the worklet
         this.audioWorklet.disconnect();
         this.audioWorklet = null;
+
+        this.audioCtx.close();
+        this.audioCtx = null;
     }
 
-    setParam(nodeId, paramName, value)
+    /**
+     * Send a message to the audio thread (audio worket)
+     */
+    send(msg)
     {
+        assert (msg instanceof Object);
+
         if (!this.audioWorklet)
             return;
 
-        this.audioWorklet.port.postMessage({
-            type: 'SET_PARAM',
-            nodeId: nodeId,
-            paramName: paramName,
-            value: value
-        });
+        this.audioWorklet.port.postMessage(msg);
+    }
+
+    /**
+     * Receive a message fro the audio thread (audio worklet)
+     */
+    onmessage(event)
+    {
+        let msg = event.data;
+
+        switch (msg.type)
+        {
+            case 'SET_CUR_STEP':
+            this.model.update(new model.SetCurStep(msg.nodeId, msg.stepIdx));
+            break;
+        }
     }
 }

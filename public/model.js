@@ -13,54 +13,13 @@ Each node has:
   - pairs of (node_id, out_port_idx), no property if no connection
 - private state that is used for audio
   - this is not persisted and not tracked by the model
-
-For example, the currently active step in the sequencer needs to
-be synced between the GUI and audio, but is not user-editable and
-also not persisted across playback.
-
-Actions
-=======
-
-Here is a tentative list of various types of actions that can be performed on the model:
-
-// Set the project title
-set_title <new_title>
-
-create_node <type> <init_state> // Init state can be null if creating new node
-delete_node <id>
-connect <src_node> <out_port> <dst_node> <out_port>
-disconnect <src_node> <out_port> <dst_node> <out_port>
-
-// Creating a module will cause the model to
-// Move nodes inside the module
-create_module <list_of_node_ids>
-ungroup_module <node_id>
-
-// Sent by the play/stop buttons (but not undo-able)
-play
-stop
-
-// Sent by the audio thread so the UI can reflect playback position
-set_play_pos <time>
-
-// Actions to edit the settings/parameters of nodes
-set_node_name <node_id> <name>
-set_param <node_id> <param_name> <new_val>
-
-// To visualize audio data in the UI
-// Maybe this needs to be updated without an action
-// because it's not something we can undo.
-send_audio_data <node_id> <float array>
-
-We may also need to send a set_param from the audio thread to
-set the current position of MonoSeqs, because this is dependent
-on a clock input node. Again this isn't something people can
-undo, however. It could be more of a direct state update,
-or it's a special undoable action.
 */
 
 import { assert, treeCopy, treeEq, isString, isObject } from './utils.js';
 import * as music from './music.js';
+
+// Maximum number of undo steps we support
+const MAX_UNDO_STEPS = 400;
 
 /**
  * High-level description/schema for each type of node
@@ -77,7 +36,6 @@ export const NODE_SCHEMA =
         description: 'add input waveforms',
     },
 
-    /*
     'ADSR': {
         ins: [
             { name: 'gate', default: 0 },
@@ -90,7 +48,6 @@ export const NODE_SCHEMA =
         params: [],
         description: 'ADSR envelope generator',
     },
-    */
 
     'AudioOut': {
         ins: [
@@ -244,14 +201,14 @@ export const NODE_SCHEMA =
         description: 'white noise source',
     },
 
-    /*
     'Notes': {
         ins: [],
         outs: [],
-        params: [],
+        params: [
+            { name: 'text', default: '' },
+        ],
         description: 'text notes',
     },
-    */
 
     'Pulse': {
         ins: [
@@ -901,6 +858,7 @@ export class Play extends Action
 
     update(model)
     {
+        model.playing = true;
     }
 
     get undoable()
@@ -921,6 +879,7 @@ export class Play extends Action
 
     update(model)
     {
+        model.playing = false;
     }
 
     get undoable()
@@ -944,36 +903,109 @@ export class SetScale extends Action
 }
 
 /**
- * Set the current/next pattern for a sequencer
+ * Toggle the value of a grid cell for a sequencer
+ */
+export class ToggleCell extends Action
+{
+    constructor(nodeId, patIdx, stepIdx, rowIdx)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.patIdx = patIdx;
+        this.stepIdx = stepIdx;
+        this.rowIdx = rowIdx;
+    }
+
+    update(model)
+    {
+        let node = model.state.nodes[this.nodeId];
+        assert (node.type == 'MonoSeq');
+        let grid = node.patterns[this.patIdx];
+        assert (grid instanceof Array);
+        assert (this.stepIdx < grid.length);
+        let numRows = grid[this.stepIdx].length;
+        assert (this.rowIdx < numRows);
+
+        // Get the current value of this cell
+        let curVal = grid[this.stepIdx][this.rowIdx];
+        let newVal = curVal? 0:1;
+
+        // Zero-out all other cells at this step
+        for (let i = 0; i < numRows; ++i)
+            grid[this.stepIdx][i] = 0;
+
+        grid[this.stepIdx][this.rowIdx] = newVal;
+
+        // Tag the new value on the action to make
+        // view updates easier
+        this.value = newVal;
+    }
+}
+
+/**
+ * Set the current step to be highlighted in a sequencer
+ */
+export class SetCurStep extends Action
+{
+    constructor(nodeId, stepIdx)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.stepIdx = stepIdx;
+    }
+
+    update(model)
+    {
+    }
+
+    get undoable()
+    {
+        return false;
+    }
+}
+
+/**
+ * Queue the next pattern to play for a sequencer.
+ */
+export class QueuePattern extends Action
+{
+    constructor(nodeId, patIdx)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.patIdx = patIdx;
+    }
+
+    update(model)
+    {
+    }
+
+    get undoable()
+    {
+        return false;
+    }
+}
+
+/**
+ * Immediately set the currently playing pattern in a sequencer
+ * Note that the editor never sends this action, it sends QueuePattern.
  */
 export class SetPattern extends Action
 {
     constructor(nodeId, patIdx)
     {
+        super();
+        this.nodeId = nodeId;
+        this.patIdx = patIdx;
     }
 
     update(model)
     {
-        // TODO: this will need to behave differently when
-        // playing audio vs not playing
-        //
-        // When playing, it will queue the next pattern,
-        // but when not playing, it will set it immediately
-        // How are we going to differentiate the behavior?
-    }
-}
-
-/**
- * Set the value of a grid cell for a sequencer
- */
-export class SetGrid extends Action
-{
-    constructor(nodeId, stepIdx, rowIdx, value)
-    {
     }
 
-    update(model)
+    get undoable()
     {
+        return false;
     }
 }
 
@@ -1041,11 +1073,11 @@ export class Model
         // Stack of actions tracked for redo
         this.redoStack = [];
 
-        // Current playback position
-        this.playPos = 0;
-
         // Store the new state
         this.state = state;
+
+        // Flag indicating if we're playing audio or not
+        this.playing = false;
 
         // Broadcast state update
         this.broadcast(this.state, null);
@@ -1091,7 +1123,7 @@ export class Model
      */
     getFreeId()
     {
-        let nodeId = this.nextFreeId++;
+        let nodeId = String(this.nextFreeId++);
         assert (!(nodeId in this.state.nodes));
         return nodeId;
     }
@@ -1200,6 +1232,13 @@ export class Model
     // Add an action to the undo queue
     addUndo(action)
     {
+        // Limit the maximum undo stack length
+        if (this.undoStack.length >= MAX_UNDO_STEPS)
+        {
+            this.undoStack.shift();
+        }
+
+        // If there is a previous undo action
         if (this.undoStack.length > 0 && this.lastAction)
         {
             let prev = this.undoStack[this.undoStack.length-1];

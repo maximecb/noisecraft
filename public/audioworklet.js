@@ -16,7 +16,10 @@ class NCAudioWorklet extends AudioWorkletProcessor
         this.port.onmessage = this.onmessage.bind(this);
 
         // Audio generation graph
-        this.audioGraph = new AudioGraph(44100);
+        this.audioGraph = new AudioGraph(
+            44100,
+            this.port.postMessage.bind(this.port)
+        );
     }
 
     /// Receive messages from the message port
@@ -32,6 +35,10 @@ class NCAudioWorklet extends AudioWorkletProcessor
 
             case 'SET_PARAM':
             this.audioGraph.setParam(msg.nodeId, msg.paramName, msg.value);
+            break;
+
+            case 'SET_CELL':
+            this.audioGraph.setCell(msg.nodeId, msg.patIdx, msg.stepIdx, msg.rowIdx, msg.value);
             break;
 
             default:

@@ -162,7 +162,7 @@ div.tabcontent
 /* Track title display/edit box on the main page */
 #project_title {
     position: fixed;
-    bottom: 18; 
+    bottom: 18;
     right: 18;
 
     font-family: monospace;
@@ -306,6 +306,34 @@ div.patsel_btn_queue
     width: 18;
     margin-left: 2;
     margin-right: 2;
+}
+
+div.cell_off
+{
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin: 2px;
+    background: rgb(150, 0, 0);
+}
+
+div.cell_on
+{
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin: 2px;
+    background: rgb(255, 0, 0);
+}
+
+/* Sequencer cell with highlighting */
+div.cell_high
+{
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin: 2px;
+    background: rgb(255, 255, 255);
 }
 
 /****************************************************************************/
