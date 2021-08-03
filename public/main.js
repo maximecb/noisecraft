@@ -151,8 +151,7 @@ document.oncopy = function(e)
 
 function handleMouseEvent(e)
 {
-    cursor.x = e.offsetX;
-    cursor.y = e.offsetY;
+    cursor = editor.getMousePos(e);
 }
 
 function isAnyInputActive()
