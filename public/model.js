@@ -485,6 +485,118 @@ export class DeleteNodes extends Action
 }
 
 /**
+ * Pastes one or more nodes
+ *
+ * Data is expected to be given serialized. The constructor will throw an
+ * exception if it is not pastable, or if the paste would have no effect on the
+ * model.
+ */
+export class Paste extends Action
+{
+    constructor(data, position)
+    {
+        super();
+
+        this.nodesData = JSON.parse(data);
+        assert (this.nodesData instanceof Object);
+        assert (Object.keys(this.nodesData).length);
+
+        for (let nodeId in this.nodesData)
+        {
+            assert (/^\d+$/.test(nodeId));
+
+            let nodeData = this.nodesData[nodeId];
+            assert (nodeData instanceof Object);
+            assert (typeof nodeData.name === 'string');
+            assert (typeof nodeData.x === 'number');
+            assert (typeof nodeData.y === 'number');
+
+            let schema = NODE_SCHEMA[nodeData.type];
+            assert (schema instanceof Object);
+            assert (nodeData.ins instanceof Array);
+            assert (nodeData.ins.length === schema.ins.length);
+            assert (nodeData.params instanceof Object);
+        }
+
+        this.position = position;
+        assert (typeof this.position.x == 'number');
+        assert (typeof this.position.y == 'number');
+    }
+
+    update(model)
+    {
+        let nodeIdMap = {};
+
+        // Before adding any nodes, determine their final offsets.
+        let offset = { x: Infinity, y: Infinity };
+        for (let nodeId in this.nodesData)
+        {
+            let nodeData = this.nodesData[nodeId];
+
+            offset.x = Math.min(nodeData.x, offset.x);
+            offset.y = Math.min(nodeData.y, offset.y);
+        }
+
+        assert (offset.x !== Infinity && offset.y !== Infinity);
+
+        offset.x = this.position.x - offset.x;
+        offset.y = this.position.y - offset.y;
+
+        // Start by adding the pasted nodes without port connections.
+        for (let nodeId in this.nodesData)
+        {
+            let nodeData = this.nodesData[nodeId];
+            let schema = NODE_SCHEMA[nodeData.type];
+
+            let node = {
+                type: nodeData.type,
+                name: nodeData.name,
+                x: nodeData.x + offset.x,
+                y: nodeData.y + offset.y,
+                params: {}
+            };
+
+            // Keep param values that are aligned with the schema. They must be
+            // null or match the schema's default value type, otherwise the
+            // default value will be assigned.
+            for (let param of schema.params)
+            {
+                let value = nodeData.params[param.name];
+
+                if (value !== null && typeof value !== typeof param.default)
+                    value = param.default;
+
+                node.params[param.name] = value;
+            }
+
+            // Add the node and track the new ID.
+            let mappedNodeId = model.getFreeId();
+            nodeIdMap[nodeId] = mappedNodeId;
+            model.state.nodes[mappedNodeId] = node;
+        }
+
+        // Now that all the nodes have mapped IDs, fill in the port connections.
+        for (let nodeId in this.nodesData)
+        {
+            let mappedNodeId = nodeIdMap[nodeId];
+            let node = model.state.nodes[mappedNodeId];
+            let schema = NODE_SCHEMA[node.type];
+
+            node.ins = this.nodesData[nodeId].ins.map(input => {
+                if (!(input instanceof Array) || input.length != 2)
+                    return null;
+
+                let [inputNodeId, inputPortId] = input;
+                if (inputNodeId in nodeIdMap && inputPortId < schema.outs.length)
+                    return [nodeIdMap[inputNodeId], inputPortId];
+
+                return null;
+            });
+        }
+    }
+}
+
+/**
  * Set a node parameter to a given value
  */
 export class SetNodeName extends Action
@@ -1056,6 +1168,49 @@ export class Model
         }
 
         return false;
+    }
+
+    // Returns the minimum information required to copy a set of nodes
+    copy(nodeIds)
+    {
+        let result = {};
+
+        if (!nodeIds instanceof Array)
+            return result;
+
+        // Start by fully copying node information. This will be the basis of
+        // our returned result, and a way to quickly check if a nodeId is in the
+        // nodeIds array
+        for (let nodeId of nodeIds)
+        {
+            let node = this.state.nodes[nodeId];
+            if (!node instanceof Object)
+                continue;
+
+            result[nodeId] = treeCopy(node);
+        }
+
+        // Filter port connections. We only retain connections that begin and
+        // end within the given nodes
+        for (let nodeId of nodeIds)
+        {
+            let node = result[nodeId];
+
+            node.ins = node.ins.map((input) => {
+                // Filter out unexpected values
+                if (!(input instanceof Array))
+                    return null;
+
+                // Filter out connections outside the copied nodes
+                let [inputNodeId] = input;
+                if (!result[inputNodeId])
+                    return null;
+
+                return input;
+            });
+        }
+
+        return result;
     }
 
     // Broadcast an update to all views

@@ -1,4 +1,4 @@
-import { Model, Play, Stop } from './model.js';
+import { Model, Paste, Play, Stop } from './model.js';
 import { Editor } from './editor.js';
 import { AudioView } from './audioview.js';
 
@@ -20,6 +20,9 @@ let editor = new Editor(model);
 
 // Audio view of the model
 let audioView = new AudioView(model);
+
+// Most recent location of a mouse or touch event
+let cursor = { x: 0, y: 0 };
 
 document.body.onload = function ()
 {
@@ -53,6 +56,9 @@ window.onunload = function ()
     // Save the graph when unloading the page
     localStorage.setItem('latestModelData', model.serialize());
 }
+
+window.onmousedown = handleMouseEvent;
+window.onmousemove = handleMouseEvent;
 
 window.onkeydown = function (event)
 {
@@ -114,6 +120,44 @@ window.onkeydown = function (event)
         editor.deleteSelected();
         return;
     }
+}
+
+document.onpaste = function(e)
+{
+    if (isAnyInputActive())
+        return;
+
+    try
+    {
+        model.update(new Paste(e.clipboardData.getData('text/plain'), cursor));
+        e.preventDefault();
+    }
+
+    catch(e) { }
+}
+
+document.oncopy = function(e)
+{
+    if (isAnyInputActive())
+        return;
+
+    if (!editor.selected.length)
+        return;
+
+    let data = JSON.stringify(model.copy(editor.selected));
+    e.clipboardData.setData('text/plain', data);
+    e.preventDefault();
+}
+
+function handleMouseEvent(e)
+{
+    cursor = editor.getMousePos(e);
+}
+
+function isAnyInputActive()
+{
+    let ele = document.activeElement;
+    return ele && (ele.tagName === 'INPUT' || ele.tagName === 'SELECT');
 }
 
 function importModel(serializedModelData)
