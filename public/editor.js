@@ -6,11 +6,11 @@ import { Knob } from './knob.js';
 
 export class Editor
 {
-    constructor(model)
+    constructor(projectModel)
     {
-        // Stateful graph model
-        this.model = model;
-        model.addView(this);
+        // Stateful project model
+        this.model = projectModel;
+        this.model.addView(this);
 
         // Map of node ids to UI node objects
         this.nodes = new Map();
@@ -50,6 +50,15 @@ export class Editor
 
         // Edge in the process of being connected
         this.edge = null;
+
+        // If the project title is changed
+        function titleChange(evt)
+        {
+            this.model.update(new model.SetTitle(evt.target.value));
+            evt.target.blur();
+        }
+
+        this.title.onchange = titleChange.bind(this);
 
         // Mouse down callback
         function mouseDown(evt)

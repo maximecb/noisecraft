@@ -341,7 +341,7 @@ export class SetTitle extends Action
 
     update(model)
     {
-        model.state.title = title;
+        model.state.title = this.title;
     }
 }
 
