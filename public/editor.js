@@ -195,8 +195,10 @@ export class Editor
         // Set current active pattern in a sequencer
         if (action instanceof model.SetPattern)
         {
+            let nodeState = newState.nodes[action.nodeId];
             node.setPattern(
                 action.patIdx,
+                nodeState.patterns[action.patIdx]
             );
 
             return;
@@ -1428,12 +1430,6 @@ class MonoSeq extends Node
             this.patBtns.push(patSel);
         }
 
-        // Create the DOM elements for each pattern
-        for (let patIdx = 0; patIdx < state.patterns.length; ++patIdx)
-        {
-            this.genGridDOM(patIdx, state.patterns[patIdx]);
-        }
-
         // Currently active pattern
         this.patIdx = 0;
 
@@ -1441,7 +1437,7 @@ class MonoSeq extends Node
         this.curStep = undefined;
 
         // Set the currently active pattern
-        this.setPattern(0);
+        this.setPattern(0, state.patterns[0]);
     }
 
     /**
@@ -1602,18 +1598,17 @@ class MonoSeq extends Node
     /**
      * Select a pattern by index
      */
-    setPattern(patIdx)
+    setPattern(patIdx, grid)
     {
-        /*
-        let data = this.data;
+        assert (grid instanceof Array);
 
         // Initialize this pattern if it doesn't exist yet
-        if (!data.patterns[patIdx])
+        if (!(this.patDivs[patIdx]))
         {
-            data.patterns[patIdx] = this.newGrid(16, this.numRows);
-            this.genGridDOM(patIdx);
+            this.genGridDOM(patIdx, grid);
         }
 
+        /*
         // Un-highlight the last step of the current pattern
         this.highlight(undefined);
 

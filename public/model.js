@@ -346,6 +346,31 @@ export class SetTitle extends Action
 }
 
 /**
+ * Initialize a new blank pattern for a sequencer node
+ */
+function initPattern(node, patIdx)
+{
+    // If the pattern already exists, stop
+    if (node.patterns[patIdx])
+        return;
+
+    let scaleNotes = music.genScale(node.scaleRoot, node.scaleName, node.numOctaves);
+    let numRows = scaleNotes.length;
+
+    // Initialize an empty pattern
+    let numSteps = 16;
+    let grid = new Array(numSteps);
+
+    for (let step = 0; step < grid.length; ++step)
+    {
+        grid[step] = new Array(numRows);
+        grid[step].fill(0);
+    }
+
+    node.patterns[patIdx] = grid;
+}
+
+/**
  * Create a new node
  */
 export class CreateNode extends Action
@@ -377,24 +402,17 @@ export class CreateNode extends Action
             node.params[param.name] = param.default;
         }
 
-        // If this is a sequencer
+        // If this is a sequencer node
         if (this.nodeType == 'MonoSeq')
         {
             // Set the default scale
             node.scaleName = 'minor pentatonic';
             node.scaleRoot = 'C2';
-            node.numOcts = '1';
+            node.numOctaves = 1;
 
             // Initialize an empty pattern
-            let numRows = 6;
-            let numSteps = 16;
-            let grid = new Array(numSteps);
-            for (let step = 0; step < grid.length; ++step)
-            {
-                grid[step] = new Array(numRows);
-                grid[step].fill(0);
-            }
-            node.patterns = [grid];
+            node.patterns = [];
+            initPattern(node, 0);
         }
 
         // Add the node to the state
@@ -1018,6 +1036,9 @@ export class SetPattern extends Action
 
     update(model)
     {
+        // Initialize the pattern if it doesn't already exist
+        let node = model.state.nodes[this.nodeId];
+        initPattern(node, this.patIdx);
     }
 
     get undoable()
