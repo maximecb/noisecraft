@@ -192,6 +192,17 @@ export class Editor
             return;
         }
 
+        // Queue the next pattern to play in a sequencer
+        if (action instanceof model.QueuePattern)
+        {
+            let nodeState = newState.nodes[action.nodeId];
+            node.queuePattern(
+                action.patIdx
+            );
+
+            return;
+        }
+
         // Set current active pattern in a sequencer
         if (action instanceof model.SetPattern)
         {
@@ -203,6 +214,8 @@ export class Editor
 
             return;
         }
+
+        console.log('recreating UI nodes');
 
         // Remove existing nodes and edges
         this.edge = null;
@@ -1424,7 +1437,7 @@ class MonoSeq extends Node
             // When clicked, select this pattern
             patSel.onmousedown = evt => evt.stopPropagation();
             patSel.onmouseup = evt => evt.stopPropagation();
-            patSel.onclick = evt => this.queuePattern(i);
+            patSel.onclick = evt => this.selectPat(i);
 
             selDiv.appendChild(patSel);
             this.patBtns.push(patSel);
@@ -1432,6 +1445,9 @@ class MonoSeq extends Node
 
         // Currently active pattern
         this.patIdx = 0;
+
+        // Next pattern to play
+        this.nextPat = undefined;
 
         // Currently active step
         this.curStep = undefined;
@@ -1573,14 +1589,17 @@ class MonoSeq extends Node
     }
 
     /**
-     * Queue the next pattern to be played
+     * Select the current or next pattern to play.
+     * This happens when a pattern selection button is clicked.
      */
-    queuePattern(patIdx)
+    selectPat(patIdx)
     {
         // If audio is playing, queue the next pattern,
         // otherwise immediately set the next pattern
         if (this.editor.model.playing)
         {
+            console.log('sending QueuePattern');
+
             this.send(new model.QueuePattern(
                 this.nodeId,
                 patIdx
@@ -1588,11 +1607,46 @@ class MonoSeq extends Node
         }
         else
         {
+            console.log('sending SetPattern');
+
             this.send(new model.SetPattern(
                 this.nodeId,
                 patIdx
             ));
         }
+    }
+
+    /**
+     * Queue the next pattern by index
+     */
+    queuePattern(patIdx)
+    {
+        // Cancel the previous blink timer
+        if (this.nextPat !== undefined)
+        {
+            clearTimeout(this.blinkTimer);
+            this.patBtns[this.nextPat].className = 'patsel_btn';
+        }
+
+        // If this is already the current pattern, do nothing
+        if (patIdx === this.patIdx)
+        {
+            return;
+        }
+
+        // Queue the pattern
+        this.nextPat = patIdx;
+
+        function blink(state)
+        {
+            this.patBtns[patIdx].className = state? 'patsel_btn_queue':'patsel_btn';
+
+            // Reschedule the blink function
+            this.blinkTimer = setTimeout(evt => blink.call(this, !state), 200);
+        }
+
+        // Schedule the blink function
+        this.blinkTimer = setTimeout(evt => blink.call(this, true), 200);
     }
 
     /**
@@ -1608,14 +1662,11 @@ class MonoSeq extends Node
             this.genGridDOM(patIdx, grid);
         }
 
-        /*
         // Un-highlight the last step of the current pattern
         this.highlight(undefined);
 
-        // Remove whichever pattern was queued
-        this.nextPat = undefined;
+        // Stop the blinking pattern queued animation
         clearTimeout(this.blinkTimer);
-        */
 
         this.patIdx = patIdx;
 

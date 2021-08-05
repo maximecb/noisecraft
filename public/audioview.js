@@ -163,6 +163,10 @@ export class AudioView
             case 'SET_CUR_STEP':
             this.model.update(new model.SetCurStep(msg.nodeId, msg.stepIdx));
             break;
+
+            case 'SET_PATTERN':
+            this.model.update(new model.SetPattern(msg.nodeId, msg.patIdx));
+            break;
         }
     }
 }

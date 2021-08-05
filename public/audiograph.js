@@ -404,10 +404,10 @@ class MonoSeq extends AudioNode
      */
     queuePattern(patIdx, patData)
     {
-        // TODO:
+        console.log(`got queuePattern, patIdx=${patIdx}`);
 
-
-
+        this.state.patterns[patIdx] = patData;
+        this.nextPat = patIdx;
     }
 
     /**
@@ -449,18 +449,26 @@ class MonoSeq extends AudioNode
                     this.trigTime = time;
                 }
 
-                // TODO: transmit info back to UI view?
-                // Highlight the current step
-                //this.highlight(stepIdx);
-
                 // If this is the last step of this pattern
                 if (stepIdx === grid.length - 1)
                 {
+                    // Move back to the first step
                     this.clockCnt -= grid.length * music.CLOCK_PPS;
 
                     if (this.nextPat !== undefined)
                     {
-                        this.select(this.nextPat);
+                        console.log('sending next pattern');
+
+                        // Send the pattern change to the main thread
+                        this.send({
+                            type: 'SET_PATTERN',
+                            nodeId: this.nodeId,
+                            patIdx: this.nextPat
+                        });
+
+                        // Move to the next pattern
+                        this.patIdx = this.nextPat;
+                        this.nextPat = undefined;
                     }
                 }
             }

@@ -1245,7 +1245,7 @@ export class Model
     // Apply an action to the model
     update(action)
     {
-        console.log('update model', action.constructor.name);
+        //console.log('update model', action.constructor.name);
 
         assert (!('nodeId' in action) || action.nodeId in this.state.nodes);
 
