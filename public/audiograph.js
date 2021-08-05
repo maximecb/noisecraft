@@ -306,6 +306,33 @@ class TriOsc extends AudioNode
 }
 
 /**
+ * Slide/portamento node
+ */
+class Slide extends AudioNode
+{
+    constructor(id, state, sampleRate, send)
+    {
+        super(id, state, sampleRate, send);
+
+        // Current state
+        this.s = 0;
+    }
+
+    update(input, rate)
+    {
+        // Remap so the useful range is around [0, 1]
+        rate = rate / 1000;
+
+        if (rate < 1)
+            rate = 1;
+
+        this.s += (1 / rate) * (input - this.s);
+
+        return this.s;
+    }
+}
+
+/**
  * Two-pole low-pass filter
  */
  class Filter extends AudioNode
@@ -452,6 +479,7 @@ let NODE_CLASSES =
     Saw: SawOsc,
     Sine: SineOsc,
     Tri: TriOsc,
+    Slide: Slide,
     Filter: Filter,
     MonoSeq: MonoSeq,
 };

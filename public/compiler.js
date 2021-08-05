@@ -447,14 +447,12 @@ export function compile(graph)
             continue;
         }
 
-        /*
         if (node.type == 'Slide')
         {
-            let obj = addObj('slide', nodeObj);
-            addDef(node, obj + '.update(' + inVal(node, 0) + ', ' + inVal(node, 1) + ')');
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)}, ${inVal(node, 1)})`);
             continue;
         }
-        */
 
         if (node.type == 'Sub')
         {
