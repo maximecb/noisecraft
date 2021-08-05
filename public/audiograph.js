@@ -28,7 +28,7 @@ export class AudioGraph
     /**
      * Update the audio graph given a new compiled unit
      */
-    update(unit)
+    newUnit(unit)
     {
         // Note that we don't delete any nodes, even if existing nodes are
         // currently not listed in the compiled unit, because currently
@@ -104,6 +104,16 @@ export class AudioGraph
             pattern[stepIdx][i] = 0;
 
         pattern[stepIdx][rowIdx] = value;
+    }
+
+    /**
+     * Queue the next pattern to play in a sequencer
+     */
+    queuePattern(nodeId, patIdx, patData)
+    {
+        assert (nodeId in this.nodes);
+        let node = this.nodes[nodeId];
+        node.queuePattern(patIdx, patData);
     }
 
     /**
@@ -379,7 +389,6 @@ class MonoSeq extends AudioNode
         this.freq = 0;
         this.gate = 0;
 
-        // FIXME: this should probably be on the state?
         // Currently playing pattern
         this.patIdx = 0;
 
@@ -388,6 +397,17 @@ class MonoSeq extends AudioNode
 
         // Generate the scale notes
         this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOcts);
+    }
+
+    /**
+     * Queue the next pattern to play
+     */
+    queuePattern(patIdx, patData)
+    {
+        // TODO:
+
+
+
     }
 
     /**

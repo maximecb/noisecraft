@@ -1009,6 +1009,9 @@ export class QueuePattern extends Action
 
     update(model)
     {
+        // Initialize the pattern if it doesn't already exist
+        let node = model.state.nodes[this.nodeId];
+        initPattern(node, this.patIdx);
     }
 
     get undoable()

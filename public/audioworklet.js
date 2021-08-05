@@ -30,7 +30,7 @@ class NCAudioWorklet extends AudioWorkletProcessor
         switch (msg.type)
         {
             case 'NEW_UNIT':
-            this.audioGraph.update(msg.unit);
+            this.audioGraph.newUnit(msg.unit);
             break;
 
             case 'SET_PARAM':
@@ -39,6 +39,10 @@ class NCAudioWorklet extends AudioWorkletProcessor
 
             case 'SET_CELL':
             this.audioGraph.setCell(msg.nodeId, msg.patIdx, msg.stepIdx, msg.rowIdx, msg.value);
+            break;
+
+            case 'QUEUE_PATTERN':
+            this.audioGraph.queuePattern(msg.nodeId, msg.patIdx, msg.patData);
             break;
 
             default:

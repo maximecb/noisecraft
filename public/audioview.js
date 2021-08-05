@@ -68,6 +68,20 @@ export class AudioView
             return;
         }
 
+        if (action instanceof model.QueuePattern)
+        {
+            let node = state.nodes[action.nodeId];
+
+            this.send({
+                type: 'QUEUE_PATTERN',
+                nodeId: action.nodeId,
+                patIdx: action.patIdx,
+                patData: node.patterns[action.patIdx]
+            });
+
+            return;
+        }
+
         console.log('recompile unit');
 
         // Compile a new unit from the project state
