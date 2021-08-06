@@ -82,6 +82,17 @@ export class AudioView
             return;
         }
 
+        if (action instanceof model.SetScale)
+        {
+            this.send({
+                type: 'SET_STATE',
+                nodeId: action.nodeId,
+                state: state.nodes[action.nodeId]
+            });
+
+            return;
+        }
+
         console.log('recompile unit');
 
         // Compile a new unit from the project state

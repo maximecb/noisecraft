@@ -86,6 +86,17 @@ export class AudioGraph
         node.params[paramName] = value;
     }
 
+
+    /**
+     * Set the entire state for a given node
+     */
+    setState(nodeId, state)
+    {
+        assert (nodeId in this.nodes);
+        let node = this.nodes[nodeId];
+        node.setState(state);
+    }
+
     /**
      * Set a given cell in a step sequencer
      */
@@ -93,9 +104,6 @@ export class AudioGraph
     {
         assert (nodeId in this.nodes);
         let node = this.nodes[nodeId];
-
-        // NOTE: in the future, we may want to replace this with a
-        // setState(nodeId, newState) update, which is much more general.
 
         let pattern = node.state.patterns[patIdx];
         let numRows = pattern[stepIdx].length;
@@ -142,6 +150,15 @@ class AudioNode
         this.sampleRate = sampleRate;
         this.sampleTime = 1 / sampleRate;
         this.send = send;
+    }
+
+    /**
+     * Set/update the entire state for this node
+     */
+    setState(state)
+    {
+        this.state = state;
+        this.params = state.params;
     }
 }
 
@@ -397,6 +414,18 @@ class MonoSeq extends AudioNode
 
         // Generate the scale notes
         this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOcts);
+
+    }
+
+    /**
+     * Set/update the entire state for this node
+     */
+    setState(state)
+    {
+        AudioNode.prototype.setState.call(this, state);
+
+        // Generate the scale notes
+        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOcts);
     }
 
     /**
@@ -421,8 +450,6 @@ class MonoSeq extends AudioNode
             // If we are at the beginning of a new sequencer step
             if (this.clockCnt % music.CLOCK_PPS == 0)
             {
-                //console.log('step');
-
                 var grid = this.state.patterns[this.patIdx];
 
                 var stepIdx = (this.clockCnt / music.CLOCK_PPS);

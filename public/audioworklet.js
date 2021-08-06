@@ -37,6 +37,10 @@ class NCAudioWorklet extends AudioWorkletProcessor
             this.audioGraph.setParam(msg.nodeId, msg.paramName, msg.value);
             break;
 
+            case 'SET_STATE':
+            this.audioGraph.setState(msg.nodeId, msg.state);
+            break;
+
             case 'SET_CELL':
             this.audioGraph.setCell(msg.nodeId, msg.patIdx, msg.stepIdx, msg.rowIdx, msg.value);
             break;
