@@ -2,6 +2,7 @@ import { assert, makeSvg, setSvg, getSvg, getBrightColor } from './utils.js';
 import { Dialog } from './dialog.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
+import * as music from './music.js';
 import { Knob } from './knob.js';
 
 export class Editor
@@ -1291,19 +1292,6 @@ class MonoSeq extends Node
     {
         super(id, state, editor);
 
-        /*
-        // Initialize the pattern data
-        if (!('patterns' in data))
-        {
-            data.scaleRoot = 'C2';
-            data.scaleName = 'minor pentatonic';
-            data.numOcts = 1;
-
-            // Pattern grids
-            data.patterns = [];
-        }
-        */
-
         var div = document.createElement('div');
         div.style['padding'] = '4px';
         div.style['text-align'] = 'center';
@@ -1348,8 +1336,14 @@ class MonoSeq extends Node
         {
             let scaleRoot = selectRoot.options[selectRoot.selectedIndex].value;
             let scaleName = selectScale.options[selectScale.selectedIndex].value;
-            let numOcts = selectNum.options[selectNum.selectedIndex].value;
-            this.setScale(scaleRoot, scaleName, numOcts);
+            let numOctaves = selectNum.options[selectNum.selectedIndex].value;
+
+            this.send(new model.SetScale(
+                this.nodeId,
+                scaleRoot,
+                scaleName,
+                numOctaves
+            ));
         }
 
         selectNum.onchange = scaleChange.bind(this);
@@ -1362,12 +1356,10 @@ class MonoSeq extends Node
             var opt = document.createElement("option");
             opt.setAttribute('value', numOcts);
             opt.appendChild(document.createTextNode(numOcts));
-            //opt.selected = (numOcts == data.numOcts);
+            opt.selected = (numOcts == state.numOctaves);
             selectNum.appendChild(opt);
         }
 
-        // TODO: need to populate based on schema
-        /*
         // Populate the root note selection
         var rootNote = music.Note('C1');
         for (let i = 0; i < 5 * music.NOTES_PER_OCTAVE; ++i)
@@ -1376,7 +1368,7 @@ class MonoSeq extends Node
             var opt = document.createElement("option");
             opt.setAttribute('value', noteName);
             opt.appendChild(document.createTextNode(noteName));
-            //opt.selected = (noteName == data.scaleRoot);
+            opt.selected = (noteName == state.scaleRoot);
             selectRoot.appendChild(opt);
             rootNote = rootNote.offset(1);
         }
@@ -1387,10 +1379,9 @@ class MonoSeq extends Node
             var opt = document.createElement("option");
             opt.setAttribute('value', scale);
             opt.appendChild(document.createTextNode(scale));
-            //opt.selected = (scale == data.scaleName);
+            opt.selected = (scale == state.scaleName);
             selectScale.appendChild(opt);
         }
-        */
 
         // Div to contain the sequencer grid
         this.gridDiv = document.createElement('div');
