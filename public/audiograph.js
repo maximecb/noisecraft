@@ -348,7 +348,7 @@ class Slide extends AudioNode
     update(input, rate)
     {
         // Remap so the useful range is around [0, 1]
-        rate = rate / 1000;
+        rate = rate * 1000;
 
         if (rate < 1)
             rate = 1;
@@ -413,7 +413,7 @@ class MonoSeq extends AudioNode
         this.nextPat = undefined;
 
         // Generate the scale notes
-        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOcts);
+        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
 
     }
 
@@ -425,7 +425,7 @@ class MonoSeq extends AudioNode
         AudioNode.prototype.setState.call(this, state);
 
         // Generate the scale notes
-        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOcts);
+        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
     }
 
     /**
