@@ -920,20 +920,6 @@ export class Play extends Action
 }
 
 /**
- * Change the scale for a sequencer
- */
-export class SetScale extends Action
-{
-    constructor(nodeId, scaleRoot, scaleName, numOcts)
-    {
-    }
-
-    update(model)
-    {
-    }
-}
-
-/**
  * Toggle the value of a grid cell for a sequencer
  */
 export class ToggleCell extends Action
@@ -1017,6 +1003,87 @@ export class QueuePattern extends Action
     get undoable()
     {
         return false;
+    }
+}
+
+/**
+ * Transpose the scale of a sequencer
+ */
+export class SetScale extends Action
+{
+    constructor(nodeId, scaleRoot, scaleName, numOctaves)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.scaleRoot = scaleRoot;
+        this.scaleName = scaleName;
+        this.numOctaves = numOctaves;
+    }
+
+    update(model)
+    {
+        let node = model.state.nodes[this.nodeId];
+
+        let oldScale = music.genScale(
+            node.scaleRoot,
+            node.scaleName,
+            node.numOctaves
+        );
+
+        let newScale = music.genScale(
+            this.scaleRoot,
+            this.scaleName,
+            this.numOctaves
+        );
+
+        // Compute the old and new number of scale degrees
+        var oldDegs = Math.floor(oldScale.length / node.numOctaves);
+        var newDegs = Math.floor(newScale.length / this.numOctaves);
+
+        // Tranpose each pattern
+        for (let patIdx = 0; patIdx < node.patterns.length; ++patIdx)
+        {
+            let oldGrid = node.patterns[patIdx];
+
+            // Grid to transpose the pattern into
+            let newGrid = new Array(oldGrid.length);
+            for (let step = 0; step < newGrid.length; ++step)
+            {
+                newGrid[step] = new Array(newScale.length);
+                newGrid[step].fill(0);
+            }
+
+            // For each step
+            for (let step = 0; step < oldGrid.length; ++step)
+            {
+                // For each row
+                for (let row = 0; row < oldGrid[step].length; ++row)
+                {
+                    if (!oldGrid[step][row])
+                        continue;
+
+                    var oct = Math.floor(row / oldDegs);
+                    var deg = row % oldDegs;
+
+                    if (deg >= newDegs)
+                        continue;
+
+                    var newIdx = oct * newDegs + deg;
+
+                    if (newIdx >= newGrid[step].length)
+                        continue;
+
+                    newGrid[step][newIdx] = 1;
+                }
+            }
+
+            node.patterns[patIdx] = newGrid;
+        }
+
+        // Update the scale parameters
+        node.scaleRoot = this.scaleRoot;
+        node.scaleName = this.scaleName;
+        node.numOctaves = this.numOctaves;
     }
 }
 
