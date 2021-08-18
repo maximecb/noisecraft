@@ -50,20 +50,24 @@ export class AudioGraph
             // If a node with this nodeId is already mapped
             if (this.nodes[nodeId])
             {
+                let node = this.nodes[nodeId];
+
                 // The existing node must have the same type
-                assert (this.nodes[nodeId] instanceof nodeClass);
+                assert (node instanceof nodeClass);
 
-                // Don't recreate it because that would reset its state
-                continue;
+                // Update the node's state
+                node.setState(nodeState);
             }
-
-            // Create a new audio node
-            this.nodes[nodeId] = new nodeClass(
-                nodeId,
-                nodeState,
-                this.sampleRate,
-                this.send
-            );
+            else
+            {
+                // Create a new audio node
+                this.nodes[nodeId] = new nodeClass(
+                    nodeId,
+                    nodeState,
+                    this.sampleRate,
+                    this.send
+                );
+            }
         }
 
         // Create the sample generation function

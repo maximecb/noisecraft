@@ -1764,6 +1764,111 @@ class Notes extends Node
     }
 }
 
+/**
+ * Scope to plot incoming signals
+ */
+class Scope extends Node
+{
+    constructor(id, state, editor)
+    {
+        super(id, state, editor);
+
+        this.canvas = document.createElement('canvas');
+        this.canvas.style.margin = '4px';
+        this.canvas.style.border = '1px solid #888';
+        this.canvas.width = 128;
+        this.canvas.height = 96;
+        this.centerDiv.append(this.canvas);
+        this.ctx = this.canvas.getContext("2d");
+
+        // Number of samples to store
+        this.numSamples = 128;
+
+        // Time duration for the window being graphed
+        this.windowLen = 1;
+
+        // Buffer of stored samples
+        this.buffer = new Float32Array(this.numSamples);
+
+        // Index we're writing at in the buffer
+        this.writeIdx = 0;
+
+        this.sampleCount = 0;
+
+        this.redraw();
+    }
+
+    redraw()
+    {
+        let ctx = this.ctx;
+        let width = this.canvas.width;
+        let height = this.canvas.height;
+        let minVal = this.data.params.minVal;
+        let maxVal = this.data.params.maxVal;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Clear background
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, width, height);
+
+        // Compute the position of the y=0 baseline
+        let norm0 = (0 - minVal) / (maxVal - minVal);
+        let height0 = height - norm0 * height;
+
+        // Draw y=0 baseline
+        ctx.strokeStyle="#FFF";
+        ctx.beginPath();
+        ctx.moveTo(0, height0);
+        ctx.lineTo(width, height0);
+        ctx.stroke();
+
+        ctx.strokeStyle="#F00";
+        ctx.beginPath();
+        ctx.moveTo(0, height0);
+
+        for (let i = 0; i < this.buffer.length; ++i)
+        {
+            let readIdx = (this.writeIdx + i) % this.buffer.length;
+            let val = this.buffer[readIdx];
+            let normVal = (val - minVal) / (maxVal - minVal);
+
+            let x = (i / this.buffer.length) * width;
+            let y = height - normVal * height;
+
+            //console.log(y);
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+    }
+
+    // TODO: move over to audio thread
+    update(inVal, sampleRate)
+    {
+        // Compute time interval for the samples being stored
+        let sampleInterv = Math.floor((this.windowLen * sampleRate) / this.buffer.length);
+
+        // Ideally we want the samples to sort of come in from the right
+        // We have some index we're currently writing at
+
+        if (this.sampleCount % sampleInterv == 0)
+        {
+            this.writeIdx = (this.writeIdx + 1) % this.buffer.length;
+            this.buffer[this.writeIdx] = inVal;
+        }
+
+        if (this.sampleCount % 2048 == 0)
+        {
+            // Redraw after we are done generating audio
+            setTimeout(() => this.redraw(), 0);
+        }
+
+        // Number of samples seen
+        this.sampleCount++;
+    }
+}
+
 // Map of node types to specialized node classes
 const NODE_CLASSES =
 {
@@ -1772,4 +1877,5 @@ const NODE_CLASSES =
     'Knob': KnobNode,
     'MonoSeq': MonoSeq,
     'Notes': Notes,
+    'Scope': Scope,
 }
