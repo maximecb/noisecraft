@@ -168,6 +168,11 @@ export class AudioView
      */
     onmessage(event)
     {
+        // If playback is stopped, ignore any remaining
+        // messages from the audio thread
+        if (!this.audioCtx)
+            return;
+
         let msg = event.data;
 
         switch (msg.type)

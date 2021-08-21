@@ -72,11 +72,11 @@ window.onkeydown = function (event)
     {
         if (model.playing)
         {
-            btnStop.onclick();
+            stopPlayback();
         }
         else
         {
-            btnPlay.onclick();
+            startPlayback();
         }
 
         event.preventDefault();
