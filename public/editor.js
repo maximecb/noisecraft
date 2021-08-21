@@ -1824,6 +1824,10 @@ class Scope extends Node
         ctx.lineTo(width, height0);
         ctx.stroke();
 
+        // If there is no sample data, stop
+        if (!samples)
+            return;
+
         ctx.strokeStyle="#F00";
         ctx.beginPath();
         ctx.moveTo(0, height0);

@@ -71,24 +71,13 @@ export const NODE_SCHEMA =
         description: 'MIDI clock signal source with tempo in BPM',
     },
 
-    // Commented out because we'll start without MIDI output support
-    /*
-    'ClockOut': {
-        ins: [
-            { name: 'clock', default: 0 }
-        ],
-        outs: [],
-        params: [],
-        description: 'MIDI clock output',
-    },
-    */
-
     'Const': {
         ins: [],
         outs: [''],
         params: [
             { name: 'value', default: 0 },
         ],
+        state: [],
         description: 'editable constant value',
     },
 
@@ -99,6 +88,7 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
+        state: [],
         description: 'delay line',
     },
 
@@ -110,6 +100,7 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
+        state: [],
     },
 
     // Used during compilation, writes to a delay line
@@ -120,6 +111,7 @@ export const NODE_SCHEMA =
         ],
         outs: [],
         params: [],
+        state: [],
     },
 
     'Distort': {
@@ -129,6 +121,7 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
+        state: [],
         description: 'overdrive-style distortion',
     },
 
@@ -139,6 +132,7 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
+        state: [],
         description: 'divide one input by another',
     },
 
@@ -150,6 +144,7 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
+        state: [],
         description: 'classic two-pole low-pass filter',
     },
 
@@ -162,6 +157,7 @@ export const NODE_SCHEMA =
             { name: 'value', default: 0 },
             { name: 'controlNo', default: null },
         ],
+        state: [],
         description: 'parameter control knob',
     },
 
@@ -171,6 +167,7 @@ export const NODE_SCHEMA =
         ins: [],
         outs: ['freq', 'gate'],
         params: [],
+        state: [],
         description: 'MIDI note input (cv/gate)',
     },
     */
@@ -181,6 +178,7 @@ export const NODE_SCHEMA =
         ],
         outs: ['freq', 'gate'],
         params: [],
+        state: ['scaleName', 'scaleRoot', 'numOctaves', 'patterns'],
         description: 'monophonic step sequencer',
     },
 
@@ -191,6 +189,7 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
+        state: [],
         description: 'multiply input waveforms',
     },
 
@@ -198,6 +197,7 @@ export const NODE_SCHEMA =
         ins: [],
         outs: ['out'],
         params: [],
+        state: [],
         description: 'white noise source',
     },
 
@@ -207,6 +207,7 @@ export const NODE_SCHEMA =
         params: [
             { name: 'text', default: '' },
         ],
+        state: [],
         description: 'text notes',
     },
 
@@ -217,6 +218,7 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
+        state: [],
         description: 'pulse/square oscillator',
     },
 
@@ -226,6 +228,7 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
+        state: [],
         description: 'sawtooth oscillator',
     },
 
@@ -238,6 +241,7 @@ export const NODE_SCHEMA =
             { name: 'minVal', default: -1 },
             { name: 'maxVal', default: 1 },
         ],
+        state: [],
         description: 'scope to plot incoming signals',
         sendRate: 20,
         sendSize: 5,
@@ -254,6 +258,7 @@ export const NODE_SCHEMA =
             { name: 'minVal', default: -1 },
             { name: 'maxVal', default: 1 }
         ],
+        state: [],
         description: 'sine wave oscillator',
     },
 
@@ -264,6 +269,7 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
+        state: [],
         description: 'simple slew-rate limiter using a running average',
     },
 
@@ -274,6 +280,7 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
+        state: [],
         description: 'subtract input waveforms',
     },
 
@@ -283,6 +290,7 @@ export const NODE_SCHEMA =
         ],
         outs: ['out'],
         params: [],
+        state: [],
         description: 'triangle wave oscillator',
     },
 
@@ -293,6 +301,7 @@ export const NODE_SCHEMA =
         ins: [],
         outs: [],
         params: [],
+        state: [],
         description: 'user-created module (node grouping)',
     },
 };
@@ -410,12 +419,6 @@ export class CreateNode extends Action
             // Initialize an empty pattern
             node.patterns = [];
             initPattern(node, 0);
-        }
-
-        // If this is a scope node
-        if (this.nodeType == 'Scope')
-        {
-            node.samples = Array(NODE_SCHEMA.Scope.historyLen).fill(0);
         }
 
         // Add the node to the state
@@ -918,6 +921,7 @@ export class Play extends Action
     update(model)
     {
         model.playing = false;
+        resetState(model.state);
     }
 
     get undoable()
@@ -1136,6 +1140,12 @@ export class SendSamples extends Action
     {
         let node = model.state.nodes[this.nodeId];
 
+        // If no samples are stored on this node, initialize the array
+        if (!node.samples)
+        {
+            node.samples = Array(NODE_SCHEMA.Scope.historyLen).fill(0);
+        }
+
         // Remove samples from the front, add new samples at the end
         let numStored = node.samples.length
         assert (this.samples.length < numStored);
@@ -1146,6 +1156,39 @@ export class SendSamples extends Action
     get undoable()
     {
         return false;
+    }
+}
+
+/**
+ * Remove non-persistent state variables from the model's state
+ */
+function resetState(state)
+{
+    // Properties found on every node
+    let nodeProps = new Set([
+        'type',
+        'name',
+        'x',
+        'y',
+        'ins',
+        'params'
+    ]);
+
+    for (let id in state.nodes)
+    {
+        let node = state.nodes[id];
+        let keys = Object.keys(node);
+        let schema = NODE_SCHEMA[node.type];
+        let stateVars = new Set(schema.state);
+
+        for (let key of keys)
+        {
+            if (!nodeProps.has(key) && !stateVars.has(key))
+            {
+                console.log('deleting', node.type, key);
+                delete node[key];
+            }
+        }
     }
 }
 
@@ -1226,8 +1269,11 @@ export class Model
     // Serializes the model into a string representation
     serialize()
     {
+        let state = treeCopy(this.state);
+        resetState(state);
+
         return JSON.stringify({
-            state: this.state
+            state: state
         });
     }
 
