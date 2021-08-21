@@ -33,7 +33,7 @@ export class AudioView
 
         if (action instanceof model.Play)
         {
-            this.playAudio();
+            this.playAudio(state);
             return;
         }
 
@@ -108,7 +108,7 @@ export class AudioView
     /**
      * Start audio playback
      */
-    async playAudio()
+    async playAudio(state)
     {
         assert (!this.audioCtx);
 
@@ -128,12 +128,15 @@ export class AudioView
         // Callback to receive messages from the audioworklet
         this.audioWorklet.port.onmessage = this.onmessage.bind(this);
 
-        this.audioWorklet.port.postMessage({
+        this.audioWorklet.connect(this.audioCtx.destination);
+
+        // Compile a new unit from the project state
+        this.unit = compile(state);
+
+        this.send({
             type: 'NEW_UNIT',
             unit: this.unit
         });
-
-        this.audioWorklet.connect(this.audioCtx.destination);
     }
 
     /**
