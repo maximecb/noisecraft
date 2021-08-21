@@ -1,4 +1,5 @@
-import { assert } from './utils.js';
+import { assert, isPosInt } from './utils.js';
+import { NODE_SCHEMA } from './model.js';
 import * as synth from './synth.js';
 import * as music from './music.js';
 
@@ -337,6 +338,56 @@ class TriOsc extends AudioNode
 }
 
 /**
+ * Scope to plot incoming signals
+ */
+class Scope extends AudioNode
+{
+    constructor(id, state, sampleRate, send)
+    {
+        super(id, state, sampleRate, send);
+
+        const SEND_SIZE = NODE_SCHEMA.Scope.sendSize;
+        const SEND_RATE = NODE_SCHEMA.Scope.sendRate;
+
+        // How often to gather samples
+        this.sampleInterv = sampleRate / (SEND_SIZE * SEND_RATE);
+        assert (isPosInt(this.sampleInterv));
+
+        // Buffer of samples to be send
+        this.buffer = new Array(SEND_SIZE);
+
+        // How many samples we've seen in total
+        this.numSamples = 0;
+
+        // How many samples we have ready to send
+        this.numReady = 0;
+    }
+
+    update(inVal)
+    {
+        if (this.numSamples % this.sampleInterv == 0)
+        {
+            this.buffer[this.numReady] = inVal;
+            this.numReady++;
+
+            if (this.numReady == this.buffer.length)
+            {
+                // Send the current step back to the main thread
+                this.send({
+                    type: 'SEND_SAMPLES',
+                    nodeId: this.nodeId,
+                    samples: this.buffer
+                });
+
+                this.numReady = 0;
+            }
+        }
+
+        this.numSamples++;
+    }
+}
+
+/**
  * Slide/portamento node
  */
 class Slide extends AudioNode
@@ -538,6 +589,7 @@ let NODE_CLASSES =
     Saw: SawOsc,
     Sine: SineOsc,
     Tri: TriOsc,
+    Scope: Scope,
     Slide: Slide,
     Filter: Filter,
     MonoSeq: MonoSeq,

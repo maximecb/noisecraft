@@ -25,7 +25,8 @@ export class AudioView
         if (action instanceof model.MoveNodes ||
             action instanceof model.SetNodeName ||
             action instanceof model.SetCurStep ||
-            action instanceof model.SetPattern)
+            action instanceof model.SetPattern ||
+            action instanceof model.SendSamples)
         {
             return;
         }
@@ -177,6 +178,10 @@ export class AudioView
 
             case 'SET_PATTERN':
             this.model.update(new model.SetPattern(msg.nodeId, msg.patIdx));
+            break;
+
+            case 'SEND_SAMPLES':
+            this.model.update(new model.SendSamples(msg.nodeId, msg.samples));
             break;
         }
     }

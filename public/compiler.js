@@ -431,14 +431,12 @@ export function compile(graph)
             continue;
         }
 
-        /*
         if (node.type == 'Scope')
         {
-            let obj = addObj('scope', nodeObj);
-            addDef(node, obj + '.update(' + inVal(node, 0) + ', sampleRate)');
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)})`);
             continue;
         }
-        */
 
         if (node.type == 'Sine')
         {

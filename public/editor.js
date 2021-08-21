@@ -216,6 +216,19 @@ export class Editor
             return;
         }
 
+        // Send audio samples to a UI node
+        if (action instanceof model.SendSamples)
+        {
+            let nodeState = newState.nodes[action.nodeId];
+            node.redraw(
+                nodeState.params.minVal,
+                nodeState.params.maxVal,
+                nodeState.samples
+            );
+
+            return;
+        }
+
         console.log('recreating UI nodes');
 
         // Remove existing nodes and edges
@@ -1781,30 +1794,18 @@ class Scope extends Node
         this.centerDiv.append(this.canvas);
         this.ctx = this.canvas.getContext("2d");
 
-        // Number of samples to store
-        this.numSamples = 128;
-
-        // Time duration for the window being graphed
-        this.windowLen = 1;
-
-        // Buffer of stored samples
-        this.buffer = new Float32Array(this.numSamples);
-
-        // Index we're writing at in the buffer
-        this.writeIdx = 0;
-
-        this.sampleCount = 0;
-
-        this.redraw();
+        this.redraw(
+            state.params.minVal,
+            state.params.maxVal,
+            state.samples
+        );
     }
 
-    redraw()
+    redraw(minVal, maxVal, samples)
     {
         let ctx = this.ctx;
         let width = this.canvas.width;
         let height = this.canvas.height;
-        let minVal = this.data.params.minVal;
-        let maxVal = this.data.params.maxVal;
 
         ctx.clearRect(0, 0, width, height);
 
@@ -1827,45 +1828,17 @@ class Scope extends Node
         ctx.beginPath();
         ctx.moveTo(0, height0);
 
-        for (let i = 0; i < this.buffer.length; ++i)
+        for (let i = 0; i < samples.length; ++i)
         {
-            let readIdx = (this.writeIdx + i) % this.buffer.length;
-            let val = this.buffer[readIdx];
+            let val = samples[i];
             let normVal = (val - minVal) / (maxVal - minVal);
 
-            let x = (i / this.buffer.length) * width;
+            let x = (i / samples.length) * width;
             let y = height - normVal * height;
-
-            //console.log(y);
 
             ctx.lineTo(x, y);
             ctx.stroke();
         }
-    }
-
-    // TODO: move over to audio thread
-    update(inVal, sampleRate)
-    {
-        // Compute time interval for the samples being stored
-        let sampleInterv = Math.floor((this.windowLen * sampleRate) / this.buffer.length);
-
-        // Ideally we want the samples to sort of come in from the right
-        // We have some index we're currently writing at
-
-        if (this.sampleCount % sampleInterv == 0)
-        {
-            this.writeIdx = (this.writeIdx + 1) % this.buffer.length;
-            this.buffer[this.writeIdx] = inVal;
-        }
-
-        if (this.sampleCount % 2048 == 0)
-        {
-            // Redraw after we are done generating audio
-            setTimeout(() => this.redraw(), 0);
-        }
-
-        // Number of samples seen
-        this.sampleCount++;
     }
 }
 

@@ -229,7 +229,6 @@ export const NODE_SCHEMA =
         description: 'sawtooth oscillator',
     },
 
-    /*
     'Scope': {
         ins: [
             { name: '', default: 0 }
@@ -240,8 +239,10 @@ export const NODE_SCHEMA =
             { name: 'maxVal', default: 1 },
         ],
         description: 'scope to plot incoming signals',
+        sendRate: 20,
+        sendSize: 5,
+        historyLen: 150,
     },
-    */
 
     'Sine': {
         ins: [
@@ -409,6 +410,12 @@ export class CreateNode extends Action
             // Initialize an empty pattern
             node.patterns = [];
             initPattern(node, 0);
+        }
+
+        // If this is a scope node
+        if (this.nodeType == 'Scope')
+        {
+            node.samples = Array(NODE_SCHEMA.Scope.historyLen).fill(0);
         }
 
         // Add the node to the state
@@ -1105,6 +1112,35 @@ export class SetPattern extends Action
         // Initialize the pattern if it doesn't already exist
         let node = model.state.nodes[this.nodeId];
         initPattern(node, this.patIdx);
+    }
+
+    get undoable()
+    {
+        return false;
+    }
+}
+
+/**
+ * Send audio samples from the audio thread to the model
+ */
+export class SendSamples extends Action
+{
+    constructor(nodeId, samples)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.samples = samples;
+    }
+
+    update(model)
+    {
+        let node = model.state.nodes[this.nodeId];
+
+        // Remove samples from the front, add new samples at the end
+        let numStored = node.samples.length
+        assert (this.samples.length < numStored);
+        node.samples = node.samples.slice(this.samples.length).concat(this.samples);
+        assert (node.samples.length == numStored);
     }
 
     get undoable()
