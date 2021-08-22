@@ -37,62 +37,30 @@ export class Knob extends Eventable
         this.valDiv.appendChild(document.createTextNode('1.00'));
         this.div.appendChild(this.valDiv);
 
-        // HTML document body
-        let body = document.getElementsByTagName("body")[0];
+        let knobMoving = false;
 
-        // Last time the knob was clicked
-        let lastClickTime = 0;
-
-        function onMouseDown(evt)
+        function onPointerDown(evt)
         {
             console.log('knob mouseDown');
 
-            evt.preventDefault();
+            //evt.preventDefault();
             evt.stopPropagation();
 
-            // Double-clicking triggers the bind MIDI dialog
-            // This hack is necessary because we block mouse events
-            // while the knob is being moved
-            let curTime = Date.now();
-            if (curTime - lastClickTime < 400)
-            {
-                this.midiDialog();
-            }
-            lastClickTime = curTime;
-
-            // TODO: simulate a double click to bind MIDI
-
-            // Prevents bug where moving knob cannot be released
-            if (this.mouseMoveHandler)
-            {
-                window.removeEventListener('mousemove', this.mouseMoveHandler);
-                window.removeEventListener('mouseup', this.mouseUpHandler);
-                body.removeChild(this.bgDiv);
-            }
-
-            // Temporarily register mousemove and mouseup handlers on window
-            this.mouseMoveHandler = onMouseMove.bind(this);
-            this.mouseUpHandler = onMouseUp.bind(this);
-            window.addEventListener('mousemove', this.mouseMoveHandler);
-            window.addEventListener('mouseup', this.mouseUpHandler);
-
-            // Block any mouse events within the body while the knob is moving
-            body.style['pointer-events'] = 'none';
+            this.div.setPointerCapture(evt.pointerId);
+            knobMoving = true;
         }
 
-        function onMouseUp(evt)
+        function onPointerUp(evt)
         {
-            window.removeEventListener('mousemove', this.mouseMoveHandler);
-            window.removeEventListener('mouseup', this.mouseUpHandler);
-            this.mouseMoveHandler = null;
-            this.mouseUpHandler = null;
-
-            // Unblock mouse events on the body
-            body.style.removeProperty('pointer-events');
+            this.div.releasePointerCapture(evt.pointerId);
+            knobMoving = false;
         }
 
-        function onMouseMove(evt)
+        function onPointerMove(evt)
         {
+            if (!knobMoving)
+                return;
+
             // Map the current value in [0, 1]
             let normVal = this.getNormVal();
 
@@ -106,7 +74,16 @@ export class Knob extends Eventable
             this.setNormVal(normVal);
         }
 
-        this.div.onmousedown = onMouseDown.bind(this);
+        function onDoubleClick(evt)
+        {
+            evt.stopPropagation();
+            this.midiDialog();
+        }
+
+        this.div.onpointerdown = onPointerDown.bind(this);
+        this.div.onpointerup = onPointerUp.bind(this);
+        this.div.onpointermove = onPointerMove.bind(this);
+        this.div.ondblclick = onDoubleClick.bind(this);
 
         // FIXME:
         // Re-bind the controller to MIDI

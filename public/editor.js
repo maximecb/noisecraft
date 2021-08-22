@@ -59,12 +59,18 @@ export class Editor
             evt.target.blur();
         }
 
+        this.title.onpointerdown = (evt) => evt.stopPropagation();
+        this.title.onpointerup = (evt) => evt.stopPropagation();
+        this.title.onpointermove = (evt) => evt.stopPropagation();
+        this.title.onclick = (evt) => evt.stopPropagation();
         this.title.onchange = titleChange.bind(this);
 
         // Mouse down callback
         function mouseDown(evt)
         {
             console.log('mouseDown');
+
+            this.editorDiv.setPointerCapture(evt.pointerId);
 
             let mousePos = this.getMousePos(evt);
             this.startMousePos = mousePos;
@@ -103,11 +109,15 @@ export class Editor
         // Mouse up callback
         function mouseUp(evt)
         {
+            this.editorDiv.releasePointerCapture(evt.pointerId);
+
             // If we were in the process of selecting nodes
             if (this.selectDiv)
             {
                 this.editorDiv.removeChild(this.selectDiv);
                 this.selectDiv = null;
+
+                evt.stopPropagation();
             }
 
             this.startMousePos = null;
@@ -128,27 +138,26 @@ export class Editor
                 return;
             }
 
-            // This event may get triggered while dragging knob controls
-            if (evt.target === this.graphDiv)
+
+            if (this.selected.length > 0)
             {
-                if (this.selected.length > 0)
-                {
-                    this.deselect();
-                }
-                else
-                {
-                    this.createNodeDialog(this.getMousePos(evt));
-                    evt.stopPropagation();
-                    return;
-                }
+                this.deselect();
             }
+            else
+            {
+                this.createNodeDialog(this.getMousePos(evt));
+                evt.stopPropagation();
+                return;
+            }
+
+
+
         }
 
-        this.editorDiv.onmousedown = mouseDown.bind(this);
-        this.editorDiv.onmouseup = mouseUp.bind(this);
+        this.editorDiv.onpointerdown = mouseDown.bind(this);
+        this.editorDiv.onpointerup = mouseUp.bind(this);
         this.editorDiv.onclick = mouseClick.bind(this);
-        this.editorDiv.onmousemove = mouseMove.bind(this);
-        this.editorDiv.ontouchmove = mouseMove.bind(this);
+        this.editorDiv.onpointermove = mouseMove.bind(this);
 
         // If the window is resized, adjust the graph size
         window.onresize = this.resize.bind(this);
@@ -493,6 +502,10 @@ export class Editor
     // Stop dragging/moving nodes
     endDrag(mousePos)
     {
+        // Can't stop a drag if none is in progress
+        if (this.dragNodes.length == 0)
+            return;
+
         console.log('end drag');
 
         let dx = mousePos.x - this.startMousePos.x;
@@ -788,11 +801,18 @@ class Node
      */
     genNodeDOM()
     {
-        function startDrag(evt)
+        function pointerDown(evt)
         {
+            evt.stopPropagation();
+
+            console.log('pointerdown on node');
+
             // Shift + click is delete node
             if (evt.shiftKey)
+            {
+                console.log('aborting');
                 return;
+            }
 
             // Can't drag a node while connecting a port
             if (this.editor.edge)
@@ -801,17 +821,23 @@ class Node
             let mousePos = this.editor.getMousePos(evt);
             this.editor.startDrag(this.nodeId, mousePos);
 
-            evt.stopPropagation();
+            this.nodeDiv.setPointerCapture(evt.pointerId);
         }
 
-        function endDrag(evt)
+        function pointerUp(evt)
         {
             let mousePos = this.editor.getMousePos(evt);
             this.editor.endDrag(mousePos);
+
+            this.nodeDiv.releasePointerCapture(evt.pointerId);
         }
 
         function onClick(evt)
         {
+            evt.stopPropagation();
+
+            console.log('onclick on node');
+
             // Only delete on shift + click
             if (evt.shiftKey && !this.editor.edge)
             {
@@ -819,8 +845,6 @@ class Node
                     new model.DeleteNodes([this.nodeId])
                 );
             }
-
-            evt.stopPropagation();
         }
 
         // Top-level element for this node
@@ -828,10 +852,8 @@ class Node
         this.nodeDiv.className = 'node';
         this.nodeDiv.style.left = this.x;
         this.nodeDiv.style.top = this.y;
-        this.nodeDiv.onmousedown = startDrag.bind(this);
-        this.nodeDiv.ontouchstart = startDrag.bind(this);
-        this.nodeDiv.onmouseup = endDrag.bind(this);
-        this.nodeDiv.ontouchend = endDrag.bind(this);
+        this.nodeDiv.onpointerdown = pointerDown.bind(this);
+        this.nodeDiv.onpointerup = pointerUp.bind(this);
         this.nodeDiv.onclick = onClick.bind(this);
         this.nodeDiv.ondblclick = this.paramsDialog.bind(this);
 
@@ -953,6 +975,8 @@ class Node
 
         let portDiv = document.createElement('div');
         portDiv.className = (side == 'dst')? 'node_in_port':'node_out_port';
+        portDiv.onpointerdown = (evt) => evt.stopPropagation();
+        portDiv.onpointerup = (evt) => evt.stopPropagation();
         portDiv.onclick = portClick.bind(this);
         parentDiv.appendChild(portDiv);
 
@@ -1439,8 +1463,8 @@ class MonoSeq extends Node
             patSel.textContent = String(i+1);
 
             // When clicked, select this pattern
-            patSel.onmousedown = evt => evt.stopPropagation();
-            patSel.onmouseup = evt => evt.stopPropagation();
+            patSel.onpointerdown = evt => evt.stopPropagation();
+            patSel.onpointerup = evt => evt.stopPropagation();
             patSel.onclick = evt => this.selectPat(i);
 
             selDiv.appendChild(patSel);
@@ -1508,8 +1532,8 @@ class MonoSeq extends Node
                 cell.appendChild(sep);
             }
 
-            cell.onmousedown = (evt) => evt.stopPropagation();
-            cell.onmouseup = (evt) => evt.stopPropagation();
+            cell.onpointerdown = (evt) => evt.stopPropagation();
+            cell.onpointerup = (evt) => evt.stopPropagation();
 
             cell.onclick = (evt) =>
             {
@@ -1768,8 +1792,8 @@ class Notes extends Node
         }
 
         textArea.onchange = oninput.bind(this);
-        textArea.onmousedown = evt => evt.stopPropagation();
-        textArea.onmouseup = evt => evt.stopPropagation();
+        textArea.onpointerdown = evt => evt.stopPropagation();
+        textArea.onpointerup = evt => evt.stopPropagation();
         textArea.ondblclick = evt => evt.stopPropagation();
         textArea.onkeydown = evt => evt.stopPropagation();
 
