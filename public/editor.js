@@ -66,18 +66,18 @@ export class Editor
         this.title.onchange = titleChange.bind(this);
 
         // Mouse down callback
-        function mouseDown(evt)
+        function onPointerDown(evt)
         {
-            console.log('mouseDown');
-
-            this.editorDiv.setPointerCapture(evt.pointerId);
+            console.log('editor mouse down');
 
             let mousePos = this.getMousePos(evt);
             this.startMousePos = mousePos;
+
+            this.editorDiv.setPointerCapture(evt.pointerId);
         }
 
         // Mouse movement callback
-        function mouseMove(evt)
+        function onPointerMove(evt)
         {
             // Avoids selecting the project title in Chrome
             evt.preventDefault();
@@ -106,27 +106,26 @@ export class Editor
             }
         }
 
-        // Mouse up callback
-        function mouseUp(evt)
+        // Mouse click callback
+        function onClick(evt)
         {
+            console.log('editor click');
+
             this.editorDiv.releasePointerCapture(evt.pointerId);
+            this.startMousePos = null;
 
             // If we were in the process of selecting nodes
             if (this.selectDiv)
             {
+                console.log('end selection');
+
                 this.editorDiv.removeChild(this.selectDiv);
                 this.selectDiv = null;
 
                 evt.stopPropagation();
+
+                return;
             }
-
-            this.startMousePos = null;
-        }
-
-        // Mouse click callback
-        function mouseClick(evt)
-        {
-            console.log('mouseClick');
 
             // If in the process of connecting an edge, and there's a
             // click anywhere that's not another port, cancel the connection
@@ -138,7 +137,6 @@ export class Editor
                 return;
             }
 
-
             if (this.selected.length > 0)
             {
                 this.deselect();
@@ -149,15 +147,11 @@ export class Editor
                 evt.stopPropagation();
                 return;
             }
-
-
-
         }
 
-        this.editorDiv.onpointerdown = mouseDown.bind(this);
-        this.editorDiv.onpointerup = mouseUp.bind(this);
-        this.editorDiv.onclick = mouseClick.bind(this);
-        this.editorDiv.onpointermove = mouseMove.bind(this);
+        this.editorDiv.onpointerdown = onPointerDown.bind(this);
+        this.editorDiv.onpointermove = onPointerMove.bind(this);
+        this.editorDiv.onclick = onClick.bind(this);
 
         // If the window is resized, adjust the graph size
         window.onresize = this.resize.bind(this);
