@@ -1466,7 +1466,7 @@ class MonoSeq extends Node
         }
 
         // Currently active pattern
-        this.patIdx = 0;
+        this.patIdx = state.curPattern;
 
         // Next pattern to play
         this.nextPat = undefined;
@@ -1475,7 +1475,7 @@ class MonoSeq extends Node
         this.curStep = undefined;
 
         // Set the currently active pattern
-        this.setPattern(0, state.patterns[0]);
+        this.setPattern(this.patIdx, state.patterns[this.patIdx]);
     }
 
     /**
@@ -1690,6 +1690,7 @@ class MonoSeq extends Node
         // Stop the blinking pattern queued animation
         clearTimeout(this.blinkTimer);
 
+        // Store the current pattern
         this.patIdx = patIdx;
 
         // Update the pattern selection bar, highlight current pattern

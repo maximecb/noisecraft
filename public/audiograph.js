@@ -462,14 +462,13 @@ class MonoSeq extends AudioNode
         this.gate = 0;
 
         // Currently playing pattern
-        this.patIdx = 0;
+        this.patIdx = state.curPattern;
 
         // Next pattern that is queued for playback
         this.nextPat = undefined;
 
         // Generate the scale notes
         this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
-
     }
 
     /**
@@ -481,6 +480,8 @@ class MonoSeq extends AudioNode
 
         // Generate the scale notes
         this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
+
+        this.patIdx = state.curPattern;
     }
 
     /**

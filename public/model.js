@@ -178,7 +178,7 @@ export const NODE_SCHEMA =
         ],
         outs: ['freq', 'gate'],
         params: [],
-        state: ['scaleName', 'scaleRoot', 'numOctaves', 'patterns'],
+        state: ['scaleName', 'scaleRoot', 'numOctaves', 'patterns', 'curPattern'],
         description: 'monophonic step sequencer',
     },
 
@@ -415,6 +415,9 @@ export class CreateNode extends Action
             node.scaleName = 'minor pentatonic';
             node.scaleRoot = 'C2';
             node.numOctaves = 1;
+
+            // Currently active pattern
+            node.curPattern = 0;
 
             // Initialize an empty pattern
             node.patterns = [];
@@ -1116,6 +1119,9 @@ export class SetPattern extends Action
         // Initialize the pattern if it doesn't already exist
         let node = model.state.nodes[this.nodeId];
         initPattern(node, this.patIdx);
+
+        // Set the currently active pattern
+        node.curPattern = this.patIdx;
     }
 
     get undoable()
