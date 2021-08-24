@@ -15,7 +15,7 @@ Each node has:
   - this is not persisted and not tracked by the model
 */
 
-import { assert, treeCopy, treeEq, isString, isObject } from './utils.js';
+import { assert, isPosInt, treeCopy, treeEq, isString, isObject } from './utils.js';
 import * as music from './music.js';
 
 // Maximum number of undo steps we support
@@ -1051,8 +1051,12 @@ export class SetScale extends Action
         );
 
         // Compute the old and new number of scale degrees
-        var oldDegs = Math.floor(oldScale.length / node.numOctaves);
-        var newDegs = Math.floor(newScale.length / this.numOctaves);
+        //var oldDegs = Math.floor(oldScale.length / node.numOctaves);
+        //var newDegs = Math.floor(newScale.length / this.numOctaves);
+        let oldDegs = (oldScale.length - 1) / node.numOctaves;
+        let newDegs = (newScale.length - 1) / this.numOctaves;
+        assert (isPosInt(oldDegs));
+        assert (isPosInt(newDegs));
 
         // Tranpose each pattern
         for (let patIdx = 0; patIdx < node.patterns.length; ++patIdx)
