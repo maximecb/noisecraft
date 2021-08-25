@@ -30,7 +30,7 @@ if grep "console " deploy/public/*.js; then
     exit 1
 fi
 
-#rsync -avz deploy "$1@${SERVER_ADDR}:noisecraft"
+#rsync -avz deploy "${SERVER_ADDR}:noisecraft"
 rm -rf deploy
 
-#ssh "$1@${SERVER_ADDR}" "cd noisecraft/deploy && npm install && forever restart server.js"
+#ssh "${SERVER_ADDR}" "cd noisecraft/deploy && npm install && forever restart server.js"
