@@ -458,8 +458,7 @@ export class Editor
             subDiv.onclick = subDivClick.bind(this);
 
             // There can be only one AudioOut or Notes node
-            if ((nodeType == 'AudioOut' && this.model.hasNode('AudioOut')) ||
-                (nodeType == 'Notes' && this.model.hasNode('Notes')))
+            if (schema.unique && this.model.hasNode(nodeType))
             {
                 subDiv.style.color = '#777';
                 subDiv.style.border = '2px solid #777';

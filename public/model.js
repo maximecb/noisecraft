@@ -50,6 +50,7 @@ export const NODE_SCHEMA =
     },
 
     'AudioOut': {
+        unique: true,
         ins: [
             { name: 'left', default: 0 },
             { name: 'right', default: 0 }
@@ -202,6 +203,7 @@ export const NODE_SCHEMA =
     },
 
     'Notes': {
+        unique: true,
         ins: [],
         outs: [],
         params: [
