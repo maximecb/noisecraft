@@ -556,6 +556,16 @@ export class Paste extends Action
     {
         let nodeIdMap = {};
 
+        // Don't paste unique nodes if an instance already
+        // Exists in this project
+        for (let nodeId in this.nodesData)
+        {
+            let node = this.nodesData[nodeId];
+            let schema = NODE_SCHEMA[node.type];
+            if (schema.unique && model.hasNode(node.type))
+                delete this.nodesData[nodeId];
+        }
+
         // Before adding any nodes, determine their final offsets.
         let offset = { x: Infinity, y: Infinity };
         for (let nodeId in this.nodesData)
@@ -612,11 +622,13 @@ export class Paste extends Action
             let schema = NODE_SCHEMA[node.type];
 
             node.ins = this.nodesData[nodeId].ins.map(input => {
+                console.log(input);
+
                 if (!(input instanceof Array) || input.length != 2)
                     return null;
 
                 let [inputNodeId, inputPortId] = input;
-                if (inputNodeId in nodeIdMap && inputPortId < schema.outs.length)
+                if (inputNodeId in nodeIdMap)
                     return [nodeIdMap[inputNodeId], inputPortId];
 
                 return null;
