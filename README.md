@@ -2,8 +2,9 @@
 
 Browser-based visual programming language and platform for sound synthesis and music making.
 Once NoiseCraft is more functional and stable, it will be open sourced under the GPLv2.
-When the app is deployed it will be live at https://noisecraft.app. The goal is for the app
-to remain free to use and ad-free for the foreseeable future.
+The goal is for the app to remain free to use and ad-free for the foreseeable future.
+You can try the app at https://noisecraft.app, but please note that it's a work in progress
+and you may run into bugs.
 
 ## Design
 
@@ -42,14 +43,14 @@ produced for a given project will be the same on any browser or device.
 
 ## Contributing
 
-We are more than happy to accept bug fixes. However, NoiseCraft follows
-a minimalist philosophy and tries to minimize dependencies. As such, we will 
-be conservative about the additions to the project we accept. If you would
-like to contribute new features or major changes to the codebase, we
-recommend that you open an issue to discuss the proposed changes first, so
-that we can share feedback on what we are likely to merge and how to go
-about implementing the changes. The last thing we want is to reject changes
-after you have spent a significant amount of time working on them.
+We're more than happy to accept bug fixes. However, NoiseCraft follows
+a minimalist philosophy and tries to minimize dependencies and overall complexity.
+As such, we're going to be
+be conservative about the additions to the project that we accept. If you would
+like to contribute new features or major changes to the codebase, please open an
+issue to discuss the proposed changes first, so
+that we can share feedback on what we're likely to merge and how to go
+about implementing the changes.
 
 ## Development Setup Instructions
 
