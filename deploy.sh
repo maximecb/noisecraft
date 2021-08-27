@@ -13,24 +13,23 @@ cp server.js deploy
 cp package.json deploy
 cp -R public deploy
 
+# FIXME: we can't rollup the audio thread for now
 # Rollup all modules into one
-rm -rf deploy/public/*.js
-rollup public/main.js --file deploy/public/main.js --format es
+#rm -rf deploy/public/*.js
+#rollup public/main.js --file deploy/public/main.js --format es
 
 # Minify the JavaScript, eliminate comments and console prints
-terser --compress drop_console=true --mangle toplevel --output deploy/public/main.js -- deploy/public/main.js
+#terser --compress drop_console=true --mangle toplevel --output deploy/public/main.js -- deploy/public/main.js
+#terser --compress drop_console=false --mangle toplevel --output deploy/public/main.js -- deploy/public/main.js
+#terser --output deploy/public/main.js -- deploy/public/main.js
 
 # Make sure minification was successful
-if grep "// " deploy/public/*.js; then
-    echo "*** MINIFICATION FAILED, ABORTING ***"
-    exit 1
-fi
-if grep "console " deploy/public/*.js; then
-    echo "*** MINIFICATION FAILED, ABORTING ***"
-    exit 1
-fi
+#if grep "// " deploy/public/*.js; then
+#    echo "*** MINIFICATION FAILED, ABORTING ***"
+#    exit 1
+#fi
 
-#rsync -avz deploy "${SERVER_ADDR}:noisecraft"
+rsync -avz deploy "${SERVER_ADDR}:noisecraft"
 rm -rf deploy
 
-#ssh "${SERVER_ADDR}" "cd noisecraft/deploy && npm install && forever restart server.js"
+ssh "${SERVER_ADDR}" "cd noisecraft/deploy && npm install && forever restart server.js"
