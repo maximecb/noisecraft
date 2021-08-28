@@ -798,7 +798,13 @@ export class GroupNodes extends Action
         let moduleId = model.getFreeId();
         model.state.nodes[moduleId] = module;
 
-        console.log(`moduleId=${moduleId}`);
+        // Can't group nodes that must remain unique
+        this.nodeIds = this.nodeIds.filter(function (nodeId)
+        {
+            let node = model.state.nodes[nodeId];
+            let schema = NODE_SCHEMA[node.type];
+            return !schema.unique;
+        });
 
         // Add the nodes to the module and remove them from the global graph
         for (let nodeId of this.nodeIds)
@@ -806,8 +812,6 @@ export class GroupNodes extends Action
             let node = model.state.nodes[nodeId];
             module.nodes[nodeId] = node;
             delete model.state.nodes[nodeId];
-
-            console.log(`deleting nodeId=${nodeId}`);
         }
 
         // Compute the position of the group node
