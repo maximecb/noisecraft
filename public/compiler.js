@@ -399,6 +399,12 @@ export function compile(graph)
             continue;
         }
 
+        // Temporary so the compiler doesn't error when it sees a module
+        if (node.type == 'Module')
+        {
+            continue;
+        }
+
         if (node.type == 'Mul')
         {
             addDef(nodeId, inVal(node, 0) + ' * ' + inVal(node, 1));
