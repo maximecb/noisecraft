@@ -527,6 +527,10 @@ export class Editor
         let dy = mousePos.y - this.lastMousePos.y;
         this.lastMousePos = mousePos;
 
+        // Get the size of the graph before moving the nodes
+        let widthPre = this.graphDiv.scrollWidth;
+        let heightPre = this.graphDiv.scrollHeight;
+
         // Move the nodes
         for (let nodeId of this.dragNodes)
         {
@@ -537,8 +541,14 @@ export class Editor
         // Resize the editor to fit all the nodes
         this.resize();
 
-        // TODO: we probably want to scroll a bit to follow the node
-        // when moving a node off-screen.
+        // Get the size of the graph after moving the nodes
+        let widthPost = this.graphDiv.scrollWidth;
+        let heightPost = this.graphDiv.scrollHeight;
+
+        // If the size of the graph increased, then
+        // scroll to follow the node(s) being moved
+        this.editorDiv.scrollLeft += Math.max(0, widthPost - widthPre);
+        this.editorDiv.scrollTop += Math.max(0, heightPost - heightPre);
     }
 
     // Delete the currently selected nodes
