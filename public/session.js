@@ -18,22 +18,20 @@ export function logout()
 /// Get the user id and session id or make the user log in
 export async function login()
 {
-    let userId = localStorage.getItem('userId');
-    let sessionId = localStorage.getItem('sessionId');
+    var userId = localStorage.getItem('userId');
+    var sessionId = localStorage.getItem('sessionId');
 
     if (userId)
         return [userId, sessionId];
 
     // Prompt the user for user name and password
-    let [username, password] = await loginForm();
-
-    // Send a login request to the server
-    [userId, sessionId] = await loginRequest(username, password);
+    var [username, userId, sessionId] = await loginForm();
 
     console.log('username:', username);
     console.log('userId:', userId);
+    console.log('sessionId:', sessionId);
 
-    // Show the logged in user
+    // Show the logged in username
     btnLogin.style.display = 'none';
     btnUser.style.display = 'block';
     btnUser.textContent = username;
@@ -120,21 +118,45 @@ async function loginForm()
     div.appendChild(loginBtn);
 
     return new Promise((resolve, reject) => {
-
         regLink.onclick = async function ()
         {
             dialog.close();
 
             let [username, password] = await register();
-            resolve([username, password]);
+
+            try
+            {
+                // Send a login request to the server
+                let [userId, sessionId] = await loginRequest(username, password);
+
+                dialog.close();
+                resolve([username, userId, sessionId]);
+            }
+            catch (e)
+            {
+                dialog.showError('Login failed');
+                reject();
+            }
         }
 
-        loginBtn.onclick = function ()
+        loginBtn.onclick = async function ()
         {
             let username = nameElem.value;
             let password = passElem.value;
-            dialog.close();
-            resolve([username, password]);
+
+            try
+            {
+                // Send a login request to the server
+                let [userId, sessionId] = await loginRequest(username, password);
+
+                dialog.close();
+                resolve([username, userId, sessionId]);
+            }
+            catch (e)
+            {
+                dialog.showError('Login failed');
+                return;
+            }
         }
     });
 }
@@ -259,8 +281,6 @@ async function registerForm()
             registerBtn.disabled = true;
             return;
         }
-
-        console.log('username ok');
 
         dialog.hideError();
         registerBtn.disabled = false;
