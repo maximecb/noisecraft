@@ -1,4 +1,5 @@
-import { assert, Dialog } from './utils.js';
+import { assert } from './utils.js';
+import { Dialog } from './dialog.js';
 
 let btnLogin = document.getElementById('btn_login');
 let btnUser = document.getElementById('btn_user');
@@ -126,7 +127,6 @@ async function loginForm()
 
             let [username, password] = await register();
             resolve([username, password]);
-
         }
 
         loginBtn.onclick = function ()
@@ -237,10 +237,6 @@ async function registerForm()
     paramDiv.appendChild(emailElem);
     div.appendChild(paramDiv);
 
-    var errorElem = document.createElement('div');
-    errorElem.className = 'form_error';
-    div.appendChild(errorElem);
-
     var registerBtn = document.createElement('button');
     registerBtn.className = 'form_btn';
     registerBtn.appendChild(document.createTextNode('Register'));
@@ -252,23 +248,21 @@ async function registerForm()
 
         if (name.trim() !== name)
         {
-            errorElem.textContent = 'Invalid username';
-            errorElem.style.display = 'block';
+            dialog.showError('Invalid username');
             registerBtn.disabled = true;
             return;
         }
 
         if (name.length == 0)
         {
-            errorElem.textContent = 'Username too short';
-            errorElem.style.display = 'block';
+            dialog.showError('Username too short');
             registerBtn.disabled = true;
             return;
         }
 
         console.log('username ok');
 
-        errorElem.style.display = 'none';
+        dialog.hideError();
         registerBtn.disabled = false;
     }
 
@@ -279,21 +273,19 @@ async function registerForm()
 
         if (password != password2)
         {
-            errorElem.textContent = 'Passwords do not match';
-            errorElem.style.display = 'block';
+            dialog.showError('Passwords do not match');
             registerBtn.disabled = true;
             return;
         }
 
         if (password.length < 6)
         {
-            errorElem.textContent = 'Password must be at least 6 characters'
-            errorElem.style.display = 'block';
+            dialog.showError('Password must be at least 6 characters');
             registerBtn.disabled = true;
             return;
         }
 
-        errorElem.style.display = 'none';
+        dialog.hideError();
         registerBtn.disabled = false;
     }
 

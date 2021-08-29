@@ -1,6 +1,7 @@
 import { Model, Paste, Play, Stop } from './model.js';
 import { Editor } from './editor.js';
 import { AudioView } from './audioview.js';
+import * as session from './session.js';
 
 // Project title input
 let inputProjectTitle = document.getElementById('project_title');
