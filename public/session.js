@@ -1,4 +1,3 @@
-import { assert } from './utils.js';
 import { Dialog } from './dialog.js';
 
 let btnLogin = document.getElementById('btn_login');

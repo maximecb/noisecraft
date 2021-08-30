@@ -2,14 +2,15 @@ import { Model, Paste, Play, Stop } from './model.js';
 import { Editor } from './editor.js';
 import { AudioView } from './audioview.js';
 import * as session from './session.js';
+import * as sharing from './sharing.js';
 
 // Project title input
 let inputProjectTitle = document.getElementById('project_title');
 
 // Menu buttons
-let btnNew = document.getElementById('btn_new');
-let btnSave = document.getElementById('btn_save');
 let btnOpen = document.getElementById('btn_open');
+let btnSave = document.getElementById('btn_save');
+let btnShare = document.getElementById('btn_share');
 let btnPlay = document.getElementById('btn_play');
 let btnStop = document.getElementById('btn_stop');
 
@@ -200,7 +201,7 @@ function openModelFile()
     input.click();
 }
 
-export function saveModelFile()
+function saveModelFile()
 {
     // There is no JS API in most browsers to prompt a file download. Chrome has
     // a file system API, but as of writing other browsers have no equivalent.
@@ -248,7 +249,12 @@ export function saveModelFile()
     a.click();
 }
 
-export function startPlayback()
+function shareProject()
+{
+    sharing.shareProject(model);
+}
+
+function startPlayback()
 {
     if (model.playing)
         return;
@@ -265,7 +271,7 @@ export function startPlayback()
     model.update(new Play());
 }
 
-export function stopPlayback()
+function stopPlayback()
 {
     if (!model.playing)
         return;
@@ -283,7 +289,8 @@ export function stopPlayback()
     model.update(new Stop());
 }
 
-btnSave.onclick = saveModelFile;
 btnOpen.onclick = openModelFile;
+btnSave.onclick = saveModelFile;
+btnShare.onclick = shareProject;
 btnPlay.onclick = startPlayback;
 btnStop.onclick = stopPlayback;
