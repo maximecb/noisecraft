@@ -5,8 +5,8 @@
 NoiseCraft is an open source, browser-based visual programming language and platform for
 sound synthesis and music making that runs your a web browser.
 The goal is for the app to remain free to use and ad-free for the foreseeable future.
-You can try the app at https://noisecraft.app, but please note that it's a work in progress
-and you may run into bugs, and support for mobile devices is currently fairly poor.
+You can try the app at https://noisecraft.app, but please note that it's a work in progress,
+you may run into bugs, and support for mobile devices is currently fairly poor.
 
 ## Design
 
