@@ -369,6 +369,7 @@ app.post('/share', jsonParser, async function (req, res)
         });
     }
 
+    // Insert the project into the database
     async function insertProject(userId, title, data, crc32, submitTIme, submitIP)
     {
         return new Promise((resolve, reject) => {
@@ -395,6 +396,10 @@ app.post('/share', jsonParser, async function (req, res)
         var sessionId = req.body.sessionId;
         var title = req.body.title;
         var data = req.body.data;
+
+        // Validate the title
+        if (typeof title != 'string' || title.length > 50)
+            return res.sendStatus(400);
 
         // Limit the length of the data, max 1MB
         if (data.length > 1000000)

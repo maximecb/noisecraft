@@ -64,6 +64,9 @@ export async function shareProject(model)
     // also do some validation
     //new SetTitle();
 
+
+
+
     shareBtn.onclick = async function ()
     {
         if (!agreeElem.checked)
@@ -74,9 +77,12 @@ export async function shareProject(model)
 
         try
         {
-            let jsonData = model.serialize();
+            // Serialize the project
+            let title = model.state.title;
+            let data = model.serialize();
 
-            let projectId = await shareRequest(userId, sessionId, jsonData);
+            // Send a request to share the project
+            let projectId = await shareRequest(userId, sessionId, title, data);
             console.log(`projectId=${projectId}`);
 
             // Change the current URL to include the project ID
@@ -98,12 +104,13 @@ export async function shareProject(model)
 /**
 Send a login request to the server
 */
-async function shareRequest(userId, sessionId, project)
+async function shareRequest(userId, sessionId, title, data)
 {
     var request = {
         userId: userId,
         sessionId: sessionId,
-        project: project
+        title: title,
+        data: data,
     };
 
     var json = JSON.stringify(request);
