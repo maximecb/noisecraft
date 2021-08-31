@@ -60,12 +60,11 @@ export async function shareProject(model)
     div.appendChild(cancelBtn);
     cancelBtn.onclick = evt => dialog.close();
 
-    // TODO: logic to set the title when changed
-    // also do some validation
-    //new SetTitle();
-
-
-
+    // Update the project title when it gets changed in the form
+    titleElem.onchange = function ()
+    {
+        model.update(new SetTitle(titleElem.value));
+    }
 
     shareBtn.onclick = async function ()
     {
