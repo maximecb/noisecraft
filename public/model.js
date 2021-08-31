@@ -1294,17 +1294,6 @@ export class Model
         this.broadcast(this.state, null);
     }
 
-    // Serializes the model into a string representation
-    serialize()
-    {
-        let state = treeCopy(this.state);
-        resetState(state);
-
-        return JSON.stringify({
-            state: state
-        });
-    }
-
     /**
      * Tries to deserialize a JSON string representation of a model
      * Returns true if successfully deserialized and loaded, false otherwise
@@ -1325,11 +1314,25 @@ export class Model
             return false;
         }
 
-        if (!isObject(json) || !isObject(json.state))
+        if (!isObject(json))
             return false;
 
-        this.load(json.state);
+        this.load(json);
         return true;
+    }
+
+    // Export the state data
+    exportState()
+    {
+        let state = treeCopy(this.state);
+        resetState(state);
+        return state;
+    }
+
+    // Serializes the model into a string representation
+    serialize()
+    {
+        return JSON.stringify(this.exportState());
     }
 
     /**

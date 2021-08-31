@@ -51,7 +51,7 @@ db.run(`CREATE table IF NOT EXISTS sessions (
 );
 
 /// Get the IP address of a client as a string
-function get_client_ip(req)
+function getClientIP(req)
 {
     var headers = req.headers;
 
@@ -133,7 +133,7 @@ app.use('/', express.static('public', {
     // setHeaders is called on success (stat available/file found)
     setHeaders: function(res, path, stat) {
         // count request: full-path, file-stats, client-ip
-        updateStats(path, stat, get_client_ip(res.req));
+        updateStats(path, stat, getClientIP(res.req));
     }
 }));
 
@@ -240,7 +240,7 @@ app.post('/register', jsonParser, async function (req, res)
         await checkAvail(username);
 
         // Add the new user to the database
-        let submitIP = get_client_ip(req);
+        let submitIP = getClientIP(req);
         let userId = await addUser(username, password, email, submitIP);
 
         return res.send(JSON.stringify({
@@ -325,7 +325,7 @@ app.post('/login', jsonParser, async function (req, res)
         let sessionId = cryptoHash(String(Date.now()) + String(Math.random()));
 
         var loginTime = Date.now();
-        var loginIP = get_client_ip(req);
+        var loginIP = getClientIP(req);
 
         await createSession(userId, sessionId, loginTime, loginIP);
 
@@ -396,7 +396,7 @@ app.post('/share', jsonParser, async function (req, res)
         var title = req.body.title;
         var data = req.body.data;
 
-        // Limit the length of the data
+        // Limit the length of the data, max 1MB
         if (data.length > 1000000)
             return res.sendStatus(400);
 
@@ -408,7 +408,7 @@ app.post('/share', jsonParser, async function (req, res)
         await checkDupes(crc32);
 
         var submitTime = Date.now();
-        var submitIP = get_client_ip(req);
+        var submitIP = getClientIP(req);
 
         let projectId = await insertProject(
             userId,

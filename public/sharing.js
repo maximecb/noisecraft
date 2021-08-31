@@ -7,7 +7,7 @@ export async function shareProject(model)
     console.log('share project');
 
     // Have the user login/register first
-    await login();
+    let [userId, sessionId] = await login();
 
     let div = document.createElement('div');
     let dialog = new Dialog('Share Your Creation', div);
@@ -72,24 +72,24 @@ export async function shareProject(model)
             return;
         }
 
-        let json = model.serialize();
-
         try
         {
-            let projectId = await shareRequest(jsonData);
+            let jsonData = model.serialize();
+
+            let projectId = await shareRequest(userId, sessionId, jsonData);
             console.log(`projectId=${projectId}`);
 
             // Change the current URL to include the project ID
             var url = window.location.href.split('#')[0] + '#' + projectId;
             window.history.replaceState({}, '', url);
 
-            // TODO
-            // we can show the shared project id in another dialog later
+            // TODO: we can show the shared project id in another dialog later
 
             dialog.close();
         }
         catch (e)
         {
+            console.log(e);
             dialog.showError('Failed to share project');
         }
     }
@@ -98,13 +98,21 @@ export async function shareProject(model)
 /**
 Send a login request to the server
 */
-async function shareRequest(jsonData)
+async function shareRequest(userId, sessionId, project)
 {
-    return new Promise((resolve, reject) => {
-        var xhr = new XMLHttpRequest()
-        xhr.open("POST", 'login', true);
-        xhr.setRequestHeader("Content-Type", "application/json");
+    var request = {
+        userId: userId,
+        sessionId: sessionId,
+        project: project
+    };
 
+    var json = JSON.stringify(request);
+
+    var xhr = new XMLHttpRequest()
+    xhr.open("POST", 'share', true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+
+    return new Promise((resolve, reject) => {
         // Request response handler
         xhr.onreadystatechange = function()
         {
@@ -116,10 +124,10 @@ async function shareRequest(jsonData)
 
             if (this.readyState == 4 && this.status == 400)
             {
-                reject();
+                reject('server rejected share request');
             }
         };
 
-        xhr.send(jsonData);
+        xhr.send(json);
     });
 }
