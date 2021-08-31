@@ -142,6 +142,11 @@ app.get('/help', function(req, res) {
     res.sendFile(path.join(__dirname, 'public/help.html'));
 });
 
+// Browse page
+app.get('/browse', function(req, res) {
+    res.sendFile(path.join(__dirname, 'public/browse.html'));
+});
+
 function updateStats(path, stats, clientIP)
 {
     if (!path.endsWith('index.html'))
