@@ -26,7 +26,7 @@ let audioView = new AudioView(model);
 // Most recent location of a mouse or touch event
 let cursor = { x: 0, y: 0 };
 
-document.body.onload = function ()
+document.body.onload = async function ()
 {
     // Create a new blank project
     model.new();
@@ -35,7 +35,17 @@ document.body.onload = function ()
     {
         // Avoid erasing saved state on refresh/reload
         if (window.location.hash == '#new')
+        {
             history.replaceState(null, null, ' ');
+            return;
+        }
+
+        // Download the serialized project data
+        let projectId = window.location.hash.substr(1);
+        let data = await sharing.getProject(projectId);
+
+        // Try to import the project
+        importModel(data);
 
         return;
     }

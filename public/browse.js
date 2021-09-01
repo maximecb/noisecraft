@@ -39,16 +39,10 @@ function populate(chunkDiv, fromIdx)
                 // Link to the project
                 rowDiv.appendChild(document.createTextNode(projectId + '. '));
                 var link = document.createElement('a');
-                link.href = '#' + projectId;
+                link.href = '../#' + projectId;
+                link.target = '_blank';
                 link.appendChild(document.createTextNode(row.title));
                 rowDiv.appendChild(link);
-
-                // If this is a link to the current project, show the edit tab
-                link.onclick = function ()
-                {
-                    if (projectId == window.location.hash.substr(1))
-                        showTab('edit');
-                };
 
                 rowDiv.appendChild(document.createTextNode(' by ' ));
                 rowDiv.appendChild(document.createTextNode(row.username));
