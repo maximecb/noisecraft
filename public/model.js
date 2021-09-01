@@ -1153,6 +1153,62 @@ export class SetPattern extends Action
 }
 
 /**
+ * Grow a sequencer pattern one bar longer
+ */
+export class GrowPattern extends Action
+{
+    constructor(nodeId, patIdx)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.patIdx = patIdx;
+    }
+
+    update(model)
+    {
+        // Initialize the pattern if it doesn't already exist
+        let node = model.state.nodes[this.nodeId];
+        initPattern(node, this.patIdx);
+        let grid = node.patterns[patIdx];
+
+        let scaleNotes = music.genScale(node.scaleRoot, node.scaleName, node.numOctaves);
+        let numRows = scaleNotes.length;
+        let numSteps = 16;
+
+        for (let stepIdx = 0; stepIdx < numSteps; ++stepIdx)
+        {
+            let newStep = new Array(numRows);
+            newStep.fill(0);
+            grid.push(newStep);
+        }
+    }
+}
+
+/**
+ * Shrink a sequencer pattern one bar longer
+ */
+export class ShrinkPattern extends Action
+{
+    constructor(nodeId, patIdx)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.patIdx = patIdx;
+    }
+
+    update(model)
+    {
+        let node = model.state.nodes[this.nodeId];
+        let grid = node.patterns[patIdx];
+        assert (grid);
+
+        let numSteps = 16;
+        assert (grid.length >= numSteps);
+        grid.length -= numSteps;
+    }
+}
+
+/**
  * Send audio samples from the audio thread to the model
  */
 export class SendSamples extends Action
