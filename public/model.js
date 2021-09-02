@@ -1153,23 +1153,20 @@ export class SetPattern extends Action
 }
 
 /**
- * Grow a sequencer pattern one bar longer
+ * Extend the current sequencer pattern one bar longer
  */
-export class GrowPattern extends Action
+export class ExtendPattern extends Action
 {
-    constructor(nodeId, patIdx)
+    constructor(nodeId)
     {
         super();
         this.nodeId = nodeId;
-        this.patIdx = patIdx;
     }
 
     update(model)
     {
-        // Initialize the pattern if it doesn't already exist
         let node = model.state.nodes[this.nodeId];
-        initPattern(node, this.patIdx);
-        let grid = node.patterns[patIdx];
+        let grid = node.patterns[node.curPattern];
 
         let scaleNotes = music.genScale(node.scaleRoot, node.scaleName, node.numOctaves);
         let numRows = scaleNotes.length;
@@ -1185,25 +1182,24 @@ export class GrowPattern extends Action
 }
 
 /**
- * Shrink a sequencer pattern one bar longer
+ * Shrink the current sequencer pattern one bar shorter
  */
 export class ShrinkPattern extends Action
 {
-    constructor(nodeId, patIdx)
+    constructor(nodeId)
     {
         super();
         this.nodeId = nodeId;
-        this.patIdx = patIdx;
     }
 
     update(model)
     {
         let node = model.state.nodes[this.nodeId];
-        let grid = node.patterns[patIdx];
+        let grid = node.patterns[node.curPattern];
         assert (grid);
 
         let numSteps = 16;
-        assert (grid.length >= numSteps);
+        assert (numSteps < grid.length);
         grid.length -= numSteps;
     }
 }

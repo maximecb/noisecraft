@@ -1343,24 +1343,19 @@ class MonoSeq extends Node
         btnDiv.appendChild(selectRoot);
         btnDiv.appendChild(selectScale);
 
-        /*
         // Shrink and extend pattern buttons
         let shrinkBtn = document.createElement("button");
         let extendBtn = document.createElement("button");
-        let copyBtn = document.createElement("button");
         shrinkBtn.appendChild(document.createTextNode("←"));
         extendBtn.appendChild(document.createTextNode("→"));
-        copyBtn.appendChild(document.createTextNode("⇒"));
         btnDiv.appendChild(shrinkBtn);
         btnDiv.appendChild(extendBtn);
-        btnDiv.appendChild(copyBtn);
-        shrinkBtn.onclick = evt => this.shrink();
-        extendBtn.onclick = evt => this.extend();
-        copyBtn.onclick = evt => this.extendCopy();
+        shrinkBtn.onclick = evt => this.send(new model.ShrinkPattern(this.nodeId));
+        extendBtn.onclick = evt => this.send(new model.ExtendPattern(this.nodeId));
+        shrinkBtn.onpointerdown = evt => evt.stopPropagation();
+        extendBtn.onpointerdown = evt => evt.stopPropagation();
         shrinkBtn.ondblclick = evt => evt.stopPropagation();
         extendBtn.ondblclick = evt => evt.stopPropagation();
-        copyBtn.ondblclick = evt => evt.stopPropagation();
-        */
 
         function scaleChange()
         {
