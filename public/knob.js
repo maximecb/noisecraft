@@ -1,9 +1,7 @@
 import { assert } from './utils.js';
 import { Eventable } from './eventable.js';
 import { Dialog } from './dialog.js';
-//import * as midi from './midi.js';
-
-// TODO: use the Eventable class for event handlers
+import { midi } from './midi.js';
 
 /**
  * Reusable knob control component
