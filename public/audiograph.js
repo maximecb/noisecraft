@@ -444,11 +444,11 @@ class MonoSeq extends AudioNode
         // Current clock sign (positive/negative)
         this.clockSgn = false;
 
-        // Number of clock ticks since playback start
+        // Number of clock ticks until the next step is triggered
         this.clockCnt = 0;
 
-        // Currently highlighted step
-        this.curStep = false;
+        // Next step to trigger
+        this.nextStep = 0;
 
         // Time the last note was triggered
         this.trigTime = 0;
@@ -504,12 +504,13 @@ class MonoSeq extends AudioNode
         if (!this.clockSgn && clock > 0)
         {
             // If we are at the beginning of a new sequencer step
-            if (this.clockCnt % music.CLOCK_PPS == 0)
+            if (this.clockCnt == 0)
             {
                 var grid = this.state.patterns[this.patIdx];
 
-                var stepIdx = (this.clockCnt / music.CLOCK_PPS);
-                assert (stepIdx < grid.length);
+                this.clockCnt = music.CLOCK_PPS;
+                var stepIdx = this.nextStep % grid.length;
+                this.nextStep++;
 
                 // Send the current step back to the main thread
                 this.send({
@@ -535,13 +536,10 @@ class MonoSeq extends AudioNode
                 // If this is the last step of this pattern
                 if (stepIdx === grid.length - 1)
                 {
-                    // Move back to the first step
-                    this.clockCnt -= grid.length * music.CLOCK_PPS;
+                    this.nextStep = 0;
 
                     if (this.nextPat !== undefined)
                     {
-                        console.log('sending next pattern');
-
                         // Send the pattern change to the main thread
                         this.send({
                             type: 'SET_PATTERN',
@@ -556,7 +554,7 @@ class MonoSeq extends AudioNode
                 }
             }
 
-            this.clockCnt++;
+            this.clockCnt--;
         }
 
         // If we are past the end of the note

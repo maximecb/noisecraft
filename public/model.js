@@ -1005,6 +1005,11 @@ export class SetCurStep extends Action
 
     update(model)
     {
+        // The pattern may have shrunk since the audio
+        // thread sent this message
+        let node = model.state.nodes[this.nodeId];
+        let grid = node.patterns[node.curPattern];
+        this.stepIdx = this.stepIdx % grid.length;
     }
 
     get undoable()
