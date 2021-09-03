@@ -1430,8 +1430,9 @@ class MonoSeq extends Node
         this.gridDiv.style['white-space'] = 'nowrap';
         div.appendChild(this.gridDiv);
 
-        // Prevent double-click handling from propagating to node
+        // Prevent mouse events from propagating to node
         // This is needed because clicks on grid cells are frequent
+        this.gridDiv.onpointerdown = evt => evt.stopPropagation();
         this.gridDiv.ondblclick = evt => evt.stopPropagation();
 
         // Pattern grid containers, indexed by pattern
