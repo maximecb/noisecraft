@@ -685,24 +685,24 @@ class Edge
         this.render();
     }
 
-    moveSrc(dx, dy)
+    moveSrc(x, y)
     {
         if (this.lineStart === null)
             return;
 
-        this.lineStart.x += dx;
-        this.lineStart.y += dy;
+        this.lineStart.x = x;
+        this.lineStart.y = y;
 
         this.render();
     }
 
-    moveDst(dx, dy)
+    moveDst(x, y)
     {
         if (this.lineEnd === null)
             return;
 
-        this.lineEnd.x += dx;
-        this.lineEnd.y += dy;
+        this.lineEnd.x = x;
+        this.lineEnd.y = y;
 
         this.render();
     }
@@ -1163,15 +1163,18 @@ class Node
 
         for (let dstPort in this.inEdges)
         {
+            let [cx, cy] = this.getPortPos(dstPort, 'dst');
             let edge = this.inEdges[dstPort];
-            edge.moveDst(dx, dy);
+            edge.moveDst(cx, cy);
         }
 
         for (let srcPort in this.outEdges)
         {
+            let [cx, cy] = this.getPortPos(srcPort, 'src');
+
             for (let edge of this.outEdges[srcPort])
             {
-                edge.moveSrc(dx, dy);
+                edge.moveSrc(cx, cy);
             }
         }
     }
@@ -1209,10 +1212,16 @@ class ConstNode extends Node
         input.maxLength = 12;
         this.centerDiv.appendChild(input);
 
+        let node = this;
+
         function resize()
         {
+            // Adjust the size of the input field
             let width = Math.max(2, 1 + input.value.length) + 'ch';
             input.style.width = width;
+
+            // Adjust the position of the ports and edges
+            node.move(0, 0);
         }
 
         input.oninput = function ()
@@ -1250,10 +1259,9 @@ class ConstNode extends Node
             }
         }
 
-        input.ondblclick = function (evt)
-        {
-            evt.stopPropagation();
-        }
+        input.onpointerdown = evt => evt.stopPropagation();
+        input.onclick = evt => evt.stopPropagation();
+        input.ondblclick = evt => evt.stopPropagation();
 
         input.value = state.params.value;
         resize();
