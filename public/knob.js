@@ -8,7 +8,7 @@ import { midi } from './midi.js';
  * */
 export class Knob extends Eventable
 {
-    constructor(minVal, maxVal, value, controlNo)
+    constructor(minVal, maxVal, value, deviceId, controlNo)
     {
         super();
 
@@ -83,10 +83,9 @@ export class Knob extends Eventable
         this.div.onpointermove = onPointerMove.bind(this);
         this.div.ondblclick = onDoubleClick.bind(this);
 
-        // FIXME:
         // Re-bind the controller to MIDI
-        //if (controlNo)
-        //    this.bindMidi(controlNo);
+        if (deviceId)
+            this.bindMidi(deviceId, controlNo);
 
         // Rotate the knob to its initial position
         this.drawKnob();
@@ -190,7 +189,7 @@ export class Knob extends Eventable
 
         let knob = this;
 
-        function map(msg)
+        function map(deviceId, msg)
         {
             var msgType = msg[0] & 0xF0;
 
@@ -199,8 +198,8 @@ export class Knob extends Eventable
             {
                 let cc = msg[1];
                 dialog.close();
-                knob.bindMidi(cc);
-                midi.removeInputListener(map);
+                knob.bindMidi(deviceId, cc);
+                midi.removeListener('midimessage', map);
             }
         }
 
@@ -208,10 +207,10 @@ export class Knob extends Eventable
         function unmap(evt)
         {
             knob.bindMidi(null);
-            midi.removeInputListener(map);
+            midi.removeListener('midimessage', map);
         }
 
-        midi.addInputListener(map);
+        midi.on('midimessage', map);
 
         // If the user closes the dialog, remove/abort the mapping
         dialog.on('close', unmap);
@@ -220,10 +219,13 @@ export class Knob extends Eventable
     /**
      * Bind this knob to a MIDI continuous control number
      * */
-    bindMidi(controlNo)
+    bindMidi(deviceId, controlNo)
     {
-        function midiListener(msg)
+        function onMidiMessage(deviceId, msg)
         {
+            if (deviceId != this.deviceId)
+                return;
+
             var msgType = msg[0] & 0xF0;
 
             // MIDI control change
@@ -243,20 +245,18 @@ export class Knob extends Eventable
 
         if (this.listener)
         {
-            midi.removeInputListener(this.listener);
+            midi.removeListener('midimessage', this.listener);
         }
 
         if (controlNo !== null)
         {
+            this.deviceId = deviceId;
             this.controlNo = controlNo;
-            this.listener = midiListener.bind(this);
-            midi.addInputListener(this.listener);
+            this.listener = onMidiMessage.bind(this);
+            midi.on('midimessage', this.listener);
         }
 
         // Call the MIDI bind callbacks
-        for (let fn of this.bindListeners)
-        {
-            fn(controlNo);
-        }
+        this.trigger('bindmidi', deviceId, controlNo);
     }
 }

@@ -419,9 +419,8 @@ export class Editor
         console.log('createNodeDialog');
 
         // Dialog contents
-        var div = document.createElement('div');
-        var dialog = new Dialog('Create Node', div);
-        div.style['text-align'] = 'center';
+        var dialog = new Dialog('Create Node');
+        dialog.div.style['text-align'] = 'center';
 
         // Display the possible node types to create
         for (let nodeType in NODE_SCHEMA)
@@ -444,7 +443,7 @@ export class Editor
                 ));
             }
 
-            // TODO: migrate this to CSS
+            // TODO: migrate style to CSS
             var subDiv = document.createElement('div');
             subDiv.title = schema.description;
             subDiv.style.border = "2px solid #AAA";
@@ -465,7 +464,7 @@ export class Editor
                 subDiv.onclick = undefined;
             }
 
-            div.appendChild(subDiv);
+            dialog.appendChild(subDiv);
         }
     }
 
@@ -1283,6 +1282,7 @@ class KnobNode extends Node
             state.params.minVal,
             state.params.maxVal,
             state.params.value,
+            state.params.deviceId,
             state.params.controlNo
         );
         this.centerDiv.append(this.knob.div)
