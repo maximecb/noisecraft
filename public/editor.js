@@ -1297,7 +1297,11 @@ class KnobNode extends Node
         }
 
         this.knob.on('change', knobChange);
-        //this.knob.on('bind', controlNo => this.data.params.controlNo = controlNo);
+
+        this.knob.on('bindmidi', (deviceId, controlNo) => {
+            this.send(new model.SetParam(id, 'deviceId', deviceId));
+            this.send(new model.SetParam(id, 'controlNo', controlNo));
+        });
     }
 
     setValue(value)

@@ -40,7 +40,7 @@ class MIDI extends Eventable
         {
             if (evt.port.type == "input" && evt.port.state == "connected")
             {
-                console.log('new device connected: ', evt.port.name, evt.port.id);
+                console.log('new device connected:', evt.port.name, evt.port.id);
 
                 evt.port.onmidimessage = this.makeMessageCb(evt.port.id);
             }
