@@ -9,9 +9,8 @@ export async function shareProject(model)
     // Have the user login/register first
     let [userId, sessionId] = await login();
 
-    let div = document.createElement('div');
-    let dialog = new Dialog('Share Your Creation', div);
-    dialog.div.style.width = '500px';
+    let dialog = new Dialog('Share Your Creation');
+    dialog.wrapperDiv.style.width = '500px';
 
     let text = document.createElement('p');
     text.innerHTML = '' +
@@ -22,7 +21,7 @@ export async function shareProject(model)
     'on our platform, you must agree to renounce any rights over this work and ' +
     'release it into the ' +
     '<a href="https://en.wikipedia.org/wiki/Public_domain" target=”_blank”>public domain</a>. ';
-    div.appendChild(text);
+    dialog.appendChild(text);
 
     var paramDiv = document.createElement('div');
     paramDiv.className = 'form_div';
@@ -33,7 +32,7 @@ export async function shareProject(model)
     titleElem.value = model.state.title;
     paramDiv.appendChild(document.createTextNode('Project title '));
     paramDiv.appendChild(titleElem);
-    div.appendChild(paramDiv);
+    dialog.appendChild(paramDiv);
 
     var paramDiv = document.createElement('div');
     paramDiv.className = 'form_div';
@@ -47,18 +46,18 @@ export async function shareProject(model)
         ' to release this work into the public ' +
         'domain and renounce any copyright claims over it.'
     ));
-    div.appendChild(paramDiv);
+    dialog.appendChild(paramDiv);
 
     var shareBtn = document.createElement('button');
     shareBtn.className = 'form_btn';
     shareBtn.appendChild(document.createTextNode('Share'));
-    div.appendChild(shareBtn);
+    dialog.appendChild(shareBtn);
 
     var cancelBtn = document.createElement('button');
     cancelBtn.className = 'form_btn';
     cancelBtn.appendChild(document.createTextNode('Cancel'));
-    div.appendChild(cancelBtn);
     cancelBtn.onclick = evt => dialog.close();
+    dialog.appendChild(cancelBtn);
 
     // Update the project title when it gets changed in the form
     titleElem.onchange = function ()

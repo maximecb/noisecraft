@@ -181,13 +181,12 @@ export class Knob extends Eventable
     {
         console.log('bind MIDI');
 
-        var div = document.createElement('div');
-        var dialog = new Dialog('MIDI Control Mapping', div);
+        var dialog = new Dialog('MIDI Control Mapping');
 
-        div.appendChild(document.createTextNode(
+        dialog.appendChild(document.createTextNode(
             'Move a knob or fader on your MIDI controller to map the ' +
             'control to this knob. Note that the MIDI controller should ' +
-            'be connected before Zupiter is loaded. Press escape to unmap ' +
+            'be connected before NoiseCraft is loaded. Press escape to unmap ' +
             'the knob.'
         ));
 

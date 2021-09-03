@@ -1004,13 +1004,12 @@ class Node
         let newParams = Object.assign({}, nodeState.params);
 
         // Dialog contents
-        var div = document.createElement('div');
-        var dialog = new Dialog('Node Parameters', div);
+        var dialog = new Dialog('Node Parameters');
 
         // Node type
         let typeDiv = document.createElement('div');
         typeDiv.className = 'form_div';
-        div.appendChild(typeDiv);
+        dialog.appendChild(typeDiv);
         typeDiv.appendChild(document.createTextNode('Node type '));
         let typeElem = document.createElement('input');
         typeElem.type = 'text';
@@ -1022,7 +1021,7 @@ class Node
         // Node name editing
         let paramDiv = document.createElement('div');
         paramDiv.className = 'form_div';
-        div.appendChild(paramDiv);
+        dialog.appendChild(paramDiv);
         paramDiv.appendChild(document.createTextNode('Node name '));
         let input = document.createElement('input');
         input.type = 'text';
@@ -1041,7 +1040,7 @@ class Node
         {
             let paramDiv = document.createElement('div');
             paramDiv.className = 'form_div';
-            div.appendChild(paramDiv);
+            dialog.appendChild(paramDiv);
 
             let name = document.createTextNode(param.name + ' ');
             paramDiv.appendChild(name);
@@ -1062,17 +1061,17 @@ class Node
         let saveBtn = document.createElement('button');
         saveBtn.textContent = 'Save';
         saveBtn.className = 'form_btn';
-        div.appendChild(saveBtn);
+        dialog.appendChild(saveBtn);
 
         let cancelBtn = document.createElement('button');
         cancelBtn.textContent = 'Cancel';
         cancelBtn.className = 'form_btn';
-        div.appendChild(cancelBtn);
+        dialog.appendChild(cancelBtn);
 
         let deleteBtn = document.createElement('button');
         deleteBtn.textContent = 'Delete';
         deleteBtn.className = 'form_btn';
-        div.appendChild(deleteBtn);
+        dialog.appendChild(deleteBtn);
 
         // TODO: we should move saveParams into a method
         // and to some validation based on the schema at save time
@@ -1129,8 +1128,6 @@ class Node
             if (key == "Enter")
                 saveBtn.onclick();
         });
-
-        return div;
     }
 
     /**

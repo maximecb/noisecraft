@@ -83,13 +83,12 @@ Produces the username and password
 */
 async function loginForm()
 {
-    var div = document.createElement('div');
-    var dialog = new Dialog('Log In', div);
+    var dialog = new Dialog('Log In');
 
     var regLink = document.createElement('a');
     regLink.className = 'form_link';
     regLink.textContent = 'Register / Create New Account';
-    div.appendChild(regLink);
+    dialog.appendChild(regLink);
 
     var paramDiv = document.createElement('div');
     paramDiv.className = 'form_div';
@@ -99,7 +98,7 @@ async function loginForm()
     nameElem.maxLength = 16;
     paramDiv.appendChild(document.createTextNode('Username '));
     paramDiv.appendChild(nameElem);
-    div.appendChild(paramDiv);
+    dialog.appendChild(paramDiv);
 
     var paramDiv = document.createElement('div');
     paramDiv.className = 'form_div';
@@ -109,12 +108,12 @@ async function loginForm()
     passElem.maxLength = 16;
     paramDiv.appendChild(document.createTextNode('Password '));
     paramDiv.appendChild(passElem);
-    div.appendChild(paramDiv);
+    dialog.appendChild(paramDiv);
 
     var loginBtn = document.createElement('button');
     loginBtn.className = 'form_btn';
     loginBtn.appendChild(document.createTextNode('Log in'));
-    div.appendChild(loginBtn);
+    dialog.appendChild(loginBtn);
 
     return new Promise((resolve, reject) => {
         regLink.onclick = async function ()
@@ -215,8 +214,7 @@ Returns a promise that produces the username, password and e-mail
 */
 async function registerForm()
 {
-    var div = document.createElement('div');
-    var dialog = new Dialog('Create New Account', div);
+    var dialog = new Dialog('Create New Account');
 
     var paramDiv = document.createElement('div');
     paramDiv.className = 'form_div';
@@ -226,7 +224,7 @@ async function registerForm()
     nameElem.maxlength = 16;
     paramDiv.appendChild(document.createTextNode('Username '));
     paramDiv.appendChild(nameElem);
-    div.appendChild(paramDiv);
+    dialog.appendChild(paramDiv);
 
     var paramDiv = document.createElement('div');
     paramDiv.className = 'form_div';
@@ -236,7 +234,7 @@ async function registerForm()
     passElem.maxLength = 16;
     paramDiv.appendChild(document.createTextNode('Password '));
     paramDiv.appendChild(passElem);
-    div.appendChild(paramDiv);
+    dialog.appendChild(paramDiv);
 
     var paramDiv = document.createElement('div');
     paramDiv.className = 'form_div';
@@ -246,7 +244,7 @@ async function registerForm()
     passElem2.maxLength = 16;
     paramDiv.appendChild(document.createTextNode('Confirm password '));
     paramDiv.appendChild(passElem2);
-    div.appendChild(paramDiv);
+    dialog.appendChild(paramDiv);
 
     var paramDiv = document.createElement('div');
     paramDiv.className = 'form_div';
@@ -256,12 +254,12 @@ async function registerForm()
     emailElem.maxLength = 32;
     paramDiv.appendChild(document.createTextNode('E-mail (optional) '));
     paramDiv.appendChild(emailElem);
-    div.appendChild(paramDiv);
+    dialog.appendChild(paramDiv);
 
     var registerBtn = document.createElement('button');
     registerBtn.className = 'form_btn';
     registerBtn.appendChild(document.createTextNode('Register'));
-    div.appendChild(registerBtn);
+    dialog.appendChild(registerBtn);
 
     nameElem.onchange = function ()
     {
