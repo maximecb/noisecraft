@@ -214,6 +214,8 @@ export class Knob extends Eventable
         }
 
         midi.addInputListener(map);
+
+        // If the user closes the dialog, remove/abort the mapping
         dialog.on('close', unmap);
     }
 

@@ -15,6 +15,16 @@ export class Eventable
         this._events[eventName].push(handler);
     }
 
+    removeListener(eventName, handler)
+    {
+        let handlers = this._events[eventName];
+        let idx = handlers.indexOf(handler);
+        if (idx != -1)
+        {
+            handlers.splice(idx, 1);
+        }
+    }
+
     trigger(eventName, ...eventArgs)
     {
         let handlers = this._events[eventName] || [];
