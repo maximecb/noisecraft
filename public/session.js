@@ -156,6 +156,8 @@ async function loginForm()
                 return;
             }
         }
+
+        dialog.on('enter', loginBtn.onclick);
     });
 }
 
@@ -320,6 +322,8 @@ async function registerForm()
             dialog.close();
             resolve([username, password, email]);
         }
+
+        dialog.on('enter', registerBtn.onclick);
     });
 }
 

@@ -48,6 +48,10 @@ export class Dialog extends Eventable
         {
             this.trigger('keydown', evt.key);
 
+            // Trigger a special handler for the enter key
+            if (evt.key === "Enter")
+                this.trigger('enter');
+
             // Close the dialog when the escape key is pressed
             if (evt.key === "Escape")
                 this.close();
