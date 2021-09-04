@@ -87,9 +87,11 @@ export async function shareProject(model)
             var url = window.location.href.split('#')[0] + '#' + projectId;
             window.history.replaceState({}, '', url);
 
-            // TODO: we can show the shared project id in another dialog later
-
+            // Close this dialog
             dialog.close();
+
+            // Show the shared project URL
+            showURL(projectId);
         }
         catch (e)
         {
@@ -137,7 +139,38 @@ async function shareRequest(userId, sessionId, title, data)
     });
 }
 
-/// Download a project with a given id
+/**
+ * Show the URL for a project that was just shared
+ */
+function showURL(projectId)
+{
+    let dialog = new Dialog('Sharing Successful');
+
+    let text = document.createElement('p');
+    text.innerHTML = 'Your project is now available at the following URL:';
+    dialog.appendChild(text);
+
+    let url = window.location.origin + '#' + projectId;
+
+    var urlDiv = document.createElement('div');
+    urlDiv.className = 'form_div';
+    let urlElem = document.createElement('input');
+    urlElem.type = 'text';
+    urlElem.size = 35;
+    urlElem.value = url;
+    urlDiv.appendChild(urlElem);
+    dialog.appendChild(urlDiv);
+
+    var okBtn = document.createElement('button');
+    okBtn.className = 'form_btn';
+    okBtn.appendChild(document.createTextNode('OK'));
+    okBtn.onclick = evt => dialog.close();
+    dialog.appendChild(okBtn);
+}
+
+/**
+ * Download a project with a given id
+ */
 export async function getProject(projectId)
 {
     var url = 'get_project/' + projectId;
