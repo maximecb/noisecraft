@@ -65,9 +65,8 @@ sudo apt-get install -y nodejs npm
 # Update npm
 sudo npm install -g npm
 
-# Install dependencies for this project
+# Install the dependencies for this project
 npm install
-sudo npm install --global --only=dev
 ```
 
 To start the server locally:

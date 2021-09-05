@@ -13,10 +13,6 @@
     "sqlite3": "^4.1.0",
     "vhost": "^3.0.2"
   },
-  "devDependencies": {
-    "rollup": "^1.16.2",
-    "terser": "^4.4.2"
-  },
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
