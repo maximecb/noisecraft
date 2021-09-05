@@ -29,7 +29,6 @@ class MIDI extends Eventable
             if (input.state != "connected")
                 continue;
 
-            console.log(input);
             console.log(input.name);
 
             input.onmidimessage = this.makeMessageCb(input.id);

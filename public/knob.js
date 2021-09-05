@@ -92,6 +92,16 @@ export class Knob extends Eventable
     }
 
     /**
+     * Release resources acquired by this knob
+     */
+    destroy()
+    {
+        // Remove the MIDI event listener
+        if (this.listener)
+            midi.removeListener('midimessage', this.listener);
+    }
+
+    /**
      * Compute the normalized value of this knob, in the [0,1] range
      * */
     getNormVal()

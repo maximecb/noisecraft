@@ -234,6 +234,12 @@ export class Editor
 
         console.log('recreating UI nodes');
 
+        // Release resource for all UI nodes
+        for (let node of this.nodes.values())
+        {
+            node.destroy();
+        }
+
         // Remove existing nodes and edges
         this.edge = null;
         while (this.graphDiv.firstChild)
@@ -789,6 +795,13 @@ class Node
     }
 
     /**
+     * Release resources acquired by this node
+     */
+    destroy()
+    {
+    }
+
+    /**
      * Setup DOM elements for this node
      */
     genNodeDOM()
@@ -1302,6 +1315,11 @@ class KnobNode extends Node
             this.send(new model.SetParam(id, 'deviceId', deviceId));
             this.send(new model.SetParam(id, 'controlNo', controlNo));
         });
+    }
+
+    destroy()
+    {
+        this.knob.destroy();
     }
 
     setValue(value)

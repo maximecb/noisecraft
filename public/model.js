@@ -1316,6 +1316,23 @@ export class Model
     {
         assert (state instanceof Object);
 
+        // Initialize missing params to default values
+        // This is for backwards compatibility with older projects
+        for (let id in state.nodes)
+        {
+            let node = state.nodes[id];
+            let keys = Object.keys(node);
+            let schema = NODE_SCHEMA[node.type];
+            for (let param of schema.params)
+            {
+                if (!(param.name in node.params))
+                {
+                    console.log(param.name)
+                    node.params[param.name] = param.default;
+                }
+            }
+        }
+
         // Recursively find the maximum nodeId in a set of nodes
         function findMaxId(nodes, maxId)
         {

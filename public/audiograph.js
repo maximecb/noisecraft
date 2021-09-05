@@ -87,10 +87,8 @@ export class AudioGraph
         assert (nodeId in this.nodes);
         let node = this.nodes[nodeId];
         assert (paramName in node.params);
-        assert (typeof value == 'number');
         node.params[paramName] = value;
     }
-
 
     /**
      * Set the entire state for a given node
