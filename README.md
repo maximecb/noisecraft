@@ -1,12 +1,13 @@
 # NoiseCraft
 
-**NOTE: NoiseCraft is a work in progress, and I am looking for contributors to help build it!**
+**NOTE: NoiseCraft is a work in progress, and we are looking for contributors to help build and debug it!**
 
 NoiseCraft is an open source, browser-based visual programming language and platform for
 sound synthesis and music making that runs your a web browser.
 The goal is for the app to remain free to use and ad-free for the foreseeable future.
 You can try the app at https://noisecraft.app, but please note that it's a work in progress,
-you may run into bugs, and support for mobile devices is currently fairly poor.
+You may run into bugs, and support for mobile devices is currently poor. Reporting
+bugs and helping us fix them is one way you can contribute to this project.
 
 ## Design
 
@@ -26,27 +27,29 @@ Design principles:
   - Avoid images and sound samples to keep bandwidth/server costs low
   - Avoiding sound samples also forces people to think about how to generate sounds
 
-I would like to use a multi-page design, as opposed to a single-page app. This means
-the New, Help and Browse links will open new tabs. This will avoid the users accidentally
+NoiseCraft uses a multi-page design, as opposed to a single-page app. This means
+the New, Help and Browse links open new tabs. This helps users avoid accidentally
 losing their work when clicking other tabs, and make it possible for us to send new users
-direct links to the Browse and Help pages, for example.
+direct links to the `/browse` and `/help` pages, for example.
 
 The user-interface uses an immediate-mode GUI. That is, the UI gets redrawn every time
 an action is performed on the model. This makes it trivial to implement features such
-as undo/redo, because we can simply store copies of previous states. It also reduces
-the coupling between the UI and the model. In practice, caching will be used to avoid
+as undo/redo, because we can simply store copies of previous project states. It also reduces
+the coupling between the UI and the model. In practice, caching is used to avoid
 redrawing the entire user interface for every single state change.
 
-The audio is produced by the `AudioView` class, which is updated when state changes
+The audio is produced by the `AudioView` class (see `public/audioview.js`), which is
+updated when state changes
 occur in the model. This compiles the audio graph into JavaScript code that can then
 be run in a background process (an `AudioWorklet`). We only use the web audio API
-to output sound, not for sound synthesis. This helps guarantee that the sound
+to output sound, not for sound synthesis. This helps us guarantee that the sound
 produced for a given project will be the same on any browser or device.
 
 ## Contributing
 
-We're more than happy to accept bug fixes. However, NoiseCraft follows
-a minimalist philosophy and tries to minimize dependencies and overall complexity.
+We're more than happy to accept bug fixes. However, we want to avoid growing the
+functionality of NoiseCraft too fast, and we strive to minimize dependencies and
+overall complexity.
 As such, we're going to be
 be conservative about the additions to the project that we accept. If you would
 like to contribute new features or major changes to the codebase, please open an
