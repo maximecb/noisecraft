@@ -589,13 +589,9 @@ export class Paste extends Action
             let nodeData = this.nodesData[nodeId];
             let schema = NODE_SCHEMA[nodeData.type];
 
-            let node = {
-                type: nodeData.type,
-                name: nodeData.name,
-                x: nodeData.x + offset.x,
-                y: nodeData.y + offset.y,
-                params: {}
-            };
+            let node = treeCopy(nodeData);
+            node.x = nodeData.x + offset.x;
+            node.y = nodeData.y + offset.y;
 
             // Keep param values that are aligned with the schema. They must be
             // null or match the schema's default value type, otherwise the
@@ -621,11 +617,8 @@ export class Paste extends Action
         {
             let mappedNodeId = nodeIdMap[nodeId];
             let node = model.state.nodes[mappedNodeId];
-            let schema = NODE_SCHEMA[node.type];
 
             node.ins = this.nodesData[nodeId].ins.map(input => {
-                console.log(input);
-
                 if (!(input instanceof Array) || input.length != 2)
                     return null;
 
@@ -1446,6 +1439,8 @@ export class Model
     // Returns the minimum information required to copy a set of nodes
     copy(nodeIds)
     {
+        console.log('copy nodes');
+
         let result = {};
 
         if (!nodeIds instanceof Array)
