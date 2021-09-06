@@ -192,7 +192,7 @@ function openModelFile()
 {
     let input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.json,application/json,application/JSON';
+    input.accept = '.ncft,.json,application/json,application/JSON';
 
     input.onchange = e =>
     {
@@ -242,13 +242,13 @@ function saveModelFile()
     // If the browser is configured to automatically save downloads in a fixed
     // location, this will be the default name for the file. If a file already
     // exists with that name, the name will be modified to prevent a conflict
-    // ("example.json" might become "example (1).json") or the user will be
+    // ("example.ncft" might become "example (1).ncft") or the user will be
     // asked what to do (replace, modify the name, or cancel the download).
     //
     // If the browser is configured to prompt the user for a save location, this
     // will be the default name in the save dialog. The user can usually change
     // the name if they would like.
-    a.download = `${inputProjectTitle.value || 'Untitled Project'}.json`;
+    a.download = `${inputProjectTitle.value || 'Untitled Project'}.ncft`;
 
     // This is the binary large object (blob) we would like to send to the user.
     let blob = new Blob(
