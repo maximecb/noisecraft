@@ -4,7 +4,8 @@
 
 NoiseCraft is an open source, browser-based visual programming language and platform for
 sound synthesis and music making that runs your a web browser, with the goal of creating
-a community for the open exchange of musical ideas.
+a community for the open exchange of musical ideas. The design is loosely inspired by
+PureData, Max/MSP and other visual programming languages.
 The plan is for the app to remain free to use and ad-free for the foreseeable future.
 You can try NoiseCraft at https://noisecraft.app, but please note that it's a work in progress,
 You may run into bugs, and support for mobile devices is currently poor. Reporting
@@ -24,6 +25,9 @@ Design principles:
   - Avoid drop-down menus and hidden options if possible
   - Use key combos and controls that will likely seem familiar to most users
   - Avoid ambiguity, use known/existing terminology wherever possible
+- Visual programming language design:
+  - There is only one data type: floating point values
+  - There is no distinction between control signals and audio signals
 - Practical considerations:
   - Avoid images and sound samples to keep bandwidth/server costs low
   - Avoiding sound samples also forces people to think about how to generate sounds
@@ -39,12 +43,16 @@ as undo/redo, because we can simply store copies of previous project states. It 
 the coupling between the UI and the model. In practice, caching is used to avoid
 redrawing the entire user interface for every single state change.
 
-The audio is produced by the `AudioView` class (see `public/audioview.js`), which is
+Audio is produced by the `AudioView` class (see `public/audioview.js`), which is
 updated when state changes
 occur in the model. This compiles the audio graph into JavaScript code that can then
 be run in a background process (an `AudioWorklet`). We only use the web audio API
 to output sound, not for sound synthesis. This helps us guarantee that the sound
 produced for a given project will be the same on any browser or device.
+
+Project files are saved in an easy to parse JSON format (.ncft), which could allow
+external tools to eventually be built. For example, it's possible to imagine that
+NoiseCraft projects could be compiled into VSTs.
 
 ## Contributing
 
