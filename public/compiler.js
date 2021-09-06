@@ -356,7 +356,8 @@ export function compile(graph)
 
         if (node.type == 'Div')
         {
-            addDef(nodeId, inVal(node, 0) + '? (' + inVal(node, 0) + ' / ' + inVal(node, 1) + '):0');
+            // Avoid dividing by zero because that can lead to NaN values being produced
+            addDef(nodeId, inVal(node, 1) + '? (' + inVal(node, 0) + ' / ' + inVal(node, 1) + '):0');
             continue;
         }
 
