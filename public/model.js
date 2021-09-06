@@ -1380,25 +1380,11 @@ export class Model
      */
     deserialize(data)
     {
-        if (!isString(data))
-            return false;
+        assert(isString(data));
+        let json = JSON.parse(data);
 
-        let json;
-        try
-        {
-            json = JSON.parse(data);
-        }
-
-        catch (e)
-        {
-            return false;
-        }
-
-        if (!isObject(json))
-            return false;
-
+        assert (isObject(json));
         this.load(json);
-        return true;
     }
 
     /**

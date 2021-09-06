@@ -57,10 +57,18 @@ document.body.onload = async function ()
         return;
     }
 
-    if (importModel(serializedModelData))
-        console.log('model restored from previous session');
-    else
-        console.warn('could not restore model from previous session');
+    try
+    {
+        importModel(serializedModelData);
+    }
+    catch
+    {
+        model.new();
+
+        // If loading failed, we don't want to reload
+        // the same data again next time
+        localStorage.removeItem('latestModelData');
+    }
 }
 
 window.onunload = function ()
@@ -177,7 +185,7 @@ function importModel(serializedModelData)
     // Stop playback to avoid glitching
     stopPlayback();
 
-    return model.deserialize(serializedModelData);
+    model.deserialize(serializedModelData);
 }
 
 function openModelFile()
@@ -203,8 +211,7 @@ function openModelFile()
             if (!e || !e.target)
                 return;
 
-            if (!importModel(e.target.result))
-                console.warn('could not deserialize model file');
+            importModel(e.target.result);
         }
     };
 
