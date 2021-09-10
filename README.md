@@ -7,7 +7,9 @@ sound synthesis and music making that runs your a web browser, with the goal of 
 a community for the open exchange of musical ideas. The design is loosely inspired by
 PureData, Max/MSP and other visual programming languages.
 The plan is for the app to remain free to use and ad-free for the foreseeable future.
-You can try NoiseCraft at https://noisecraft.app, but please note that it's a work in progress,
+
+You can try NoiseCraft at https://noisecraft.app, and browse projects shared by other
+users at https://noisecraft.app/browse. Please note that it's a work in progress,
 You may run into bugs, and support for mobile devices is currently poor. Reporting
 bugs and helping us fix them is one way you can contribute to this project.
 
