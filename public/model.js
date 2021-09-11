@@ -1157,10 +1157,14 @@ export class SetPattern extends Action
  */
 export class ExtendPattern extends Action
 {
-    constructor(nodeId)
+    constructor(nodeId, numSteps)
     {
+        if (numSteps === undefined)
+            numSteps = 16;
+
         super();
         this.nodeId = nodeId;
+        this.numSteps = numSteps;
     }
 
     update(model)
@@ -1170,9 +1174,8 @@ export class ExtendPattern extends Action
 
         let scaleNotes = music.genScale(node.scaleRoot, node.scaleName, node.numOctaves);
         let numRows = scaleNotes.length;
-        let numSteps = 16;
 
-        for (let stepIdx = 0; stepIdx < numSteps; ++stepIdx)
+        for (let stepIdx = 0; stepIdx < this.numSteps; ++stepIdx)
         {
             let newStep = new Array(numRows);
             newStep.fill(0);
@@ -1186,10 +1189,14 @@ export class ExtendPattern extends Action
  */
 export class ShrinkPattern extends Action
 {
-    constructor(nodeId)
+    constructor(nodeId, numSteps)
     {
+        if (numSteps === undefined)
+            numSteps = 16;
+
         super();
         this.nodeId = nodeId;
+        this.numSteps = numSteps;
     }
 
     update(model)
@@ -1198,9 +1205,8 @@ export class ShrinkPattern extends Action
         let grid = node.patterns[node.curPattern];
         assert (grid);
 
-        let numSteps = 16;
-        assert (numSteps < grid.length);
-        grid.length -= numSteps;
+        assert (this.numSteps < grid.length);
+        grid.length -= this.numSteps;
     }
 }
 
