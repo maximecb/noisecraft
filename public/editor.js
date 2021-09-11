@@ -1363,13 +1363,10 @@ class MidiIn extends Node
 
     destroy()
     {
-        // FIXME: unregister keyboard and midi callbacks
-        assert (false);
-
-
-
-
-
+        // Unregister global callbacks
+        window.removeEventListener('keydown', this.keyDownCb);
+        window.removeEventListener('keyup', this.keyUpCb);
+        midi.removeListener('midimessage', this.midiCb);
     }
 
     /**
