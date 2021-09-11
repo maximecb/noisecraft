@@ -1374,31 +1374,25 @@ class MidiIn extends Node
     }
 
     /**
-     * Trigger a note-on or note-off event
+     * Trigger a note on or note off event
      */
     noteOn(noteNo, vel)
     {
-        // If this is a note-on
+        // If this is a note on
         if (vel > 0)
         {
             if (this.notesOn.has(noteNo))
                 return;
 
             console.log('note on:', noteNo);
-
-            // TODO: send event
-            //this.send(new model.NoteOn(noteNo, vel));
-
+            this.send(new model.NoteOn(this.nodeId, noteNo, vel));
             this.notesOn.add(noteNo);
             this.lightDiv.style.background = '#F00';
         }
         else
         {
             console.log('note off:', noteNo);
-
-            // TODO: send event
-            //this.send(new model.NoteOn(noteNo, 0));
-
+            this.send(new model.NoteOn(this.nodeId, noteNo, 0));
             this.notesOn.delete(noteNo);
             this.lightDiv.style.background = '#333';
         }

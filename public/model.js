@@ -1274,6 +1274,30 @@ export class SendSamples extends Action
 }
 
 /**
+ * Note on message.
+ * Velocity zero means note off.
+ */
+export class NoteOn extends Action
+{
+    constructor(nodeId, noteNo, velocity)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.noteNo = noteNo;
+        this.velocity = velocity;
+    }
+
+    update(model)
+    {
+    }
+
+    get undoable()
+    {
+        return false;
+    }
+}
+
+/**
  * Remove non-persistent state variables from the model's state
  */
 function resetState(state)
