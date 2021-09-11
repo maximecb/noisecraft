@@ -1341,6 +1341,173 @@ class ClockNode extends KnobNode
 }
 
 /**
+Keep track of the currently active keys on a musical keyboard
+*/
+class MidiIn extends Node
+{
+    constructor(id, state, editor)
+    {
+        super(id, state, editor);
+
+        // Blinking activity light
+        this.lightDiv = document.createElement('div');
+        this.lightDiv.style.width = 6;
+        this.lightDiv.style.height = 6;
+        this.lightDiv.style.background = '#333';
+        this.lightDiv.style['margin-top'] = 6;
+        this.centerDiv.appendChild(this.lightDiv);
+
+        this.attachKeyboard();
+        this.attachMidi();
+    }
+
+    destroy()
+    {
+        // FIXME: unregister keyboard and midi callbacks
+        assert (false);
+
+
+
+
+
+    }
+
+    /**
+     * Trigger a note-on or note-off event
+     */
+    noteOn(noteNo, vel)
+    {
+        console.log('note on:', key);
+
+        // If this is a note-on
+        if (vel > 0)
+        {
+            // TODO: send event
+            this.lightDiv.style.background = '#F00';
+        }
+        else
+        {
+            // TODO: send event
+            this.lightDiv.style.background = '#333';
+        }
+    }
+
+    /**
+     * Register keyboard input callback
+     */
+    attachKeyboard()
+    {
+        // Current octave number for keyboard input
+        let octNo = 3;
+
+        function getNote(key)
+        {
+            switch (key)
+            {
+                // Middle row, maps to white keys
+                case 'A': return 'C0';
+                case 'S': return 'D0';
+                case 'D': return 'E0';
+                case 'F': return 'F0';
+                case 'G': return 'G0';
+                case 'H': return 'A0';
+                case 'J': return 'B0';
+                case 'K': return 'C1';
+                case 'L': return 'D1';
+
+                // Top row, black keys
+                case 'W': return 'C#0';
+                case 'E': return 'D#0';
+                case 'T': return 'F#0';
+                case 'Y': return 'G#0';
+                case 'U': return 'A#0';
+                case 'O': return 'C#1';
+
+                default: return null;
+            }
+        }
+
+        function keyDown(evt)
+        {
+            // If a text input box is focused, do nothing
+            if (evt.srcElement && evt.srcElement.nodeName.toLowerCase() == "input")
+                return;
+
+            let key = evt.key.toUpperCase();
+
+            // Z lowers octave
+            if (key == 'Z')
+            {
+                octNo = Math.max(0, this.octNo - 1);
+                return;
+            }
+            
+            // X increases octave
+            if (key == 'X')
+            {
+                octNo = Math.min(6, this.octNo + 1);
+                return;
+            }
+
+            let note = getNote(key);
+
+            if (note)
+            {
+                let noteNo = music.Note(note).shift(this.octNo).noteNo;
+                this.noteOn(noteNo, 100);
+            }
+        }
+
+        function keyUp(evt)
+        {
+            let note = getNote(key);
+            let noteNo = music.Note(note).shift(this.octNo).noteNo;
+
+            if (note)
+            {
+                this.noteOn(noteNo, 0);
+            }
+        }
+
+        this.keyDownCb = keyDown.bind(this);
+        this.keyUpCb = keyUp.bind(this);
+        window.addEventListener('keydown', this.keyDownCb);
+        window.addEventListener('keyup', this.keyUpCb);
+    }
+
+    /**
+     * Register MIDI callbacks
+     */
+    attachMidi()
+    {
+        function inputCb(msg)
+        {
+            var msgType = msg[0] & 0xF0;
+
+            // Note on
+            if (msgType == 0x90 && msg.length == 3)
+            {
+                let noteNo = msg[1];
+                let vel = msg[2];
+                this.noteOn(noteNo, vel);
+                return;
+            }
+
+            // Note off
+            if (msgType == 0x80 && msg.length == 3)
+            {
+                let noteNo = msg[1];
+                this.noteOn(noteNo, 0);
+                return;
+            }
+        }
+
+        this.midiCb = inputCb.bind(this);
+        midi.on('midimessage', this.midiCb);
+    }
+}
+
+/**
  * Monophonic note sequencer
  */
 class MonoSeq extends Node
@@ -1899,6 +2066,7 @@ const NODE_CLASSES =
     'Clock': ClockNode,
     'Const': ConstNode,
     'Knob': KnobNode,
+    'MidiIn': MidiIn,    
     'MonoSeq': MonoSeq,
     'Notes': Notes,
     'Scope': Scope,
