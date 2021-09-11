@@ -164,8 +164,6 @@ export const NODE_SCHEMA =
         description: 'parameter control knob',
     },
 
-    // Commented out because we'll start without MIDI input support
-    /*
     'MidiIn': {
         ins: [],
         outs: ['freq', 'gate'],
@@ -173,7 +171,6 @@ export const NODE_SCHEMA =
         state: [],
         description: 'MIDI note input (cv/gate)',
     },
-    */
 
     'MonoSeq': {
         ins: [

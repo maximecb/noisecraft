@@ -3,6 +3,7 @@ import { Dialog } from './dialog.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
 import * as music from './music.js';
+import { midi } from './midi.js';
 import { Knob } from './knob.js';
 
 export class Editor
@@ -1374,17 +1375,21 @@ class MidiIn extends Node
      */
     noteOn(noteNo, vel)
     {
-        console.log('note on:', key);
-
         // If this is a note-on
         if (vel > 0)
         {
+            console.log('note on:', noteNo);
+
             // TODO: send event
+
             this.lightDiv.style.background = '#F00';
         }
         else
         {
+            console.log('note off:', noteNo);
+
             // TODO: send event
+
             this.lightDiv.style.background = '#333';
         }
     }
@@ -1399,6 +1404,8 @@ class MidiIn extends Node
 
         function getNote(key)
         {
+            key = key.toUpperCase();
+
             switch (key)
             {
                 // Middle row, maps to white keys
@@ -1430,19 +1437,19 @@ class MidiIn extends Node
             if (evt.srcElement && evt.srcElement.nodeName.toLowerCase() == "input")
                 return;
 
-            let key = evt.key.toUpperCase();
+            let key = evt.key;
 
             // Z lowers octave
-            if (key == 'Z')
+            if (key == 'z' || key == 'Z')
             {
-                octNo = Math.max(0, this.octNo - 1);
+                octNo = Math.max(0, octNo - 1);
                 return;
             }
-            
+
             // X increases octave
-            if (key == 'X')
+            if (key == 'x' || key == 'X')
             {
-                octNo = Math.min(6, this.octNo + 1);
+                octNo = Math.min(6, octNo + 1);
                 return;
             }
 
@@ -1450,18 +1457,18 @@ class MidiIn extends Node
 
             if (note)
             {
-                let noteNo = music.Note(note).shift(this.octNo).noteNo;
+                let noteNo = music.Note(note).shift(octNo).noteNo;
                 this.noteOn(noteNo, 100);
             }
         }
 
         function keyUp(evt)
         {
-            let note = getNote(key);
-            let noteNo = music.Note(note).shift(this.octNo).noteNo;
+            let note = getNote(evt.key);
 
             if (note)
             {
+                let noteNo = music.Note(note).shift(octNo).noteNo;
                 this.noteOn(noteNo, 0);
             }
         }
