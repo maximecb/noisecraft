@@ -1153,7 +1153,7 @@ export class SetPattern extends Action
 }
 
 /**
- * Extend the current sequencer pattern one bar longer
+ * Extend the current sequencer pattern
  */
 export class ExtendPattern extends Action
 {
@@ -1185,7 +1185,38 @@ export class ExtendPattern extends Action
 }
 
 /**
- * Shrink the current sequencer pattern one bar shorter
+ * Extend the current sequencer pattern by copying previous steps
+ */
+export class ExtendCopy extends Action
+{
+    constructor(nodeId, numSteps)
+    {
+        if (numSteps === undefined)
+            numSteps = 16;
+
+        super();
+        this.nodeId = nodeId;
+        this.numSteps = numSteps;
+    }
+
+    update(model)
+    {
+        let node = model.state.nodes[this.nodeId];
+        let grid = node.patterns[node.curPattern];
+        assert (this.numSteps <= grid.length);
+        let fromIdx = grid.length - this.numSteps;
+
+        for (let stepIdx = 0; stepIdx < this.numSteps; ++stepIdx)
+        {
+            let prevStep = grid[fromIdx + stepIdx]
+            let newStep = prevStep.slice();
+            grid.push(newStep);
+        }
+    }
+}
+
+/**
+ * Shrink the current sequencer pattern
  */
 export class ShrinkPattern extends Action
 {
