@@ -1358,6 +1358,9 @@ class MidiIn extends Node
         this.lightDiv.style['margin-top'] = 6;
         this.centerDiv.appendChild(this.lightDiv);
 
+        // Notes that are currently on
+        this.notesOn = new Set();
+
         this.attachKeyboard();
         this.attachMidi();
     }
@@ -1378,10 +1381,15 @@ class MidiIn extends Node
         // If this is a note-on
         if (vel > 0)
         {
+            if (this.notesOn.has(noteNo))
+                return;
+
             console.log('note on:', noteNo);
 
             // TODO: send event
+            //this.send(new model.NoteOn(noteNo, vel));
 
+            this.notesOn.add(noteNo);
             this.lightDiv.style.background = '#F00';
         }
         else
@@ -1389,7 +1397,9 @@ class MidiIn extends Node
             console.log('note off:', noteNo);
 
             // TODO: send event
+            //this.send(new model.NoteOn(noteNo, 0));
 
+            this.notesOn.delete(noteNo);
             this.lightDiv.style.background = '#333';
         }
     }
