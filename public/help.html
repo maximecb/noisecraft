@@ -13,31 +13,25 @@
 
             <h2>Introduction</h2>
             <p>
-            NoiseCraft is a <a href="https://en.wikipedia.org/wiki/Modular_synthesizer" target=”_blank”>modular synthesizer</a> that runs
-            in your web browser, loosely inspired by Pure Data, Max/MSP, and other visual programming languages. Essentially,
-            it's a tool that allows you to build your own synthesizer by creating new nodes (modules) and connecting
-            them together. By connecting nodes with edges, you control how audio data and control signals flow from one
+            NoiseCraft is a visual programming language for sound synthesis and music that runs
+            in your web browser, loosely inspired by Pure Data and Max/MSP. It's a tool that allows you to build your
+            own synthesizer by creating new nodes (modules) and connecting them together. By connecting nodes with edges,
+            you control how audio data and control signals flow from one
             node to another and how sound is generated.
             </p>
 
             <p>
             For those who are new to synthesizers and sound synthesis,
-            <a href="https://gizmodo.com/a-beginners-guide-to-the-synth-1736978695" target=”_blank”>A Beginner's Guide to the Synth</a>
+            <a href="https://gizmodo.com/a-beginners-guide-to-the-synth-1736978695">A Beginner's Guide to the Synth</a>
             is a good introduction to the basic concepts involved.
             Please don't hesitate to ask any question, offer feedback or report bugs, by
-            <a href="https://github.com/maximecb/noisecraft/issues" target=”_blank”>opening an issue</a> on our
+            <a href="https://github.com/maximecb/noisecraft/issues">opening an issue</a> on our
             GitHub repository. We also welcome open source contributors, although we ask that you please communicate
             with us first before opening pull requests for new features, as we are selective as to what changes will
-            be accepted.
+            be merged.
             </p>
 
             <h2>The Basics</h2>
-
-            <h3>Node Types</h3>
-            Each node has input ports on the left, output ports on the right, and performs some operation
-            internally. Nodes like Add and Mul will add and multiply two input signals together. Sine, Saw, Pulse
-            and Noise are oscillators (signal sources). The AudioOut node takes a left and right signal and plays
-            it back on your speakers.
 
             <h3>Creating New Nodes</h3>
             <p>
@@ -45,6 +39,12 @@
             kind of node you want to create. Once the node is created, you can drag it around by clicking on the
             node's name and holding the left mouse button as you move the mouse.
             </p>
+
+            <h3>Node Types</h3>
+            Each node has input ports on the left, output ports on the right, and performs some operation
+            internally. Nodes like Add and Mul will add and multiply two input signals together. Sine, Saw, Pulse
+            and Noise are oscillators (signal sources). The AudioOut node takes a left and right signal and plays
+            it back on your speakers.
 
             <h3>Connecting Nodes</h3>
             <p>
@@ -88,6 +88,22 @@
             or the output range of a sine oscillator.
             </p>
 
+            <h3>Selecting Nodes</h3>
+            <p>
+            To select one or more nodes, press and hold the left mouse button, a red selection box will appear.
+            You can then move the mouse while holding the left mouse button pressed to select the nodes you want.
+            Release the mouse button when done and the selected nodes will remain highlighted. To deselect the
+            nodes, click any empty space in the editor.
+            </p>
+
+            <h3>Copying and Pasting</h3>
+            <p>
+            One or more nodes can be copied by first selecting the nodes you want to copy, and then
+            pressing Ctrl+X (Command+X on macOS). You can then paste the nodes at the location of your
+            mouse pointer by pressing Ctrl+V (Command+V on macOS). It's possible to copy nodes and paste
+            them in a separate NoiseCraft tab, which makes it possible to reuse parts of other project.
+            </p>
+
             <!-- TODO: Examples will need to wait until we can share projects, so we can link to the examples -->
             <!--
             <h2>Examples</h2>
@@ -98,7 +114,7 @@
             <h3>Producing Sound</h3>
             <p>
             In order to produce a sound, we need to connect an audio signal source to an audio output. The
-            <a href="#28" target="_blank">simplest possible graph</a>
+            <a href="#28">simplest possible graph</a>
             that you could make to do this involves connecting a Noise node directly to an AudioOut
             node. Try creating this simple graph, and then press the Play button in the top-right corner.
             </p>
@@ -111,7 +127,7 @@
             </p>
 
             <p>
-            This <a href="#31" target="_blank">example graph</a> uses the pitch value to directly control
+            This <a href="#31">example graph</a> uses the pitch value to directly control
             a sawtooth wave oscillator. The gate value is then multiplied by the oscillator's output, so
             that you only hear a sound when a note is playing.
             </p>
@@ -125,7 +141,7 @@
             <h3>Volume Knob</h3>
             <p>
             It's useful to be able to change the amplitude (intensity) of a signal. An easy way to do this
-            is to multiply that signal by some number. In <a href="#32" target="_blank">this example</a>,
+            is to multiply that signal by some number. In <a href="#32">this example</a>,
             we multiply the output of a noise source by some factor that is controlled by a knob. You can
             change the value that the knob produces by clicking on the knob, holding the mouse button
             down and moving your mouse up and down. Knobs, by default, produce values between 0 and 1.
