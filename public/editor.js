@@ -167,6 +167,12 @@ export class Editor
         // Find the node this action refers to, if any
         let node = action? this.nodes.get(action.nodeId):null;
 
+        // Ignore note on messages
+        if (action instanceof model.NoteOn)
+        {
+            return;
+        }
+
         // Optimize value changes
         if (action instanceof model.SetParam && action.paramName == "value")
         {

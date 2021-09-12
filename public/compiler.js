@@ -378,15 +378,13 @@ export function compile(graph)
             continue;
         }
 
-        /*
         if (node.type == 'MidiIn')
         {
-            let obj = addObj('midiin', nodeObj);
-            addLet(outName(node, 0), obj + '.freq');
-            addLet(outName(node, 1), obj + '.gate');
+            audioNodes[nodeId] = node;
+            addLet(outName(nodeId, 0), `nodes[${nodeId}].freq`);
+            addLet(outName(nodeId, 1), `nodes[${nodeId}].gate`);
             continue;
         }
-        */
 
         if (node.type == 'MonoSeq')
         {
