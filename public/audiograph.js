@@ -80,51 +80,41 @@ export class AudioGraph
     }
 
     /**
-     * Set a parameter value on a given node
+     * Parse a message from the main thread
      */
-    setParam(nodeId, paramName, value)
+    parseMsg(msg)
     {
-        assert (nodeId in this.nodes);
-        let node = this.nodes[nodeId];
-        assert (paramName in node.params);
-        node.params[paramName] = value;
-    }
+        let node = ('nodeId' in msg)? this.nodes[msg.nodeId]:null;
 
-    /**
-     * Set the entire state for a given node
-     */
-    setState(nodeId, state)
-    {
-        assert (nodeId in this.nodes);
-        let node = this.nodes[nodeId];
-        node.setState(state);
-    }
+        switch (msg.type)
+        {
+            case 'NEW_UNIT':
+            this.newUnit(msg.unit);
+            break;
 
-    /**
-     * Set a given cell in a step sequencer
-     */
-    setCell(nodeId, patIdx, stepIdx, rowIdx, value)
-    {
-        assert (nodeId in this.nodes);
-        let node = this.nodes[nodeId];
+            case 'SET_PARAM':
+            node.setParam(msg.paramName, msg.value);
+            break;
 
-        let pattern = node.state.patterns[patIdx];
-        let numRows = pattern[stepIdx].length;
+            case 'SET_STATE':
+            node.setState(msg.state);
+            break;
 
-        for (let i = 0; i < numRows; ++i)
-            pattern[stepIdx][i] = 0;
+            case 'SET_CELL':
+            node.setCell(msg.patIdx, msg.stepIdx, msg.rowIdx, msg.value);
+            break;
 
-        pattern[stepIdx][rowIdx] = value;
-    }
+            case 'QUEUE_PATTERN':
+            node.queuePattern(msg.patIdx, msg.patData);
+            break;
 
-    /**
-     * Queue the next pattern to play in a sequencer
-     */
-    queuePattern(nodeId, patIdx, patData)
-    {
-        assert (nodeId in this.nodes);
-        let node = this.nodes[nodeId];
-        node.queuePattern(patIdx, patData);
+            case 'NOTE_ON':
+            node.noteOn(msg.noteNo, msg.velocity);
+            break;
+
+            default:
+            throw new TypeError('unknown message type');
+        }
     }
 
     /**
@@ -153,6 +143,15 @@ class AudioNode
         this.sampleRate = sampleRate;
         this.sampleTime = 1 / sampleRate;
         this.send = send;
+    }
+
+    /**
+     * Set a parameter value on a given node
+     */
+    setParam(paramName, value)
+    {
+        assert (paramName in this.params);
+        this.params[paramName] = value;
     }
 
     /**
@@ -431,6 +430,63 @@ class Slide extends AudioNode
 }
 
 /**
+ * Midi input node with freq and gate outputs
+ */
+class MidiIn extends AudioNode
+{
+    constructor(id, state, sampleRate, send)
+    {
+        super(id, state, sampleRate, send);
+
+        // Current note being held
+        this.noteNo = 0;
+
+        // Frequency of the note being held
+        this.freq = 0;
+
+        // Current gate state
+        this.gateState = 'off';
+    }
+
+    noteOn(noteNo, velocity)
+    {
+        if (velocity > 0)
+        {
+            this.noteNo = noteNo;
+            this.freq = music.Note(noteNo).getFreq();
+            this.gateState = 'pretrig';
+        }
+        else
+        {
+            if (noteNo == this.noteNo)
+            {
+                this.noteNo = 0;
+                this.gateState = 'off';
+            }
+        }
+    }
+
+    update()
+    {
+        switch (this.gateState)
+        {
+            case 'pretrig':
+            this.gateState = 'on';
+            return [0, 0];
+
+            case 'on':
+            return [this.freq, 1];
+
+            case 'off':
+            return [this.freq, 0];
+
+            default:
+            assert (false);
+        }
+    }
+}
+
+/**
  * Monophonic note sequencer
  */
 class MonoSeq extends AudioNode
@@ -480,6 +536,20 @@ class MonoSeq extends AudioNode
         this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
 
         this.patIdx = state.curPattern;
+    }
+
+    /**
+     * Set a given cell in a step sequencer
+     */
+    setCell(patIdx, stepIdx, rowIdx, value)
+    {
+        let pattern = this.state.patterns[patIdx];
+        let numRows = pattern[stepIdx].length;
+
+        for (let i = 0; i < numRows; ++i)
+            pattern[stepIdx][i] = 0;
+
+        pattern[stepIdx][rowIdx] = value;
     }
 
     /**
@@ -589,5 +659,6 @@ let NODE_CLASSES =
     Scope: Scope,
     Slide: Slide,
     Filter: Filter,
+    MidiIn: MidiIn,
     MonoSeq: MonoSeq,
 };

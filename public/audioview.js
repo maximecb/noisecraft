@@ -22,6 +22,7 @@ export class AudioView
     /** Update the audio view */
     update(state, action)
     {
+        // These actions are ignored by the audio view
         if (action instanceof model.MoveNodes ||
             action instanceof model.SetNodeName ||
             action instanceof model.SetCurStep ||
@@ -83,12 +84,25 @@ export class AudioView
             return;
         }
 
+        // TODO: use this for ExtendPattern, ShrinkPattern as well
         if (action instanceof model.SetScale)
         {
             this.send({
                 type: 'SET_STATE',
                 nodeId: action.nodeId,
                 state: state.nodes[action.nodeId]
+            });
+
+            return;
+        }
+
+        if (action instanceof model.NoteOn)
+        {
+            this.send({
+                type: 'NOTE_ON',
+                nodeId: action.nodeId,
+                noteNo: action.noteNo,
+                velocity: action.velocity
             });
 
             return;

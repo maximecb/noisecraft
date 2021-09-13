@@ -381,8 +381,12 @@ export function compile(graph)
         if (node.type == 'MidiIn')
         {
             audioNodes[nodeId] = node;
-            addLet(outName(nodeId, 0), `nodes[${nodeId}].freq`);
-            addLet(outName(nodeId, 1), `nodes[${nodeId}].gate`);
+
+            addLine(
+                `let [${outName(nodeId, 0)}, ${outName(nodeId, 1)}] = ` +
+                `nodes[${nodeId}].update()`
+            );
+
             continue;
         }
 

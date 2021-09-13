@@ -26,32 +26,7 @@ class NCAudioWorklet extends AudioWorkletProcessor
     onmessage(event)
     {
         let msg = event.data;
-
-        switch (msg.type)
-        {
-            case 'NEW_UNIT':
-            this.audioGraph.newUnit(msg.unit);
-            break;
-
-            case 'SET_PARAM':
-            this.audioGraph.setParam(msg.nodeId, msg.paramName, msg.value);
-            break;
-
-            case 'SET_STATE':
-            this.audioGraph.setState(msg.nodeId, msg.state);
-            break;
-
-            case 'SET_CELL':
-            this.audioGraph.setCell(msg.nodeId, msg.patIdx, msg.stepIdx, msg.rowIdx, msg.value);
-            break;
-
-            case 'QUEUE_PATTERN':
-            this.audioGraph.queuePattern(msg.nodeId, msg.patIdx, msg.patData);
-            break;
-
-            default:
-            throw new TypeError('unknown message type');
-        }
+        this.audioGraph.parseMsg(msg);
     }
 
     process(inputs, outputs, parameters)
