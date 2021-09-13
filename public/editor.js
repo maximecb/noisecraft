@@ -1494,7 +1494,7 @@ class MidiIn extends Node
      */
     attachMidi()
     {
-        function inputCb(msg)
+        function inputCb(device, msg)
         {
             var msgType = msg[0] & 0xF0;
 
