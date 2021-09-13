@@ -121,6 +121,7 @@ window.onkeydown = function (event)
             model.redo();
         }
 
+        /*
         // Ctrl + G (group nodes)
         if (event.code == 'KeyG')
         {
@@ -128,6 +129,7 @@ window.onkeydown = function (event)
             event.preventDefault();
             editor.groupSelected();
         }
+        */
 
         return;
     }
@@ -144,7 +146,7 @@ window.onkeydown = function (event)
 
 document.onpaste = function(e)
 {
-    if (isAnyInputActive())
+    if (anyInputActive())
         return;
 
     try
@@ -158,7 +160,7 @@ document.onpaste = function(e)
 
 document.oncopy = function(e)
 {
-    if (isAnyInputActive())
+    if (anyInputActive())
         return;
 
     if (!editor.selected.length)
@@ -174,7 +176,7 @@ function handleMouseEvent(e)
     cursor = editor.getMousePos(e);
 }
 
-function isAnyInputActive()
+function anyInputActive()
 {
     let ele = document.activeElement;
     return ele && (ele.tagName === 'INPUT' || ele.tagName === 'SELECT');
