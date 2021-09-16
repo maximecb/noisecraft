@@ -12,16 +12,22 @@ export async function shareProject(model)
     let dialog = new Dialog('Share Your Creation');
     dialog.wrapperDiv.style.width = '500px';
 
-    let text = document.createElement('p');
-    text.innerHTML = '' +
-    'You can instantly share the project you created with NoiseCraft. ' +
-    'One of the main goals of NoiseCraft is to create a community for the ' +
-    'free exchange of musical ideas which encourages others to play, edit and ' +
-    're-share modified versions of your creations. As such, to share your work ' +
-    'on our platform, you must agree to renounce any rights over this work and ' +
-    'release it into the ' +
-    '<a href="https://en.wikipedia.org/wiki/Public_domain" target=”_blank”>public domain</a>. ';
-    dialog.appendChild(text);
+    dialog.paragraph(
+        'One of the main goals of NoiseCraft is to create a community for the ' +
+        'free exchange of musical ideas which encourages others to play, edit, remix and ' +
+        're-share modified versions of your creations. Our hope to create a fertile ground ' +
+        'for musical creativity and the exchange of knowledge.'
+    );
+
+    dialog.paragraph(
+        'All of the projects shared on the NoiseCraft platform are available under the ' +
+        '<a href="https://creativecommons.org/publicdomain/zero/1.0/" target=”_blank”>' +
+        'Creative Commons CC0 license</a>. ' +
+        'In order to share your project on this platform, you must agree ' +
+        'to release it into the public domain, ' +
+        'which means you agree to renounce any rights or copyright claim over it. ' +
+        'We also ask that you please not share copyrighted materials.'
+    );
 
     var paramDiv = document.createElement('div');
     paramDiv.className = 'form_div';
@@ -39,13 +45,12 @@ export async function shareProject(model)
     let agreeElem = document.createElement('input');
     agreeElem.type = 'checkbox';
     paramDiv.appendChild(agreeElem);
-    let boldNode = document.createElement('b');
-    boldNode.innerHTML = ' I agree';
-    paramDiv.appendChild(boldNode);
-    paramDiv.appendChild(document.createTextNode(
-        ' to release this work into the public ' +
+    let agreeText = document.createElement('span');
+    agreeText.innerHTML = (
+        ' <b>I agree</b> to release this work into the public ' +
         'domain and renounce any copyright claims over it.'
-    ));
+    );
+    paramDiv.appendChild(agreeText);
     dialog.appendChild(paramDiv);
 
     var shareBtn = document.createElement('button');
