@@ -173,10 +173,9 @@ export class Editor
             return;
         }
 
-        // Optimize value changes
-        if (action instanceof model.SetParam && action.paramName == "value")
+        // Ignore for now
+        if (action instanceof model.SetParam)
         {
-            node.setValue(action.value);
             return;
         }
 
@@ -1367,6 +1366,9 @@ class MidiIn extends Node
         // Notes that are currently on
         this.notesOn = new Set();
 
+        // Current octave number for keyboard input
+        this.octaveNo = state.params.octaveNo;
+
         this.attachKeyboard();
         this.attachMidi();
     }
@@ -1409,9 +1411,6 @@ class MidiIn extends Node
      */
     attachKeyboard()
     {
-        // Current octave number for keyboard input
-        let octNo = 3;
-
         function getNote(key)
         {
             key = key.toUpperCase();
@@ -1452,14 +1451,16 @@ class MidiIn extends Node
             // Z lowers octave
             if (key == 'z' || key == 'Z')
             {
-                octNo = Math.max(0, octNo - 1);
+                this.octaveNo = Math.max(0, this.octaveNo - 1);
+                this.send(new model.SetParam(this.nodeId, 'octaveNo', this.octaveNo));
                 return;
             }
 
             // X increases octave
             if (key == 'x' || key == 'X')
             {
-                octNo = Math.min(6, octNo + 1);
+                this.octaveNo = Math.min(6, this.octaveNo + 1);
+                this.send(new model.SetParam(this.nodeId, 'octaveNo', this.octaveNo));
                 return;
             }
 
@@ -1467,7 +1468,7 @@ class MidiIn extends Node
 
             if (note)
             {
-                let noteNo = music.Note(note).shift(octNo).noteNo;
+                let noteNo = music.Note(note).shift(this.octaveNo).noteNo;
                 this.noteOn(noteNo, 100);
             }
         }
@@ -1478,7 +1479,7 @@ class MidiIn extends Node
 
             if (note)
             {
-                let noteNo = music.Note(note).shift(octNo).noteNo;
+                let noteNo = music.Note(note).shift(this.octaveNo).noteNo;
                 this.noteOn(noteNo, 0);
             }
         }
