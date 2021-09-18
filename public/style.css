@@ -361,6 +361,10 @@ div.cell_high
     text-align: justify;
 }
 
+.dialog a {
+    color: #F90;
+}
+
 .dialog_title {
     font-size: 24px;
     font-family: sans-serif;
