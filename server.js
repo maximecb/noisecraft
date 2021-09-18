@@ -1,11 +1,14 @@
 // node-sqlite3 API:
 // https://github.com/mapbox/node-sqlite3/wiki/API
-const express = require('express');
-const path = require('path')
-const bodyParser = require('body-parser');
-const sqlite3 = require('sqlite3').verbose();
-const crc = require('crc');
-const crypto = require('crypto');
+import express from 'express';
+import path from 'path'
+import bodyParser from 'body-parser';
+import sqlite3 from 'sqlite3';
+import crc from 'crc';
+import crypto from 'crypto';
+
+// Load the model so we can validate projects
+import * as model from './public/model.js';
 
 var app = express();
 
@@ -139,12 +142,12 @@ app.use('/', express.static('public', {
 
 // Help page
 app.get('/help', function(req, res) {
-    res.sendFile(path.join(__dirname, 'public/help.html'));
+    res.sendFile(path.resolve('public/help.html'));
 });
 
 // Browse page
 app.get('/browse', function(req, res) {
-    res.sendFile(path.join(__dirname, 'public/browse.html'));
+    res.sendFile(path.resolve('public/browse.html'));
 });
 
 function updateStats(path, stats, clientIP)
@@ -461,7 +464,7 @@ app.get('/browse/:from', jsonParser, function (req, res)
         [fromIdx],
         function (err, rows)
         {
-            jsonStr = JSON.stringify(rows);
+            let jsonStr = JSON.stringify(rows);
             res.send(jsonStr);
         }
     );
