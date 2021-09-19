@@ -1,6 +1,6 @@
 /**
-Assert that a condition holds true
-*/
+ * Assert that a condition holds true
+ */
 export function assert(condition, errorText)
 {
     if (!errorText)
@@ -10,6 +10,15 @@ export function assert(condition, errorText)
     {
         throw errorText;
     }
+}
+
+/**
+ * Check if any input element in the page is active
+ */
+export function anyInputActive()
+{
+    let ele = document.activeElement;
+    return ele && (ele.tagName === 'INPUT' || ele.tagName === 'SELECT');
 }
 
 export function makeSvg(elName)

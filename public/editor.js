@@ -1,4 +1,4 @@
-import { assert, makeSvg, setSvg, getSvg, getBrightColor } from './utils.js';
+import { assert, anyInputActive, makeSvg, setSvg, getBrightColor } from './utils.js';
 import { Dialog } from './dialog.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
@@ -1443,7 +1443,7 @@ class MidiIn extends Node
         function keyDown(evt)
         {
             // If a text input box is focused, do nothing
-            if (evt.srcElement && evt.srcElement.nodeName.toLowerCase() == "input")
+            if (anyInputActive())
                 return;
 
             let key = evt.key;

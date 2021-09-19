@@ -1,3 +1,4 @@
+import { anyInputActive } from './utils.js';
 import { Model, Paste, Play, Stop } from './model.js';
 import { Editor } from './editor.js';
 import { AudioView } from './audioview.js';
@@ -174,12 +175,6 @@ document.oncopy = function(e)
 function handleMouseEvent(e)
 {
     cursor = editor.getMousePos(e);
-}
-
-function anyInputActive()
-{
-    let ele = document.activeElement;
-    return ele && (ele.tagName === 'INPUT' || ele.tagName === 'SELECT');
 }
 
 function importModel(serializedModelData)
