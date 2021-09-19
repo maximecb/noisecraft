@@ -103,9 +103,16 @@ window.onkeydown = function (event)
         event.preventDefault();
     }
 
-    // Ctrl / Command
+    // Ctrl or Command key
     if (event.ctrlKey || event.metaKey)
     {
+        // Ctrl + S (save)
+        if (event.code == 'KeyS')
+        {
+            saveModelFile();
+            event.preventDefault();
+        }
+
         // Ctrl + Z (undo)
         if (event.code == 'KeyZ')
         {
