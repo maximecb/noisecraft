@@ -69,6 +69,16 @@ export class Dialog extends Eventable
         this.div.appendChild(node);
     }
 
+    /**
+     * Append a new paragraph
+     */
+    paragraph(html)
+    {
+        let text = document.createElement('p');
+        text.innerHTML = html;
+        this.appendChild(text);
+    }
+
     // TODO: method to create a named button with the right styling
 
     /**

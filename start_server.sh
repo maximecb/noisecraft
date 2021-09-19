@@ -1,8 +1,2 @@
-export NODE_ENV=production
-
-forever stop server.js
-forever start server.js
-
-#forever restart server.js
-#forever stop server.js
-#forever list
+# This will automatically reload the app when files change
+pm2 start server.js --name noisecraft --log noisecraft.log

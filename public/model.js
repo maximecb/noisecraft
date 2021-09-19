@@ -167,7 +167,9 @@ export const NODE_SCHEMA =
     'MidiIn': {
         ins: [],
         outs: ['freq', 'gate'],
-        params: [],
+        params: [
+            { name: 'octaveNo', default: 3 },
+        ],
         state: [],
         description: 'MIDI note input (cv/gate)',
     },

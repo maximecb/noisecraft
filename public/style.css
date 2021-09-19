@@ -356,6 +356,15 @@ div.cell_high
     font-family: monospace
 }
 
+.dialog p {
+    font-family: sans-serif;
+    text-align: justify;
+}
+
+.dialog a {
+    color: #FA0;
+}
+
 .dialog_title {
     font-size: 24px;
     font-family: sans-serif;
