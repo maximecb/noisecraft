@@ -1,3 +1,4 @@
+import { anyInputActive } from './utils.js';
 import { Model, Paste, Play, Stop } from './model.js';
 import { Editor } from './editor.js';
 import { AudioView } from './audioview.js';
@@ -102,9 +103,16 @@ window.onkeydown = function (event)
         event.preventDefault();
     }
 
-    // Ctrl / Command
+    // Ctrl or Command key
     if (event.ctrlKey || event.metaKey)
     {
+        // Ctrl + S (save)
+        if (event.code == 'KeyS')
+        {
+            saveModelFile();
+            event.preventDefault();
+        }
+
         // Ctrl + Z (undo)
         if (event.code == 'KeyZ')
         {
@@ -174,12 +182,6 @@ document.oncopy = function(e)
 function handleMouseEvent(e)
 {
     cursor = editor.getMousePos(e);
-}
-
-function anyInputActive()
-{
-    let ele = document.activeElement;
-    return ele && (ele.tagName === 'INPUT' || ele.tagName === 'SELECT');
 }
 
 function importModel(serializedModelData)
