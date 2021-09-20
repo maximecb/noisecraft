@@ -75,11 +75,7 @@ export class Editor
         // Mouse down callback
         function onPointerDown(evt)
         {
-            console.log('editor mouse down');
-
-            let mousePos = this.getMousePos(evt);
-            this.startMousePos = mousePos;
-
+            this.setPointerDown(this.getMousePos(evt));
             this.editorDiv.setPointerCapture(evt.pointerId);
         }
 
@@ -95,10 +91,8 @@ export class Editor
         // Mouse click callback
         function onClick(evt)
         {
-            console.log('editor click');
-
             this.editorDiv.releasePointerCapture(evt.pointerId);
-            this.startMousePos = null;
+            this.setPointerUp();
 
             // If we were in the process of selecting nodes
             if (this.selectDiv)
