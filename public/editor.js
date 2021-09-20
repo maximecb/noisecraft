@@ -44,11 +44,17 @@ export class Editor
         // List of nodes ids for nodes being dragged
         this.dragNodes = [];
 
-        // Mouse position at the start of a group selection or node movement
-        this.startMousePos = null;
+        // Positional information about the pointer
+        this.pointer = {
+            // Currently known location of the pointer. This is provided by
+            // browser events and manually updated as needed, while
+            // autoscrolling for example.
+            position: null,
 
-        // Last mouse position during node movement
-        this.lastMousePos = null;
+            // Location of the pointer when it was last pressed down. Cleared
+            // when the pointer is no longer pressed down.
+            downPosition: null
+        };
 
         // Edge in the process of being connected
         this.edge = null;
@@ -83,28 +89,7 @@ export class Editor
             // Avoids selecting the project title in Chrome
             evt.preventDefault();
 
-            var mousePos = this.getMousePos(evt);
-
-            // If currently moving one or more nodes
-            if (this.dragNodes.length > 0)
-            {
-                this.moveNodes(mousePos);
-                return;
-            }
-
-            // If currently connecting a port
-            if (this.edge)
-            {
-                this.edge.dragEdge(mousePos);
-                return;
-            }
-
-            // If a selection is in progress
-            if (this.startMousePos)
-            {
-                this.updateSelect(this.startMousePos, mousePos);
-                return;
-            }
+            this.setPointerPosition(this.getMousePos(evt));
         }
 
         // Mouse click callback
@@ -488,8 +473,6 @@ export class Editor
         if (this.dragNodes.length > 0)
             return;
 
-        console.log('starting drag');
-
         if (this.selected.indexOf(nodeId) != -1)
         {
             this.dragNodes = this.selected;
@@ -500,8 +483,7 @@ export class Editor
             this.deselect();
         }
 
-        this.startMousePos = mousePos;
-        this.lastMousePos = mousePos;
+        this.setPointerDown(mousePos);
     }
 
     // Stop dragging/moving nodes
@@ -511,10 +493,8 @@ export class Editor
         if (this.dragNodes.length == 0)
             return;
 
-        console.log('end drag');
-
-        let dx = mousePos.x - this.startMousePos.x;
-        let dy = mousePos.y - this.startMousePos.y;
+        let dx = mousePos.x - this.pointer.downPosition.x;
+        let dy = mousePos.y - this.pointer.downPosition.y;
 
         // Send the update to the model to actually move the nodes
         if (dx != 0 || dy != 0)
@@ -527,18 +507,65 @@ export class Editor
         }
 
         this.dragNodes = [];
-        this.startMousePos = null;
-        this.lastMousePos = null;
+        this.setPointerUp();
+    }
+
+    setPointerUp()
+    {
+        this.pointer.downPosition = null;
+        this.setPointerPosition(null);
+    }
+
+    setPointerDown(position)
+    {
+        this.pointer.downPosition = position;
+        this.setPointerPosition(position);
+    }
+
+    setPointerPosition(position)
+    {
+        if (position === null || !this.pointer.position)
+        {
+            this.pointer.position = position;
+            return;
+        }
+
+        let dx = position.x - this.pointer.position.x;
+        let dy = position.y - this.pointer.position.y;
+        this.pointer.position = position;
+
+        if (dx == 0 && dy == 0)
+            return;
+
+        // If currently moving one or more nodes
+        if (this.dragNodes.length > 0)
+        {
+            this.moveNodes(dx, dy);
+        }
+
+        // If currently connecting a port
+        else if (this.edge)
+        {
+            this.edge.dragEdge(position);
+        }
+
+        // If a selection is in progress
+        else if (this.pointer.downPosition)
+        {
+            this.updateSelect(this.pointer.downPosition, this.pointer.position);
+        }
+
+        else
+        {
+            return;
+        }
+
+        this.queueViewAdjustment();
     }
 
     // Move nodes currently being dragged to a new position
-    moveNodes(mousePos)
+    moveNodes(dx, dy)
     {
-        assert (this.lastMousePos);
-        let dx = mousePos.x - this.lastMousePos.x;
-        let dy = mousePos.y - this.lastMousePos.y;
-        this.lastMousePos = mousePos;
-
         // Move the nodes
         for (let nodeId of this.dragNodes)
         {
@@ -548,9 +575,82 @@ export class Editor
 
         // Resize the editor to fit all the nodes
         this.resize();
+    }
 
-        // TODO: we probably want to scroll a bit to follow the node
-        // when moving a node off-screen.
+    queueViewAdjustment()
+    {
+        if (this.viewAdjustmentHandle)
+            return;
+
+        this.viewAdjustmentHandle = setTimeout(this.adjustView.bind(this), 16);
+    }
+
+    adjustView()
+    {
+        this.viewAdjustmentHandle = null;
+
+        if (!this.pointer.downPosition || !this.pointer.position)
+            return;
+
+        let padding = 64;
+        let autoscrollBounds = this.getViewportBounds();
+        autoscrollBounds.top += padding;
+        autoscrollBounds.left += padding;
+        autoscrollBounds.right -= padding;
+        autoscrollBounds.bottom -= padding;
+
+        let dx = 0;
+        let dy = 0;
+
+        function getScrollMagnitude(a, b)
+        {
+            return Math.min(padding * 2, Math.abs(a - b) / Math.sqrt(padding));
+        }
+
+        if (this.pointer.position.x > autoscrollBounds.right)
+            dx += getScrollMagnitude(this.pointer.position.x, autoscrollBounds.right);
+
+        else if (this.pointer.position.x < autoscrollBounds.left)
+            dx -= getScrollMagnitude(this.pointer.position.x, autoscrollBounds.left);
+
+        if (this.pointer.position.y > autoscrollBounds.bottom)
+            dy += getScrollMagnitude(this.pointer.position.y, autoscrollBounds.bottom);
+
+        if (this.pointer.position.y < autoscrollBounds.top)
+            dy -= getScrollMagnitude(this.pointer.position.y, autoscrollBounds.top);
+
+        dx = Math.round(dx);
+        dy = Math.round(dy);
+
+        if (dx != 0 || dy != 0)
+        {
+            let prevScrollLeft = this.editorDiv.scrollLeft;
+            this.editorDiv.scrollLeft = this.editorDiv.scrollLeft + dx;
+            dx = this.editorDiv.scrollLeft - prevScrollLeft;
+
+            let prevScrollTop = this.editorDiv.scrollTop;
+            this.editorDiv.scrollTop = this.editorDiv.scrollTop + dy;
+            dy = this.editorDiv.scrollTop - prevScrollTop;
+
+            if (dx != 0 || dy != 0)
+            {
+                this.setPointerPosition({
+                    x: this.pointer.position.x + dx,
+                    y: this.pointer.position.y + dy
+                });
+            }
+        }
+    }
+
+    // Get the boundary information for the viewport.
+    getViewportBounds()
+    {
+        return {
+            left: this.editorDiv.scrollLeft,
+            top: this.editorDiv.scrollTop,
+            right: this.editorDiv.scrollLeft + this.editorDiv.offsetWidth,
+            bottom: this.editorDiv.scrollTop + this.editorDiv.offsetHeight
+        };
     }
 
     // Delete the currently selected nodes
