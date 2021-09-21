@@ -1589,6 +1589,9 @@ class MonoSeq extends Node
         selectNum.onchange = scaleChange.bind(this);
         selectRoot.onchange = scaleChange.bind(this);
         selectScale.onchange = scaleChange.bind(this);
+        selectNum.onpointerdown = evt => evt.stopPropagation();
+        selectRoot.onpointerdown = evt => evt.stopPropagation();
+        selectScale.onpointerdown = evt => evt.stopPropagation();
 
         // Populate the num octaves selection
         for (let numOcts = 1; numOcts <= 3; ++numOcts)
