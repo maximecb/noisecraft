@@ -261,7 +261,7 @@ export function getBrightColor(key)
     let colors = [
         '#971c93',
         '#5124cd',
-        '#0131ff',
+        '#0551ff', // Bright blue
         '#009393',
         '#00fa00',
         '#cbfa00',
