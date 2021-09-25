@@ -173,9 +173,15 @@ export class Editor
             return;
         }
 
-        // Ignore for now
+        // Set a parameter on a node
         if (action instanceof model.SetParam)
         {
+            if (action.paramName == "value")
+            {
+                node.setValue(action.value);
+            }
+
+            // Ignore other SetParam actions for now
             return;
         }
 
@@ -1227,31 +1233,19 @@ class ConstNode extends Node
         input.maxLength = 12;
         this.centerDiv.appendChild(input);
 
-        let node = this;
-
-        function resize()
+        input.oninput = (evt) =>
         {
-            // Adjust the size of the input field
-            let width = Math.max(2, 1 + input.value.length) + 'ch';
-            input.style.width = width;
-
-            // Adjust the position of the ports and edges
-            node.move(0, 0);
+            this.resize();
         }
 
-        input.oninput = function ()
-        {
-            resize();
-        }
-
-        input.onchange = function ()
+        input.onchange = (evt) =>
         {
             let val = Number(input.value);
 
             if (input.value.trim() === "" || isNaN(val))
             {
-                // Restore value from params
-                input.value = state.params.value;
+                // Reset the value
+                input.value = 0;
             }
             else
             {
@@ -1262,10 +1256,10 @@ class ConstNode extends Node
                 ));
             }
 
-            resize();
+            this.resize();
         }
 
-        input.onkeydown = function (evt)
+        input.onkeydown = (evt) =>
         {
             if (evt.key === "Enter")
             {
@@ -1278,13 +1272,24 @@ class ConstNode extends Node
         input.onclick = evt => evt.stopPropagation();
         input.ondblclick = evt => evt.stopPropagation();
 
-        input.value = state.params.value;
-        resize();
+        this.setValue(state.params.value);
+    }
+
+    // Adjust the node size in function of its contents
+    resize()
+    {
+        // Adjust the size of the input field
+        let width = Math.max(2, 1 + this.input.value.length) + 'ch';
+        this.input.style.width = width;
+
+        // Adjust the position of the ports and edges
+        this.move(0, 0);
     }
 
     setValue(value)
     {
         this.input.value = value;
+        this.resize();
     }
 }
 
