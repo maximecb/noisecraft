@@ -509,7 +509,7 @@ class MonoSeq extends AudioNode
 
         // Amount of time the gate stays open for each step
         // This is currently not configurable
-        this.gateTime = 0.1;
+        this.gateTime = 0.05;
 
         // Output frequency and gate values
         this.freq = 0;
