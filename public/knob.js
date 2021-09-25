@@ -63,13 +63,22 @@ export class Knob extends Eventable
             let normVal = this.getNormVal();
 
             let deltaY = -evt.movementY
-            let scaleY = 100;
+            let scaleY = 1 / 100;
+
+            // If the shift key is down, fine-tune mode
+            if (evt.shiftKey)
+                scaleY /= 5;
 
             // Update the control value
-            normVal += deltaY / scaleY;
+            normVal += deltaY * scaleY;
             normVal = Math.min(normVal, 1);
             normVal = Math.max(normVal, 0);
             this.setNormVal(normVal);
+        }
+
+        function onClick(evt)
+        {
+            evt.stopPropagation();
         }
 
         function onDoubleClick(evt)
@@ -81,6 +90,7 @@ export class Knob extends Eventable
         this.div.onpointerdown = onPointerDown.bind(this);
         this.div.onpointerup = onPointerUp.bind(this);
         this.div.onpointermove = onPointerMove.bind(this);
+        this.div.onclick = onClick.bind(this);
         this.div.ondblclick = onDoubleClick.bind(this);
 
         // Re-bind the controller to MIDI
