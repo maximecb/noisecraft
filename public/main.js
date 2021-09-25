@@ -216,6 +216,9 @@ function openModelFile()
                 return;
 
             importModel(e.target.result);
+
+            // Clear any hash tag in the URL
+            history.replaceState(null, null, ' ');
         }
     };
 
