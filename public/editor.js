@@ -1683,6 +1683,9 @@ class MonoSeq extends Node
             this.patBtns.push(patSel);
         }
 
+        // Generate the scale notes
+        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
+
         // Currently active pattern
         this.patIdx = state.curPattern;
 
@@ -1720,6 +1723,7 @@ class MonoSeq extends Node
             // It's larger and therefore easier to click
             var cell = document.createElement('div');
             cell.style['display'] = 'inline-block';
+            cell.title = this.scale[j].toString();
 
             // 4-step beat separator
             if (i % 4 == 0)
