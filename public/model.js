@@ -359,9 +359,11 @@ export function validateProject(project)
         validateNode(node);
     }
 
-    // TODO: validate that there are no extraneous properties
-    // only title and nodes
-    // does JS have set equality or union/intersection?
+    // Validate that there are no extraneous properties
+    for (let key in Object.keys(project))
+    {
+        assert (key in ['title', 'nodes']);
+    }
 }
 
 /**
@@ -382,7 +384,7 @@ export function validateNode(node)
 
     validateParams(node.type, node.params);
 
-    // TODO: validate that there are no extraneous properties
+    // TODO: validate that there are no extraneous node properties
 }
 
 /**
@@ -394,12 +396,28 @@ export function validateParams(nodeType, params)
     assert (nodeType in NODE_SCHEMA);
     let schema = NODE_SCHEMA[nodeType];
 
-    // TODO: validate minVal, maxVal, value
-    //minVal <= maxVal
+
+    // TODO: validate parameters
 
 
 
 
+    // Validate value/minVal/maxVal
+    if ('value' in params && 'minVal' in params)
+    {
+        //console.log(nodeType, params.value, params.minVal, params.maxVal);
+
+        assert (typeof params.value === 'number');
+        assert (typeof params.minVal === 'number');
+        assert (typeof params.maxVal === 'number');
+
+        if (params.value < params.minVal)
+            throw RangeError('value cannot be set below minVal');
+        if (params.value > params.maxVal)
+            throw RangeError('value cannot be set above maxVal');
+        if (params.minVal > params.maxVal)
+            throw RangeError('maxVal must be set above minVal');
+    }
 }
 
 /**

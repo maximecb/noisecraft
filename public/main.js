@@ -73,11 +73,12 @@ document.body.onload = async function ()
     {
         console.log(e.stack);
 
-        model.new();
-
         // If loading failed, we don't want to reload
-        // the same data again next time
+        // the same data again and error repeatedly
         localStorage.removeItem('latestModelData');
+
+        // Reset the project
+        model.new();
     }
 }
 
