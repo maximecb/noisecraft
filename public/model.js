@@ -1,20 +1,3 @@
-/*
-Nodes
-=====
-
-Each node has:
-- a node type (string)
-- node name (string)
-- global id number (integer)
-- params (list of values, user-editable)
-  - some of these can be invisible to the user
-  - some of these are reset after playback
-- a map of input connections for each input port
-  - pairs of (node_id, out_port_idx), no property if no connection
-- private state that is used for audio
-  - this is not persisted and not tracked by the model
-*/
-
 import { assert, isPosInt, treeCopy, treeEq, isString, isObject } from './utils.js';
 import * as music from './music.js';
 
@@ -72,6 +55,19 @@ export const NODE_SCHEMA =
         ],
         description: 'MIDI clock signal source with tempo in BPM',
     },
+
+    /*
+    'ClockDiv': {
+        ins: [
+            { name: '', default: 0 }
+        ],
+        outs: [''],
+        params: [
+            { name: 'divider', default: 2 },
+        ],
+        description: 'clock signal divider',
+    },
+    */
 
     'Const': {
         ins: [],
@@ -308,6 +304,103 @@ export const NODE_SCHEMA =
         description: 'user-created module (node grouping)',
     },
 };
+
+/**
+ * Remove non-persistent state variables from the model's state
+ */
+function resetState(state)
+{
+    // Properties found on every node
+    let nodeProps = new Set([
+        'type',
+        'name',
+        'x',
+        'y',
+        'ins',
+        'params'
+    ]);
+
+    for (let id in state.nodes)
+    {
+        let node = state.nodes[id];
+        let keys = Object.keys(node);
+        let schema = NODE_SCHEMA[node.type];
+        let stateVars = new Set(schema.state);
+
+        for (let key of keys)
+        {
+            if (!nodeProps.has(key) && !stateVars.has(key))
+            {
+                console.log('deleting', node.type, key);
+                delete node[key];
+            }
+        }
+    }
+}
+
+/**
+ * Validate the state encoding for a project
+ */
+export function validateProject(project)
+{
+    assert (project instanceof Object);
+
+    // Validate the project title
+    assert (typeof project.title === 'string');
+    assert (project.title.length <= 50);
+
+    assert (project.nodes instanceof Object);
+
+    // Validate each individual node
+    for (let nodeId in project.nodes)
+    {
+        assert (typeof nodeId === 'string');
+        let node = project.nodes[nodeId];
+        validateNode(node);
+    }
+
+    // TODO: validate that there are no extraneous properties
+    // only title and nodes
+    // does JS have set equality or union/intersection?
+}
+
+/**
+ * Validate the state encoding of a node
+ */
+export function validateNode(node)
+{
+    assert (node instanceof Object);
+    assert (node.type in NODE_SCHEMA);
+    let schema = NODE_SCHEMA[node.type];
+
+    // Node x/y position
+    assert (typeof node.x === 'number');
+    assert (typeof node.y === 'number');
+
+    // TODO: validate inputs
+    assert (node.ins instanceof Array);
+
+    validateParams(node.type, node.params);
+
+    // TODO: validate that there are no extraneous properties
+}
+
+/**
+ * Validate the parameters for a node of a given type
+ */
+export function validateParams(nodeType, params)
+{
+    assert (params instanceof Object);
+    assert (nodeType in NODE_SCHEMA);
+    let schema = NODE_SCHEMA[nodeType];
+
+    // TODO: validate minVal, maxVal, value
+    //minVal <= maxVal
+
+
+
+
+}
 
 /**
  * Base class for all model update actions.
@@ -1300,39 +1393,6 @@ export class NoteOn extends Action
 }
 
 /**
- * Remove non-persistent state variables from the model's state
- */
-function resetState(state)
-{
-    // Properties found on every node
-    let nodeProps = new Set([
-        'type',
-        'name',
-        'x',
-        'y',
-        'ins',
-        'params'
-    ]);
-
-    for (let id in state.nodes)
-    {
-        let node = state.nodes[id];
-        let keys = Object.keys(node);
-        let schema = NODE_SCHEMA[node.type];
-        let stateVars = new Set(schema.state);
-
-        for (let key of keys)
-        {
-            if (!nodeProps.has(key) && !stateVars.has(key))
-            {
-                console.log('deleting', node.type, key);
-                delete node[key];
-            }
-        }
-    }
-}
-
-/**
  * Graph of nodes model, operates on internal state data
  */
 export class Model
@@ -1367,7 +1427,8 @@ export class Model
     // Load the JSON state into the model
     load(state)
     {
-        assert (state instanceof Object);
+        // Check that the state encoding is valid
+        validateProject(state);
 
         // Initialize missing params to default values
         // This is for backwards compatibility with older projects

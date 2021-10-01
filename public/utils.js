@@ -8,7 +8,7 @@ export function assert(condition, errorText)
 
     if (!condition)
     {
-        throw errorText;
+        throw new Error(errorText);
     }
 }
 

@@ -29,8 +29,15 @@ let cursor = { x: 0, y: 0 };
 
 document.body.onload = async function ()
 {
-    // Create a new blank project
-    model.new();
+    try
+    {
+        // Create a new blank project
+        model.new();
+    }
+    catch (e)
+    {
+        console.log(e.stack);
+    }
 
     if (window.location.hash)
     {
@@ -62,8 +69,10 @@ document.body.onload = async function ()
     {
         importModel(serializedModelData);
     }
-    catch
+    catch (e)
     {
+        console.log(e.stack);
+
         model.new();
 
         // If loading failed, we don't want to reload
