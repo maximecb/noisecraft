@@ -1097,40 +1097,40 @@ class Node
         deleteBtn.className = 'form_btn';
         dialog.appendChild(deleteBtn);
 
-        // TODO: we should move saveParams into a method
-        // and to some validation based on the schema at save time
         function saveParams()
         {
-            // Model updates may fail for some values
+            // Validate the new parameters
             try
             {
-                this.send(new model.SetNodeName(
-                    this.nodeId,
-                    newName
-                ));
-
-                // For each parameter
-                for (let param of this.schema.params)
-                {
-                    if (newParams[param.name] == nodeState.params[param.name])
-                        continue;
-
-                    this.send(new model.SetParam(
-                        this.nodeId,
-                        param.name,
-                        newParams[param.name]
-                    ));
-                }
-
-                dialog.close();
+                model.validateParams(this.nodeType, newParams);
             }
-
             catch (e)
             {
                 // If model updates fail, we don't close the dialog
-                dialog.showError(e);
+                dialog.showError(e.message);
                 console.log(e);
+                return;
             }
+
+            this.send(new model.SetNodeName(
+                this.nodeId,
+                newName
+            ));
+
+            // For each parameter
+            for (let param of this.schema.params)
+            {
+                if (newParams[param.name] == nodeState.params[param.name])
+                    continue;
+
+                this.send(new model.SetParam(
+                    this.nodeId,
+                    param.name,
+                    newParams[param.name]
+                ));
+            }
+
+            dialog.close();
         }
 
         saveBtn.onclick = saveParams.bind(this);

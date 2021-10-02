@@ -447,14 +447,26 @@ export function validateParams(nodeType, params)
         let value = params[param.name];
         //console.log(param.name, value);
 
-        assert (
-            typeof value == 'string' ||
-            typeof value == 'number' ||
-            value == null
-        );
-
-        assert (!(typeof param.default == 'string' && typeof value != 'string'));
-        assert (!(typeof param.default == 'number' && typeof value != 'number'));
+        if (typeof param.default == 'number')
+        {
+            if (typeof value != 'number')
+                throw RangeError(`${param.name} must be a number`);
+            if (isNaN(value))
+                throw RangeError(`${param.name} must be a number`);
+        }
+        else if (typeof param.default == 'string')
+        {
+            if (typeof value != 'number')
+                throw RangeError(`${param.name} must be a string`);
+        }
+        else
+        {
+            assert (
+                value === null ||
+                typeof value == 'number' ||
+                typeof value == 'string'
+            );
+        }
     }
 
     // Validate value/minVal/maxVal
@@ -853,18 +865,6 @@ export class SetParam extends Action
     {
         let node = model.state.nodes[this.nodeId];
         assert (this.paramName in node.params);
-
-        switch (this.paramName)
-        {
-            case "minVal":
-            case "maxVal":
-            case "value":
-            assert (typeof this.value == "number");
-
-            default:
-            break;
-        }
-
         node.params[this.paramName] = this.value;
     }
 }
