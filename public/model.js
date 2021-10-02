@@ -456,7 +456,7 @@ export function validateParams(nodeType, params)
         }
         else if (typeof param.default == 'string')
         {
-            if (typeof value != 'number')
+            if (typeof value != 'string')
                 throw RangeError(`${param.name} must be a string`);
         }
         else
