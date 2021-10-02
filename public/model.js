@@ -375,16 +375,48 @@ export function validateNode(node)
     assert (node.type in NODE_SCHEMA);
     let schema = NODE_SCHEMA[node.type];
 
+    // Node name
+    assert (typeof node.name == 'string');
+    assert (node.name.length <= 12);
+
     // Node x/y position
     assert (typeof node.x === 'number');
     assert (typeof node.y === 'number');
 
-    // TODO: validate inputs
+    // Validate input format
     assert (node.ins instanceof Array);
+    for (let input of node.ins)
+    {
+        if (input)
+        {
+            assert (input instanceof Array);
+            assert (input.length == 2);
+            assert (typeof input[0] == 'string');
+            assert (typeof input[1] == 'number');
+        }
+    }
 
+    // Validate the node parameters
     validateParams(node.type, node.params);
 
-    // TODO: validate that there are no extraneous node properties
+    // Validate that there are no extraneous node properties
+    for (let key in node)
+    {
+        switch (key)
+        {
+            case 'type':
+            case 'name':
+            case 'x':
+            case 'y':
+            case 'ins':
+            case 'params':
+            continue;
+
+            default:
+            //console.log(node.type, key);
+            assert (schema.state.indexOf(key) != -1);
+        }
+    }
 }
 
 /**
@@ -413,8 +445,7 @@ export function validateParams(nodeType, params)
         }
 
         let value = params[param.name];
-
-        console.log(param.name, value);
+        //console.log(param.name, value);
 
         assert (
             typeof value == 'string' ||
