@@ -396,11 +396,35 @@ export function validateParams(nodeType, params)
     assert (nodeType in NODE_SCHEMA);
     let schema = NODE_SCHEMA[nodeType];
 
+    // Validate the parameter names
+    let paramNames = new Set(schema.params.map(p => p.name));
+    for (let name in params)
+    {
+        assert (paramNames.has(name));
+    }
 
-    // TODO: validate parameters
+    // Validate the parameter types
+    for (let param of schema.params)
+    {
+        // If this parameter is not present, skip it
+        if (!(param.name in params))
+        {
+            continue;
+        }
 
+        let value = params[param.name];
 
+        console.log(param.name, value);
 
+        assert (
+            typeof value == 'string' ||
+            typeof value == 'number' ||
+            value == null
+        );
+
+        assert (!(typeof param.default == 'string' && typeof value != 'string'));
+        assert (!(typeof param.default == 'number' && typeof value != 'number'));
+    }
 
     // Validate value/minVal/maxVal
     if ('value' in params && 'minVal' in params)
