@@ -1514,7 +1514,6 @@ export class Model
             {
                 if (!(param.name in node.params))
                 {
-                    console.log(param.name)
                     node.params[param.name] = param.default;
                 }
             }
