@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import * as model from './public/model.js';
 import { assert } from './public/utils.js';
+import * as model from './public/model.js';
+import { compile } from './public/compiler.js';
 
 fs.readdirSync('examples').forEach(fileName => {
     let filePath = path.join('examples', fileName);
@@ -17,6 +18,9 @@ fs.readdirSync('examples').forEach(fileName => {
     // Test serialization
     let out = m.serialize();
     assert (out.length > 0);
+
+    // Test the compiler
+    compile(m.state);
 });
 
 let m = new model.Model();
