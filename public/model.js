@@ -56,18 +56,16 @@ export const NODE_SCHEMA =
         description: 'MIDI clock signal source with tempo in BPM',
     },
 
-    /*
     'ClockDiv': {
         ins: [
             { name: '', default: 0 }
         ],
         outs: [''],
         params: [
-            { name: 'divider', default: 2 },
+            { name: 'factor', default: 2 },
         ],
         description: 'clock signal divider',
     },
-    */
 
     'Const': {
         ins: [],
@@ -484,6 +482,13 @@ export function validateParams(nodeType, params)
             throw RangeError('value cannot be set above maxVal');
         if (params.minVal > params.maxVal)
             throw RangeError('maxVal must be set above minVal');
+    }
+
+    // Validate ClockDiv factor
+    if ('factor' in params)
+    {
+        if (!isPosInt(params.factor))
+            throw RangeError('factor must be a positive integer');
     }
 }
 

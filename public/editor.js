@@ -1210,6 +1210,48 @@ class Node
 }
 
 /**
+ * Clock signal divider
+ */
+class ClockDiv extends Node
+{
+    constructor(id, state, editor)
+    {
+        super(id, state, editor);
+
+        // Factor selection dropdown menu
+        let select = document.createElement("select");
+        select.style['margin-top'] = 4;
+        select.style['margin-bottom'] = 4;
+        this.centerDiv.append(select)
+
+        // Populate the factor selection
+        for (let factor of [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 16, 24, 32])
+        {
+            var opt = document.createElement("option");
+            opt.setAttribute('value', factor);
+            opt.innerHTML = '1:' + factor;
+            opt.selected = (factor == state.params.factor);
+            select.appendChild(opt);
+        }
+
+        function factorChange()
+        {
+            let factor = Number(select.options[select.selectedIndex].value);
+
+            this.send(new model.SetParam(
+                this.nodeId,
+                'factor',
+                factor
+            ));
+        }
+
+        select.onchange = factorChange.bind(this);
+        select.onpointerdown = evt => evt.stopPropagation();
+        select.onclick = evt => evt.stopPropagation();
+    }
+}
+
+/**
  * Constant value node
  */
 class ConstNode extends Node
@@ -2090,11 +2132,12 @@ class Scope extends Node
 // Map of node types to specialized node classes
 const NODE_CLASSES =
 {
-    'Clock': ClockNode,
-    'Const': ConstNode,
-    'Knob': KnobNode,
-    'MidiIn': MidiIn,    
-    'MonoSeq': MonoSeq,
-    'Notes': Notes,
-    'Scope': Scope,
+    ClockDiv: ClockDiv,
+    Clock: ClockNode,
+    Const: ConstNode,
+    Knob: KnobNode,
+    MidiIn: MidiIn,
+    MonoSeq: MonoSeq,
+    Notes: Notes,
+    Scope: Scope,
 }

@@ -314,14 +314,13 @@ export function compile(graph)
             continue;
         }
 
-        /*
-        if (node.type == 'ClockOut')
+
+        if (node.type == 'ClockDiv')
         {
-            let clockNode = addObj('clockout', nodeObj);
-            addLine(clockNode + '.update(' + inVal(node, 0) + ')');
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)})`);
             continue;
         }
-        */
 
         if (node.type == 'Const')
         {

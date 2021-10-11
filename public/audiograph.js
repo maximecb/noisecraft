@@ -203,6 +203,57 @@ class Clock extends AudioNode
 }
 
 /**
+ * Clock signal divider
+ */
+class ClockDiv extends AudioNode
+{
+    constructor(id, state, sampleRate, send)
+    {
+        super(id, state, sampleRate, send);
+
+        // Last clock sign at the input (positive/negative)
+        this.inSgn = false;
+
+        // Current clock sign at the output (positive/negative)
+        this.outSgn = false;
+
+        // Number of input ticks since the last output tick
+        this.clockCnt = 0;
+    }
+
+    update(clock)
+    {
+        // Current clock sign at the input
+        let curSgn = (clock > 0);
+
+        // If the clock sign just flipped
+        if (this.inSgn != curSgn)
+        {
+            // If we're outputting zero, we have to count rising edges,
+            // but if we're outputting one, we have to count falling edges
+            if (curSgn != this.outSgn)
+            {
+                this.clockCnt++;
+            }
+
+            // If we've reached the current count
+            if (this.clockCnt >= this.params.factor)
+            {
+                // Reset the clock count
+                this.clockCnt = 0;
+
+                // Flip the output clock sign
+                this.outSgn = !this.outSgn;
+            }
+        }
+
+        this.inSgn = curSgn;
+
+        return this.outSgn? 1:-1;
+    }
+}
+
+/**
  * Delay line node
  */
 class Delay extends AudioNode
@@ -650,6 +701,7 @@ let NODE_CLASSES =
 {
     ADSR: ADSRNode,
     Clock: Clock,
+    ClockDiv: ClockDiv,
     Delay: Delay,
     Distort: Distort,
     Pulse: PulseOsc,
