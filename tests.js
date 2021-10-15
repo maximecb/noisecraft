@@ -20,7 +20,12 @@ fs.readdirSync('examples').forEach(fileName => {
     assert (out.length > 0);
 
     // Test the compiler
-    compile(m.state);
+    let unit = compile(m.state);
+    let genSample = new Function(
+        'time',
+        'nodes',
+        unit.src
+    );
 });
 
 let m = new model.Model();
