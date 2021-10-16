@@ -133,20 +133,22 @@ async function checkSession(userId, sessionId)
 
 // Serve static file requests
 app.use('/', express.static('public', {
-    // setHeaders is called on success (stat available/file found)
+    // setHeaders is called on success (file found)
     setHeaders: function(res, path, stat) {
-        // count request: full-path, file-stats, client-ip
+        // Count the request: full-path, file-stats, client-ip
         updateStats(path, stat, getClientIP(res.req));
     }
 }));
 
 // Help page
-app.get('/help', function(req, res) {
+app.get('/help', function(req, res)
+{
     res.sendFile(path.resolve('public/help.html'));
 });
 
 // Browse page
-app.get('/browse', function(req, res) {
+app.get('/browse', function(req, res)
+{
     res.sendFile(path.resolve('public/browse.html'));
 });
 
