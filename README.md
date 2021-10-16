@@ -94,3 +94,9 @@ node server.js
 ```
 
 NoiseCraft is then accessible at `http://localhost:7773/`
+
+To run tests locally:
+
+```
+node tests.js
+```
