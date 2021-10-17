@@ -179,10 +179,11 @@ export class Editor
             if (action.paramName == "value")
             {
                 node.setValue(action.value);
+                return;
             }
 
-            // Ignore other SetParam actions for now
-            return;
+            // Other SetParam actions will
+            // recreate the UI nodes
         }
 
         // Toggle grid sequencer cell on/off
