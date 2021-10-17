@@ -665,8 +665,6 @@ export class DeleteNodes extends Action
 
     update(model)
     {
-        console.log('deleting nodes', this.nodeIds);
-
         // For each node to be deleted
         for (let nodeId of this.nodeIds)
         {
