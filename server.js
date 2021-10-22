@@ -16,7 +16,8 @@ var app = express();
 var jsonParser = bodyParser.json()
 
 // Connect to the database
-let db = new sqlite3.Database('./database.db', (err) => {
+let db = new sqlite3.Database('./database.db', (err) => 
+{
     if (err)
         throw err;
     console.log('Connected to the database');
