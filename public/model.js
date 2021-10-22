@@ -171,6 +171,7 @@ export const NODE_SCHEMA =
     'MonoSeq': {
         ins: [
             { name: 'clock', default: 0 },
+            { name: 'gateT', default: 0.1 },
         ],
         outs: ['freq', 'gate'],
         params: [],

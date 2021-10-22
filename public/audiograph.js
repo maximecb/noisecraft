@@ -558,10 +558,6 @@ class MonoSeq extends AudioNode
         // Time the last note was triggered
         this.trigTime = 0;
 
-        // Amount of time the gate stays open for each step
-        // This is currently not configurable
-        this.gateTime = 0.05;
-
         // Output frequency and gate values
         this.freq = 0;
         this.gate = 0;
@@ -618,7 +614,7 @@ class MonoSeq extends AudioNode
      * Takes the current time and clock signal as input.
      * Produces frequency and gate signals as output.
      */
-    update(time, clock)
+    update(time, clock, gateTime)
     {
         if (!this.clockSgn && clock > 0)
         {
@@ -679,7 +675,7 @@ class MonoSeq extends AudioNode
         // If we are past the end of the note
         if (this.gate > 0)
         {
-            if (time - this.trigTime > this.gateTime)
+            if (time - this.trigTime > gateTime)
             {
                 this.gate = 0;
                 this.trigTime = 0;
