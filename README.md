@@ -13,7 +13,10 @@ The plan is for the app to remain free to use and ad-free for the foreseeable fu
 </p>
 
 You can try NoiseCraft at [noisecraft.app](https://noisecraft.app), and browse projects shared by other
-users at [noisecraft.app/browse](https://noisecraft.app/browse). Please note that it's a work in progress,
+users at [noisecraft.app/browse](https://noisecraft.app/browse). Currently, this works in Chrome but not
+Firefox as we are waiting for a [Firefox bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1572644
+) to be fixed.
+Please note that it's a work in progress,
 You may run into bugs, and support for mobile devices is currently poor. Reporting
 bugs and helping us fix them is one way you can contribute to this project.
 
