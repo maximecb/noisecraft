@@ -519,6 +519,9 @@ class MidiIn extends AudioNode
 
     update()
     {
+        // The pretrig state serves to force the gate to go to
+        // zero for at least one cycle so that ADSR envelopes
+        // can be retriggered if already active.
         switch (this.gateState)
         {
             case 'pretrig':
@@ -558,9 +561,11 @@ class MonoSeq extends AudioNode
         // Time the last note was triggered
         this.trigTime = 0;
 
-        // Output frequency and gate values
+        // Frequency of the note being held
         this.freq = 0;
-        this.gate = 0;
+
+        // Current gate state
+        this.gateState = 'off';
 
         // Currently playing pattern
         this.patIdx = state.curPattern;
@@ -634,9 +639,6 @@ class MonoSeq extends AudioNode
                     stepIdx: stepIdx
                 });
 
-                this.gate = 0;
-                this.trigTime = 0;
-
                 for (var rowIdx = 0; rowIdx < this.scale.length; ++rowIdx)
                 {
                     if (!grid[stepIdx][rowIdx])
@@ -644,7 +646,7 @@ class MonoSeq extends AudioNode
 
                     let note = this.scale[rowIdx];
                     this.freq = note.getFreq();
-                    this.gate = 1;
+                    this.gateState = 'pretrig';
                     this.trigTime = time;
                 }
 
@@ -672,21 +674,38 @@ class MonoSeq extends AudioNode
             this.clockCnt--;
         }
 
-        // If we are past the end of the note
-        if (this.gate > 0)
-        {
-            if (time - this.trigTime > gateTime)
-            {
-                this.gate = 0;
-                this.trigTime = 0;
-            }
-        }
-
+        // Store the sign of the clock signal for this cycle
         this.clockSgn = (clock > 0);
 
         assert (!isNaN(this.freq), 'MonoSeq freq is NaN');
-        assert (!isNaN(this.gate), 'MonoSeq gate is NaN');
-        return [this.freq, this.gate];
+
+        // The pretrig state serves to force the gate to go to
+        // zero for at least one cycle so that ADSR envelopes
+        // can be retriggered if already active.
+        switch (this.gateState)
+        {
+            case 'off':
+            return [this.freq, 0];
+
+            case 'pretrig':
+            this.gateState = 'on';
+            return [0, 0];
+
+            case 'on':
+            {
+                // If we are past the end of the note
+                if (time - this.trigTime > gateTime)
+                {
+                    this.gateState = 'off';
+                    this.trigTime = 0;
+                }
+
+                return [this.freq, 1];
+            }
+
+            default:
+            assert (false);
+        }
     }
 }
 
