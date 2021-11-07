@@ -1602,23 +1602,39 @@ class MonoSeq extends Node
 
         // Shrink and extend pattern buttons
         let shrinkBtn = document.createElement("button");
-        let extendBtn = document.createElement("button");
-        let copyBtn = document.createElement("button");
         shrinkBtn.appendChild(document.createTextNode("←"));
-        extendBtn.appendChild(document.createTextNode("→"));
-        copyBtn.appendChild(document.createTextNode("⇒"));
-        btnDiv.appendChild(shrinkBtn);
-        btnDiv.appendChild(extendBtn);
-        btnDiv.appendChild(copyBtn);
         shrinkBtn.onclick = evt => this.send(new model.ShrinkPattern(this.nodeId));
-        extendBtn.onclick = evt => this.send(new model.ExtendPattern(this.nodeId));
-        copyBtn.onclick = evt => this.send(new model.ExtendCopy(this.nodeId));
         shrinkBtn.onpointerdown = evt => evt.stopPropagation();
-        extendBtn.onpointerdown = evt => evt.stopPropagation();
-        copyBtn.onpointerdown = evt => evt.stopPropagation();
         shrinkBtn.ondblclick = evt => evt.stopPropagation();
+        btnDiv.appendChild(shrinkBtn);
+
+        let extendBtn = document.createElement("button");
+        extendBtn.appendChild(document.createTextNode("→"));
+        extendBtn.onclick = evt => this.send(new model.ExtendPattern(this.nodeId));
+        extendBtn.onpointerdown = evt => evt.stopPropagation();
         extendBtn.ondblclick = evt => evt.stopPropagation();
+        btnDiv.appendChild(extendBtn);
+
+        let copyBtn = document.createElement("button");
+        copyBtn.appendChild(document.createTextNode("⇒"));
+        copyBtn.onclick = evt => this.send(new model.ExtendCopy(this.nodeId));
+        copyBtn.onpointerdown = evt => evt.stopPropagation();
         copyBtn.ondblclick = evt => evt.stopPropagation();
+        btnDiv.appendChild(copyBtn);
+
+        let minusBtn = document.createElement("button");
+        minusBtn.appendChild(document.createTextNode("-1"));
+        minusBtn.onclick = evt => this.send(new model.ShrinkPattern(this.nodeId, 1));
+        minusBtn.onpointerdown = evt => evt.stopPropagation();
+        minusBtn.ondblclick = evt => evt.stopPropagation();
+        btnDiv.appendChild(minusBtn);
+
+        let plusBtn = document.createElement("button");
+        plusBtn.appendChild(document.createTextNode("+1"));
+        plusBtn.onclick = evt => this.send(new model.ExtendPattern(this.nodeId, 1));
+        plusBtn.onpointerdown = evt => evt.stopPropagation();
+        plusBtn.ondblclick = evt => evt.stopPropagation();
+        btnDiv.appendChild(plusBtn);
 
         function scaleChange()
         {
@@ -1682,7 +1698,7 @@ class MonoSeq extends Node
         this.gridDiv.style.background = '#111';
         this.gridDiv.style.border = '1px solid #AAA';
         this.gridDiv.style['text-align'] = 'left';
-        this.gridDiv.style.width = '325';
+        this.gridDiv.style.width = '364';
         this.gridDiv.style['overflow-x'] = 'scroll';
         this.gridDiv.style['overscroll-behavior-x'] = 'none';
         this.gridDiv.style['white-space'] = 'nowrap';
@@ -1815,7 +1831,7 @@ class MonoSeq extends Node
             return cell;
         }
 
-        function makeBar(barIdx)
+        function makeBar(barIdx, barLen)
         {
             var bar = document.createElement('div');
             bar.style['display'] = 'inline-block';
@@ -1825,7 +1841,7 @@ class MonoSeq extends Node
             {
                 var row = document.createElement('div');
 
-                for (var i = 0; i < 16; ++i)
+                for (var i = 0; i < barLen; ++i)
                 {
                     var stepIdx = barIdx * 16 + i;
                     var cell = makeCell.call(this, stepIdx, numRows - j - 1);
@@ -1847,8 +1863,8 @@ class MonoSeq extends Node
         patDiv.style.display = 'none';
         this.gridDiv.appendChild(patDiv);
 
-        assert (numSteps % 16 == 0);
-        var numBars = numSteps / 16;
+        // Compute the number of bars
+        var numBars = Math.ceil(numSteps / 16);
 
         // For each bar of the pattern
         for (var barIdx = 0; barIdx < numBars; ++barIdx)
@@ -1857,13 +1873,15 @@ class MonoSeq extends Node
             barDiv.style['display'] = 'inline-block';
             patDiv.appendChild(barDiv);
 
-            var bar = makeBar.call(this, barIdx);
+            let lastBarLen = (numSteps % 16 == 0)? 16:(numSteps%16);
+            let barLen = (barIdx < numBars - 1)? 16:lastBarLen;
+            var bar = makeBar.call(this, barIdx, barLen);
             barDiv.appendChild(bar);
 
             // If this is not the last bar, add a separator
             if (barIdx < numBars - 1)
             {
-                var barHeight = this.numRows * 18;
+                var barHeight = numRows * 18;
                 var sep = document.createElement('div');
                 sep.style['display'] = 'inline-block';
                 sep.style['width'] = '3px';

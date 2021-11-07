@@ -139,6 +139,12 @@ window.onkeydown = function (event)
             model.redo();
         }
 
+        // Ctrl + A (select all)
+        if (event.code == 'KeyA')
+        {
+            // TODO
+        }
+
         /*
         // Ctrl + G (group nodes)
         if (event.code == 'KeyG')
