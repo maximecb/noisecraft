@@ -380,6 +380,19 @@ export class Editor
         }
     }
 
+    // Select all nodes
+    selectAll()
+    {
+        this.selected = [];
+
+        // For each node
+        for (let [nodeId, node] of this.nodes)
+        {
+            this.selected.push(nodeId);
+            node.nodeDiv.style['border-color'] = '#F00';
+        }
+    }
+
     // Remove the currently active selection
     deselect()
     {
