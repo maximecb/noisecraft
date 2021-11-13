@@ -144,6 +144,17 @@ export const NODE_SCHEMA =
         description: 'classic two-pole low-pass filter',
     },
 
+    'Hold': {
+        ins: [
+            { name: 'in', default: 0 },
+            { name: 'trig', default: 0 }
+        ],
+        outs: ['out'],
+        params: [],
+        state: [],
+        description: 'sample and hold',
+    },
+
     'Knob': {
         ins: [],
         outs: [''],

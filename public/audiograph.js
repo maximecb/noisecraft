@@ -284,6 +284,33 @@ class Distort extends AudioNode
 }
 
 /**
+ * Sample and hold
+ */
+class Hold extends AudioNode
+{
+    constructor(id, state, sampleRate, send)
+    {
+        super(id, state, sampleRate, send);
+
+        // Value currently being held
+        this.value = 0;
+
+        // Current trig input sign (positive/negative)
+        this.trigSgn = false;
+    }
+
+    update(input, trig)
+    {
+        if (!this.trigSgn && trig > 0)
+            this.value = input;
+
+        this.trigSgn = (trig > 0);
+
+        return this.value;
+    }
+}
+
+/**
  * Pulse wave oscillator
  */
 class PulseOsc extends AudioNode
@@ -719,6 +746,7 @@ let NODE_CLASSES =
     ClockDiv: ClockDiv,
     Delay: Delay,
     Distort: Distort,
+    Hold: Hold,
     Pulse: PulseOsc,
     Saw: SawOsc,
     Sine: SineOsc,
