@@ -142,6 +142,7 @@ window.onkeydown = function (event)
         // Ctrl + A (select all)
         if (event.code == 'KeyA')
         {
+            event.preventDefault();
             editor.selectAll();
         }
 
