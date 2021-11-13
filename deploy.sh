@@ -15,4 +15,4 @@ cp -R public deploy
 rsync -avz deploy "${SERVER_ADDR}:noisecraft"
 rm -rf deploy
 
-ssh "${SERVER_ADDR}" "cd noisecraft/deploy && npm install && pm2 restart noisecraft"
+ssh "${SERVER_ADDR}" "cd noisecraft/deploy && npm install && pm2 stop noisecraft && cp database.db db_backup.db && pm2 start noisecraft"
