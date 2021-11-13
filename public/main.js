@@ -168,21 +168,25 @@ window.onkeydown = function (event)
     }
 }
 
-document.onpaste = function(e)
+document.onpaste = function (evt)
 {
     if (anyInputActive())
         return;
 
     try
     {
-        model.update(new Paste(e.clipboardData.getData('text/plain'), cursor));
-        e.preventDefault();
+        let pasteData = evt.clipboardData.getData('text/plain');
+        model.update(new Paste(pasteData, cursor));
+        evt.preventDefault();
     }
 
-    catch(e) { }
+    catch (e)
+    {
+        console.log(e);
+    }
 }
 
-document.oncopy = function(e)
+document.oncopy = function (evt)
 {
     if (anyInputActive())
         return;
@@ -191,13 +195,13 @@ document.oncopy = function(e)
         return;
 
     let data = JSON.stringify(model.copy(editor.selected));
-    e.clipboardData.setData('text/plain', data);
-    e.preventDefault();
+    evt.clipboardData.setData('text/plain', data);
+    evt.preventDefault();
 }
 
-function handleMouseEvent(e)
+function handleMouseEvent(evt)
 {
-    cursor = editor.getMousePos(e);
+    cursor = editor.getMousePos(evt);
 }
 
 function importModel(serializedModelData)

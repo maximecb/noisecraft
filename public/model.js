@@ -726,7 +726,6 @@ export class Paste extends Action
             let schema = NODE_SCHEMA[nodeData.type];
             assert (schema instanceof Object);
             assert (nodeData.ins instanceof Array);
-            assert (nodeData.ins.length === schema.ins.length);
             assert (nodeData.params instanceof Object);
         }
 
@@ -737,6 +736,8 @@ export class Paste extends Action
 
     update(model)
     {
+        console.log('paste nodes');
+
         let nodeIdMap = {};
 
         // Don't paste unique nodes if an instance already
@@ -1641,8 +1642,8 @@ export class Model
             result[nodeId] = treeCopy(node);
         }
 
-        // Filter port connections. We only retain connections that begin and
-        // end within the given nodes
+        // Filter port connections. We only retain connections that start and
+        // end among the nodes being copied
         for (let nodeId of nodeIds)
         {
             let node = result[nodeId];
