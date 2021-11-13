@@ -354,6 +354,9 @@ export function validateProject(project)
     for (let nodeId in project.nodes)
     {
         assert (typeof nodeId === 'string');
+        assert (nodeId.length <= 10);
+        assert (/^\d+$/.test(nodeId));
+
         let node = project.nodes[nodeId];
         validateNode(node);
     }
@@ -699,17 +702,16 @@ export class DeleteNodes extends Action
 /**
  * Pastes one or more nodes
  *
- * Data is expected to be given serialized. The constructor will throw an
- * exception if it is not pastable, or if the paste would have no effect on the
- * model.
+ * The constructor will throw an exception if it is not pastable,
+ * or if the paste would have no effect on the model.
  */
 export class Paste extends Action
 {
-    constructor(data, position)
+    constructor(data, x, y)
     {
         super();
 
-        this.nodesData = JSON.parse(data);
+        this.nodesData = data;
         assert (this.nodesData instanceof Object);
         assert (Object.keys(this.nodesData).length);
 
@@ -729,9 +731,10 @@ export class Paste extends Action
             assert (nodeData.params instanceof Object);
         }
 
-        this.position = position;
-        assert (typeof this.position.x == 'number');
-        assert (typeof this.position.y == 'number');
+        this.x = x;
+        this.y = y;
+        assert (typeof this.x == 'number');
+        assert (typeof this.y == 'number');
     }
 
     update(model)
@@ -762,8 +765,8 @@ export class Paste extends Action
 
         assert (offset.x !== Infinity && offset.y !== Infinity);
 
-        offset.x = this.position.x - offset.x;
-        offset.y = this.position.y - offset.y;
+        offset.x = this.x - offset.x;
+        offset.y = this.y - offset.y;
 
         // Start by adding the pasted nodes without port connections.
         for (let nodeId in this.nodesData)
@@ -1618,6 +1621,15 @@ export class Model
         }
 
         return false;
+    }
+
+    /**
+     * Returns the number of nodes in the model
+     * This is used in unit tests
+     */
+    get numNodes()
+    {
+        return Object.keys(this.state.nodes).length;
     }
 
     // Returns the minimum information required to copy a set of nodes

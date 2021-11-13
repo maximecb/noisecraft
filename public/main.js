@@ -176,8 +176,9 @@ document.onpaste = function (evt)
 
     try
     {
-        let pasteData = evt.clipboardData.getData('text/plain');
-        model.update(new Paste(pasteData, cursor));
+        let clipData = evt.clipboardData.getData('text/plain');
+        let nodeData = JSON.parse(clipData)
+        model.update(new Paste(nodeData, cursor.x, cursor.y));
         evt.preventDefault();
     }
 

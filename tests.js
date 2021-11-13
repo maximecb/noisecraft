@@ -46,3 +46,13 @@ m.redo();
 m.undo();
 m.update(new model.SetParam("0", "value", 0.5));
 m.serialize();
+
+// TODO: this test should ideally load a more complex model from a file
+// Test copy/paste
+var m = new model.Model();
+m.new();
+m.update(new model.CreateNode('Knob', 0, 0));
+m.update(new model.CreateNode('Knob', 10, 10));
+var data = m.copy(["0", "1"]);
+m.update(new model.Paste(data, 20, 20));
+assert (m.numNodes == 4);
