@@ -16,12 +16,22 @@ var app = express();
 var jsonParser = bodyParser.json()
 
 // Connect to the database
-let db = new sqlite3.Database('./database.db', (err) => 
+async function connectDb()
 {
-    if (err)
-        throw err;
-    console.log('Connected to the database');
-});
+    return new Promise((resolve, reject) => {
+        let db = new sqlite3.Database('./database.db', (err) =>
+        {
+            if (err)
+                return reject();
+
+            console.log('connected to the database');
+            return resolve(db);
+        })
+    })
+}
+
+// Wait until we're connected to the database
+let db = await connectDb();
 
 // Setup tables
 db.run(`CREATE table IF NOT EXISTS hits (
