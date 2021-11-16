@@ -50,15 +50,14 @@ fs.readdirSync('examples').forEach(fileName =>
     let filePath = path.join('examples', fileName);
     console.log(filePath);
     let inData = fs.readFileSync(filePath, 'utf8')
-    let project = JSON.parse(inData);
 
     // Convert the project
+    let project = JSON.parse(inData);
     project = convertProject(project);
-
     let outData = JSON.stringify(project);
-    //fs.writeFileSync(filePath, outData, { encoding: "utf8" });
-});
 
+    fs.writeFileSync(filePath, outData, { encoding: "utf8" });
+});
 
 //===========================================================================
 
@@ -114,8 +113,23 @@ async function getProjectData(projectId)
     });
 }
 
+// Set the JSON data blob for a given project
+async function setProjectData(projectId, data)
+{
+    return new Promise((resolve, reject) => {
+        db.run(
+            'UPDATE projects SET data=? WHERE id==?',
+            [data, projectId],
+            function (err, rows)
+            {
+                if (err)
+                    return reject();
 
-
+                resolve(true);
+            }
+        );
+    });
+}
 
 let db = await connect();
 console.log(db);
@@ -134,15 +148,16 @@ for (let projectId = 1; projectId <= maxProjectId; ++projectId)
     if (inData == null)
         continue;
 
-    console.log('got data');
+    //console.log('got project data');
+    assert (typeof inData == 'string');
     //console.log(inData);
 
+    // Convert the project
+    let project = JSON.parse(inData);
+    project = convertProject(project);
+    let outData = JSON.stringify(project);
+
+    await setProjectData(projectId, outData);
 }
-
-
-
-
-
-
 
 db.close();

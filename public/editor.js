@@ -790,7 +790,6 @@ class Node
 
         this.nodeId = id;
         this.nodeType = state.type;
-        this.nodeName = state.name;
         this.x = state.x;
         this.y = state.y;
         this.numIns = this.schema.ins.length;
@@ -817,7 +816,7 @@ class Node
         for (let portIdx in this.schema.outs)
             this.outEdges[portIdx] = [];
 
-        this.genNodeDOM(state.name);
+        this.genNodeDOM(state);
     }
 
     /**
@@ -830,8 +829,10 @@ class Node
     /**
      * Setup DOM elements for this node
      */
-    genNodeDOM()
+    genNodeDOM(state)
     {
+        assert (typeof state === 'object');
+
         function pointerDown(evt)
         {
             evt.stopPropagation();
@@ -891,7 +892,7 @@ class Node
         // Node header text
         this.headerDiv = document.createElement('div');
         this.headerDiv.className = 'node_header';
-        this.headerDiv.textContent = this.nodeName;
+        this.headerDiv.textContent = state.name;
         this.headerDiv.title = this.nodeType;
         this.nodeDiv.appendChild(this.headerDiv);
 
@@ -918,7 +919,7 @@ class Node
             this.genPortDOM(
                 inPortsDiv,
                 portIdx,
-                this.schema.ins[portIdx].name,
+                state.inNames[portIdx],
                 'dst'
             );
         }
@@ -929,7 +930,7 @@ class Node
             this.genPortDOM(
                 outPortsDiv,
                 portIdx,
-                this.schema.outs[portIdx],
+                state.outNames[portIdx],
                 'src'
             );
         }

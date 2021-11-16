@@ -327,6 +327,8 @@ function resetState(state)
         'x',
         'y',
         'ins',
+        'inNames',
+        'outNames',
         'params'
     ]);
 
@@ -398,6 +400,7 @@ export function validateNode(node)
 
     // Validate input format
     assert (node.ins instanceof Array);
+    assert (node.ins.length <= schema.ins.length);
     for (let input of node.ins)
     {
         if (input)
@@ -407,6 +410,20 @@ export function validateNode(node)
             assert (typeof input[0] == 'string');
             assert (typeof input[1] == 'number');
         }
+    }
+
+    // Validate the input names
+    assert (node.inNames.length <= schema.ins.length);
+    for (var i = 0; i < node.inNames.length; ++i)
+    {
+        assert (typeof node.inNames[i] == 'string');
+    }
+
+    // Validate the output names
+    assert (node.outNames.length <= schema.outs.length);
+    for (var i = 0; i < node.outNames.length; ++i)
+    {
+        assert (typeof node.outNames[i] == 'string');
     }
 
     // Validate the node parameters
