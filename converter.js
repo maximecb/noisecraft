@@ -43,21 +43,25 @@ function convertNode(node)
 
 //===========================================================================
 
-// For each example project
-fs.readdirSync('examples').forEach(fileName => 
+// If the examples directory exists
+if (fs.existsSync('examples'))
 {
-    // Read the example file
-    let filePath = path.join('examples', fileName);
-    console.log(filePath);
-    let inData = fs.readFileSync(filePath, 'utf8')
+    // For each example project
+    fs.readdirSync('examples').forEach(fileName => 
+    {
+        // Read the example file
+        let filePath = path.join('examples', fileName);
+        console.log(filePath);
+        let inData = fs.readFileSync(filePath, 'utf8')
 
-    // Convert the project
-    let project = JSON.parse(inData);
-    project = convertProject(project);
-    let outData = JSON.stringify(project);
+        // Convert the project
+        let project = JSON.parse(inData);
+        project = convertProject(project);
+        let outData = JSON.stringify(project);
 
-    fs.writeFileSync(filePath, outData, { encoding: "utf8" });
-});
+        fs.writeFileSync(filePath, outData, { encoding: "utf8" });
+    });
+}
 
 //===========================================================================
 
