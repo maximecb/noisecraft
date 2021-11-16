@@ -786,7 +786,7 @@ class Node
         this.editor = editor;
 
         // Schema for this node type
-        this.schema = (state.type == 'Module')? state.schema:NODE_SCHEMA[state.type];
+        this.schema = NODE_SCHEMA[state.type];
 
         this.nodeId = id;
         this.nodeType = state.type;
