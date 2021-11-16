@@ -70,9 +70,8 @@ async function connect()
         {
             if (err)
                 reject();
-
-            console.log('Connected to the database');
-            resolve(db);
+            else
+                resolve(db);
         })
     })
 }
@@ -88,14 +87,32 @@ async function getMaxId()
             {
                 if (err)
                     reject();
-                resolve(row.maxId);
+                else
+                    resolve(row.maxId);
             }
         );
     });
 }
 
-// TODO: getProjectData()
-
+// Get the JSON data blob for a given project
+async function getProjectData(projectId)
+{
+    return new Promise((resolve, reject) => {
+        db.get(
+            'SELECT data FROM projects WHERE id==?',
+            [projectId],
+            function (err, row)
+            {
+                if (err)
+                    reject(null);
+                else if (row === undefined)
+                    resolve(null)
+                else
+                    resolve(row.data);
+            }
+        );
+    });
+}
 
 
 
@@ -108,13 +125,17 @@ assert (typeof maxProjectId == 'number');
 console.log(`maxProjectId=${maxProjectId}`);
 
 // For each project id
-for (let projectId = 0; projectId <= maxProjectId; ++projectId)
+for (let projectId = 1; projectId <= maxProjectId; ++projectId)
 {
     console.log(`processing projectId=${projectId}`);
 
+    let inData = await getProjectData(projectId);
 
+    if (inData == null)
+        continue;
 
-    
+    console.log('got data');
+    //console.log(inData);
 
 }
 
