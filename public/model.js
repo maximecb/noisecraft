@@ -422,6 +422,8 @@ export function validateNode(node)
             case 'x':
             case 'y':
             case 'ins':
+            case 'inNames':
+            case 'outNames':
             case 'params':
             continue;
 
@@ -600,6 +602,8 @@ export class CreateNode extends Action
             x: this.x,
             y: this.y,
             ins: Array(schema.ins.length).fill(null),
+            inNames: schema.ins.map(s => s.name),
+            outNames: schema.outs.map(n => n),
             params: {},
         };
 
@@ -963,14 +967,10 @@ export class GroupNodes extends Action
             x: Infinity,
             y: Infinity,
             ins: [],
+            inNames: [],
+            outNames: [],
             params: {},
-            nodes: {},
-            schema: {
-                ins: [],
-                outs: [],
-                params: [],
-                description: 'user-created module'
-            },
+            nodes: {}
         };
 
         // Add the new module node to the state
@@ -1036,7 +1036,7 @@ export class GroupNodes extends Action
                     {
                         listIdx = module.ins.length;
                         module.ins.push(srcPort);
-                        module.schema.ins.push({ name: 'in' + listIdx, default: 0 });
+                        module.inNames.push('in' + listIdx);
                     }
 
                     // Keep track of the fact that this is an external connection
@@ -1074,7 +1074,7 @@ export class GroupNodes extends Action
                     {
                         listIdx = outPorts.length;
                         outPorts.push(srcPort);
-                        module.schema.outs.push('out' + listIdx);
+                        module.outNames.push('out' + listIdx);
                     }
 
                     // Keep track of the fact that this is an external connection
@@ -1083,7 +1083,7 @@ export class GroupNodes extends Action
             }
         }
 
-        console.log(`num module outs: ${module.schema.outs.length}`);
+        console.log(`num module outs: ${module.outNames.length}`);
     }
 }
 
