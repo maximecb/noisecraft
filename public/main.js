@@ -146,15 +146,13 @@ window.onkeydown = function (event)
             editor.selectAll();
         }
 
-        /*
         // Ctrl + G (group nodes)
-        if (event.code == 'KeyG')
+        if (event.code == 'KeyG' && location.hostname == 'localhost')
         {
             console.log('group nodes');
             event.preventDefault();
             editor.groupSelected();
         }
-        */
 
         return;
     }
