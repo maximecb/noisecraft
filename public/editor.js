@@ -792,8 +792,8 @@ class Node
         this.nodeType = state.type;
         this.x = state.x;
         this.y = state.y;
-        this.numIns = this.schema.ins.length;
-        this.numOuts = this.schema.outs.length;
+        this.numIns = (state.type == 'Module')? state.inNames.length:this.schema.ins.length;
+        this.numOuts = (state.type == 'Module')? state.outNames.length:this.schema.outs.length;
 
         // DOM div wrapping the whole node
         this.nodeDiv = null;
@@ -813,7 +813,7 @@ class Node
         this.outEdges = [];
 
         // There can be multiple output edges per output port
-        for (let portIdx in this.schema.outs)
+        for (let portIdx = 0; portIdx < this.numOuts; ++portIdx)
             this.outEdges[portIdx] = [];
 
         this.genNodeDOM(state);
@@ -1176,10 +1176,8 @@ class Node
     getPortPos(portIdx, side)
     {
         let connDiv = (side == 'dst')? this.inPorts[portIdx]:this.outPorts[portIdx];
-
-        let graphRect = this.editor.graphDiv.getBoundingClientRect();
-
         let rect = connDiv.getBoundingClientRect();
+        let graphRect = this.editor.graphDiv.getBoundingClientRect();
         let x = rect.left + (rect.width / 2) - graphRect.left;
         let y = rect.top + (rect.height / 2) - graphRect.top;
 
