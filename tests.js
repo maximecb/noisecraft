@@ -56,3 +56,12 @@ m.update(new model.CreateNode('Knob', 10, 10));
 var data = m.copy(["0", "1"]);
 m.update(new model.Paste(data, 20, 20));
 assert (m.numNodes == 4);
+
+// Test grouping
+var m = new model.Model();
+m.new();
+m.update(new model.CreateNode('Add', 0, 0));
+m.update(new model.CreateNode('Add', 10, 10));
+m.update(new model.ConnectNodes("0", 1, "1", 0));
+m.update(new model.GroupNodes(["1"]));
+assert (m.numNodes == 2);
