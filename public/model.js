@@ -493,11 +493,10 @@ export function validateParams(nodeType, params)
         }
         else
         {
-            assert (
-                value === null ||
-                typeof value == 'number' ||
-                typeof value == 'string'
-            );
+            if (value !== null &&
+                typeof value !== 'number' &&
+                typeof value !== 'string')
+                throw RangeError(`invalid value for ${param.name}`);
         }
     }
 

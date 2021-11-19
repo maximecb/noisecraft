@@ -226,7 +226,7 @@ export class Knob extends Eventable
         // Undo the current MIDI binding
         function unmap(evt)
         {
-            knob.bindMidi(null);
+            knob.bindMidi(null, null);
             midi.removeListener('midimessage', map);
         }
 
