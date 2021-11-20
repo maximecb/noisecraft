@@ -311,11 +311,7 @@ export class Editor
         );
 
         // Highlight selected nodes
-        for (let nodeId of this.selected)
-        {
-            let node = this.nodes.get(nodeId);
-            node.nodeDiv.style['border-color'] = '#F00';
-        }
+        this.selectNodes(this.selected);
 
         // Resize the editor to fit all the nodes
         this.resize();
@@ -351,7 +347,7 @@ export class Editor
             this.editorDiv.appendChild(this.selectDiv);
         }
 
-        this.selected = [];
+        let selected = [];
 
         // For each node
         for (let [nodeId, node] of this.nodes)
@@ -370,41 +366,45 @@ export class Editor
 
             if (nodeInside)
             {
-                this.selected.push(nodeId);
-                node.nodeDiv.style['border-color'] = '#F00';
-            }
-            else
-            {
-                node.nodeDiv.style.removeProperty('border-color');
+                selected.push(nodeId);
             }
         }
+
+        // Highlight the selected nodes
+        this.selectNodes(selected);
     }
 
     // Select all nodes
     selectAll()
     {
-        this.selected = [];
-
-        // For each node
-        for (let [nodeId, node] of this.nodes)
-        {
-            this.selected.push(nodeId);
-            node.nodeDiv.style['border-color'] = '#F00';
-        }
+        this.selectNodes(this.nodes.keys());
     }
 
     // Remove the currently active selection
     deselect()
     {
-        // For each selected node
+        this.selectNodes([]);
+    }
+
+    // Select a given set of nodes
+    selectNodes(nodeIds)
+    {
+        // Unhighlight the currently selected nodes
         for (let nodeId of this.selected)
         {
-            // Unhighlight the node
             let node = this.nodes.get(nodeId);
             node.nodeDiv.style.removeProperty('border-color');
         }
 
-        this.selected = [];
+        // Update the selected node ids
+        this.selected = Array.from(nodeIds);
+
+        // Highlight selected nodes
+        for (let nodeId of this.selected)
+        {
+            let node = this.nodes.get(nodeId);
+            node.nodeDiv.style['border-color'] = '#F00';
+        }
     }
 
     // Resize the editor to fit all nodes
