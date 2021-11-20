@@ -245,6 +245,13 @@ export class Editor
             return;
         }
 
+        // If this is a paste action
+        if (action instanceof model.Paste)
+        {
+            // Select the pasted nodes
+            this.selected = action.pastedIds;
+        }
+
         console.log('recreating UI nodes');
 
         // Release resource for all UI nodes

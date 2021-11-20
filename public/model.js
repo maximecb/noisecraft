@@ -766,6 +766,10 @@ export class Paste extends Action
         this.y = y;
         assert (typeof this.x == 'number');
         assert (typeof this.y == 'number');
+
+        // Node ids for pasted nodes.
+        // This is set after the action has been executed.
+        this.pastedIds = null;
     }
 
     update(model)
@@ -845,6 +849,9 @@ export class Paste extends Action
                 return null;
             });
         }
+
+        // Store the node ids of pasted nodes
+        this.pastedIds = Object.values(nodeIdMap);
     }
 }
 
