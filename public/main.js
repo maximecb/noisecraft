@@ -349,7 +349,7 @@ function browserWarning()
     if (localStorage.getItem('displayed_browser_warning'))
         return;
 
-    let dialog = new Dialog('Your Browser is Unsupported');
+    let dialog = new Dialog('Your Browser is Unsupported :(');
 
     dialog.paragraph(
         'NoiseCraft uses new web audio API features and works best in Chrome or Edge ' +
