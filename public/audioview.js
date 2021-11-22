@@ -131,7 +131,7 @@ export class AudioView
             sampleRate: 44100
         });
 
-        await this.audioCtx.audioWorklet.addModule('audioworklet.js');
+        await this.audioCtx.audioWorklet.addModule('public/audioworklet.js');
 
         this.audioWorklet = new AudioWorkletNode(
             this.audioCtx,

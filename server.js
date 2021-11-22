@@ -2,6 +2,7 @@
 // https://github.com/mapbox/node-sqlite3/wiki/API
 import express from 'express';
 import path from 'path'
+import fs from 'fs';
 import bodyParser from 'body-parser';
 import sqlite3 from 'sqlite3';
 import crc from 'crc';
@@ -143,13 +144,50 @@ async function checkSession(userId, sessionId)
 //============================================================================
 
 // Serve static file requests
-app.use('/', express.static('public', {
-    // setHeaders is called on success (file found)
-    setHeaders: function(res, path, stat) {
-        // Count the request: full-path, file-stats, client-ip
-        updateStats(path, stat, getClientIP(res.req));
-    }
-}));
+app.use('/public', express.static('public'));
+
+// Main/index page
+app.get('/', function(req, res)
+{
+    // Record this hit
+    db.run(
+        'INSERT INTO hits VALUES (?, ?);',
+        Date.now(),
+        getClientIP(res.req)
+    );
+
+    res.sendFile(path.resolve('public/index.html'));
+});
+
+// Serve projects with numerical ids
+app.get('/:projectId([0-9]+)', function(req, res)
+{
+    //console.log(req.params.projectId);
+
+    // Record this hit
+    db.run(
+        'INSERT INTO hits VALUES (?, ?);',
+        Date.now(),
+        getClientIP(res.req)
+    );
+
+    // Get the path of the index file
+    const indexPath = path.resolve('public/index.html');
+
+    fs.readFile(indexPath, function(err, fileData)
+    {
+        if (err)
+        {
+            res.sendStatus(404);
+            return;
+        }
+
+        // TODO: modify the data here, then send it
+
+        res.setHeader('content-type', 'text/html');
+        res.send(fileData);
+    });
+});
 
 // Help page
 app.get('/help', function(req, res)
@@ -162,18 +200,6 @@ app.get('/browse', function(req, res)
 {
     res.sendFile(path.resolve('public/browse.html'));
 });
-
-function updateStats(path, stats, clientIP)
-{
-    if (!path.endsWith('index.html'))
-        return;
-
-    db.run(
-        'INSERT INTO hits VALUES (?, ?);',
-        Date.now(),
-        String(clientIP)
-    );
-}
 
 app.get('/allthestats', function (req, res)
 {
