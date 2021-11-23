@@ -65,7 +65,7 @@ db.run(`CREATE table IF NOT EXISTS sessions (
     login_time BIGINT);`
 );
 
-/// Get the IP address of a client as a string
+// Get the IP address of a client as a string
 function getClientIP(req)
 {
     var headers = req.headers;
@@ -78,7 +78,7 @@ function getClientIP(req)
     return String(req.connection.remoteAddress);
 }
 
-/// Hash a string using SHA512
+// Hash a string using SHA512
 function cryptoHash(str)
 {
     let hash = crypto.createHash('sha512');
@@ -123,7 +123,7 @@ async function addUser(username, password, email, ip)
     });
 }
 
-/// Check that a session is valid
+// Check that a session is valid
 async function checkSession(userId, sessionId)
 {
     return new Promise((resolve, reject) => {
@@ -136,6 +136,28 @@ async function checkSession(userId, sessionId)
                     reject();
                 else
                     resolve();
+            }
+        );
+    });
+}
+
+// Get the title for a given projectId
+async function getTitle(projectId)
+{
+    return new Promise((resolve, reject) =>
+    {
+        db.get(
+            'SELECT title FROM projects WHERE id == ?',
+            [projectId],
+            function (err, row)
+            {
+                if (err || !row)
+                {
+                    reject('user not found');
+                    return;
+                }
+
+                resolve(row.title);
             }
         );
     });
@@ -160,9 +182,13 @@ app.get('/', function(req, res)
 });
 
 // Serve projects with numerical ids
-app.get('/:projectId([0-9]+)', function(req, res)
+app.get('/:projectId([0-9]+)', async function(req, res)
 {
-    //console.log(req.params.projectId);
+    let projectId = parseInt(req.params.projectId);
+
+    // The projectId must be a positive integer
+    if (isNaN(projectId) || projectId < 1)
+        return res.sendStatus(400);
 
     // Record this hit
     db.run(
@@ -174,7 +200,7 @@ app.get('/:projectId([0-9]+)', function(req, res)
     // Get the path of the index file
     const indexPath = path.resolve('public/index.html');
 
-    fs.readFile(indexPath, function(err, fileData)
+    fs.readFile(indexPath, async function(err, fileData)
     {
         if (err)
         {
@@ -182,8 +208,12 @@ app.get('/:projectId([0-9]+)', function(req, res)
             return;
         }
 
-        // TODO: modify the data here, then send it
+        // Set the title tag in the HTML data based on the project title
+        let title = await getTitle(projectId);
+        fileData = String(fileData);
+        fileData = fileData.replace(/<title>.*<\/title>/, `<title>${title} - NoiseCraft</title>`);
 
+        // Send the HTML response back
         res.setHeader('content-type', 'text/html');
         res.send(fileData);
     });
