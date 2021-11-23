@@ -88,10 +88,6 @@ export async function shareProject(model)
             let projectId = await shareRequest(userId, sessionId, title, data);
             console.log(`projectId=${projectId}`);
 
-            // Change the current URL to include the project ID
-            var url = window.location.href.split('#')[0] + '#' + projectId;
-            window.history.replaceState({}, '', url);
-
             // Close this dialog
             dialog.close();
 
@@ -155,7 +151,10 @@ function showURL(projectId)
     text.innerHTML = 'Your project is now available at the following URL:';
     dialog.appendChild(text);
 
-    let url = window.location.origin + '#' + projectId;
+    let url = window.location.origin + '/' + projectId;
+
+    // Change the current URL to include the project ID
+    window.history.replaceState({}, '', url);
 
     var urlDiv = document.createElement('div');
     urlDiv.className = 'form_div';
@@ -178,7 +177,7 @@ function showURL(projectId)
  */
 export async function getProject(projectId)
 {
-    var url = 'get_project/' + projectId;
+    var url = '/get_project/' + projectId;
 
     var xhr = new XMLHttpRequest()
     xhr.open("GET", url, true);

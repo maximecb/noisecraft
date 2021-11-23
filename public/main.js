@@ -42,17 +42,37 @@ document.body.onload = async function ()
         console.log(e.stack);
     }
 
-    if (window.location.hash)
+    // Parse the projectId from the path
+    let path = location.pathname;
+    let projectId = parseInt(location.pathname.replace('/',''));
+
+    // If a projectId was supplied
+    if (!isNaN(projectId))
+    {
+        // Download the serialized project data
+        let data = await sharing.getProject(projectId);
+
+        // Try to import the project
+        importModel(data);
+
+        return;
+    }
+
+    if (location.hash)
     {
         // Avoid erasing saved state on refresh/reload
-        if (window.location.hash == '#new')
+        if (location.hash == '#new')
         {
             history.replaceState(null, null, ' ');
             return;
         }
 
+        // Note: projectIds encoded in the location hash are deprecated
+        // but we will keep supporting them for a bit for backwards
+        // compatibility with old URLs
+        //
         // Download the serialized project data
-        let projectId = window.location.hash.substr(1);
+        let projectId = location.hash.substr(1);
         let data = await sharing.getProject(projectId);
 
         // Try to import the project
