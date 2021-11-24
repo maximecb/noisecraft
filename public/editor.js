@@ -69,6 +69,10 @@ export class Editor
         // Mouse down callback
         function onPointerDown(evt)
         {
+            // Ignore right clicks
+            if (evt.button != 0)
+                return;
+
             console.log('editor mouse down');
 
             let mousePos = this.getMousePos(evt);
@@ -842,6 +846,10 @@ class Node
 
         function pointerDown(evt)
         {
+            // Ignore right clicks
+            if (evt.button != 0)
+                return;
+
             evt.stopPropagation();
 
             console.log('pointerdown on node');
