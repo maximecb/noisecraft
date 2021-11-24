@@ -44,11 +44,11 @@ export class Editor
         // List of nodes ids for nodes being dragged
         this.dragNodes = [];
 
+        // Position of nodes being drag at the start of node movement
+        this.startDragPos = null;
+
         // Mouse position at the start of a group selection or node movement
         this.startMousePos = null;
-
-        // Last mouse position during node movement
-        this.lastMousePos = null;
 
         // Edge in the process of being connected
         this.edge = null;
@@ -520,6 +520,7 @@ export class Editor
 
         console.log('starting drag');
 
+        // If the node that was clicked is currently selected
         if (this.selected.indexOf(nodeId) != -1)
         {
             this.dragNodes = this.selected;
@@ -530,8 +531,9 @@ export class Editor
             this.deselect();
         }
 
+        this.startDragPos = this.getDragPos();
         this.startMousePos = mousePos;
-        this.lastMousePos = mousePos;
+        //this.lastMousePos = mousePos;
     }
 
     // Stop dragging/moving nodes
@@ -543,8 +545,10 @@ export class Editor
 
         console.log('end drag');
 
-        let dx = mousePos.x - this.startMousePos.x;
-        let dy = mousePos.y - this.startMousePos.y;
+        // Compute how much we've moved the nodes
+        let dragPos = this.getDragPos();
+        let dx = dragPos.x - this.startDragPos.x;
+        let dy = dragPos.y - this.startDragPos.y;
 
         // Send the update to the model to actually move the nodes
         if (dx != 0 || dy != 0)
@@ -557,17 +561,31 @@ export class Editor
         }
 
         this.dragNodes = [];
+        this.startDragPos = null;
         this.startMousePos = null;
-        this.lastMousePos = null;
     }
 
     // Move nodes currently being dragged to a new position
     moveNodes(mousePos)
     {
-        assert (this.lastMousePos);
-        let dx = mousePos.x - this.lastMousePos.x;
-        let dy = mousePos.y - this.lastMousePos.y;
-        this.lastMousePos = mousePos;
+        assert (this.startMousePos);
+        let dx = mousePos.x - this.startMousePos.x
+        let dy = mousePos.y - this.startMousePos.y;
+
+        // Get the min x/y position of the nodes being dragged
+        let dragPos = this.getDragPos();
+
+        // Compute how much we've moved the nodes
+        let mx = dragPos.x - this.startDragPos.x;
+        let my = dragPos.y - this.startDragPos.y;
+
+        // Adjust the dx/dy based on the current node positions
+        dx = dx - mx;
+        dy = dy - my;
+
+        // Prevent nodes being moved out of the top/left edges
+        dx = Math.max(dx, -dragPos.x);
+        dy = Math.max(dy, -dragPos.y);
 
         // Move the nodes
         for (let nodeId of this.dragNodes)
@@ -581,6 +599,26 @@ export class Editor
 
         // TODO: we probably want to scroll a bit to follow the node
         // when moving a node off-screen.
+    }
+
+    // Compute the minimum x/y coordinates of the nodes being dragged
+    getDragPos()
+    {
+        let xMin = Infinity;
+        let yMin = Infinity;
+
+        // Move the nodes
+        for (let nodeId of this.dragNodes)
+        {
+            let node = this.nodes.get(nodeId);
+            xMin = Math.min(xMin, node.x);
+            yMin = Math.min(yMin, node.y);
+        }
+
+        return {
+            x: xMin,
+            y: yMin
+        };
     }
 
     // Delete the currently selected nodes
