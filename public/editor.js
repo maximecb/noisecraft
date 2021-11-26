@@ -426,8 +426,6 @@ export class Editor
         let maxWidth = this.editorDiv.scrollWidth;
         let maxHeight = this.editorDiv.scrollHeight;
 
-        let editRect = this.svg.getBoundingClientRect();
-
         // For each node
         for (let [nodeId, node] of this.nodes)
         {
