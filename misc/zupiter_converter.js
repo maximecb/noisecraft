@@ -58,11 +58,11 @@ function convertNode(node)
         delete node.numOcts;
     }
 
-
-    if (node.patterns)
-        console.log(node.patterns)
-
-
+    if (node.type == 'MonoSeq')
+    {
+        if (!node.curPattern)
+            node.curPattern = 0;
+    }
 
     // Add missing parameters
     for (let param of schema.params)
