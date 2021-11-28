@@ -9,13 +9,11 @@ import sqlite3 from 'sqlite3';
 import { assert, treeCopy } from '../public/utils.js';
 import * as model from '../public/model.js';
 
-function convertProject(project)
+function convertProject(project, title)
 {
     assert (project instanceof Object);
 
-    // TODO: add missing project fields
-
-
+    project.title = title;
 
     for (let nodeId in project.nodes)
     {
@@ -23,9 +21,6 @@ function convertProject(project)
         let node = project.nodes[nodeId];
         project.nodes[nodeId] = convertNode(node);
     }
-
-
-
 
     return project;
 }
@@ -40,12 +35,13 @@ function convertNode(node)
     let schema = model.NODE_SCHEMA[node.type];
     assert (schema);
 
+    delete node.id;
+    delete node.outs;
 
+    //console.log(node.ins)
+    node.ins = node.ins.map(src => src? [String(src.nodeId), src.portIdx]:null);
+    //console.log(node.ins);
 
-
-
-
-    /*
     if (!node.inNames)
     {
         node.inNames = schema.ins.map(s => s.name);
@@ -55,7 +51,28 @@ function convertNode(node)
     {
         node.outNames = schema.outs.map(n => n);
     }
-    */
+
+    if ('numOcts' in node)
+    {
+        node.numOctaves = node.numOcts;
+        delete node.numOcts;
+    }
+
+
+    if (node.patterns)
+        console.log(node.patterns)
+
+
+
+    // Add missing parameters
+    for (let param of schema.params)
+    {
+        if (param.name in node.params)
+            continue;
+
+        console.log(node.type, param.name);
+        node.params[param.name] = param.default;
+    }
 
     return node;
 }
@@ -99,7 +116,7 @@ async function getProjectData(projectId)
 {
     return new Promise((resolve, reject) => {
         db.get(
-            'SELECT data FROM projects WHERE id==?',
+            'SELECT data, title, user_id FROM projects WHERE id==?',
             [projectId],
             function (err, row)
             {
@@ -108,7 +125,27 @@ async function getProjectData(projectId)
                 else if (row === undefined)
                     resolve(null)
                 else
-                    resolve(row.data);
+                    resolve(row);
+            }
+        );
+    });
+}
+
+// Get the name for a given userId
+async function getUserName(userId)
+{
+    return new Promise((resolve, reject) => {
+        db.get(
+            'SELECT username FROM users WHERE id==?',
+            [userId],
+            function (err, row)
+            {
+                if (err)
+                    reject(null);
+                else if (row === undefined)
+                    resolve(null)
+                else
+                    resolve(row.username);
             }
         );
     });
@@ -134,7 +171,7 @@ async function setProjectData(projectId, data)
 
 if (process.argv.length != 4)
 {
-    throw Error('expected db path argument and output directory')
+    throw Error('expected db path argument and output directory');
 }
 
 let dbPath = process.argv[2];
@@ -143,6 +180,11 @@ console.log(dbPath)
 // Output directory to write files into
 let outDir = process.argv[3];
 console.log(outDir);
+
+if (outDir == 'examples')
+{
+    throw Error('invalid output directory');
+}
 
 if (!fs.existsSync(outDir))
 {
@@ -161,40 +203,52 @@ for (let projectId = 1; projectId <= maxProjectId; ++projectId)
 {
     console.log(`processing projectId=${projectId}`);
 
-    let inData = await getProjectData(projectId);
+    let row = await getProjectData(projectId);
 
-    if (inData == null)
+    if (row === null)
         continue;
 
-    //console.log('got project data');
-    assert (typeof inData == 'string');
-    //console.log(inData);
+    let data = row.data;
+    let title = row.title;
+    let userId = row.user_id;
 
-    let project = JSON.parse(inData);
+    //console.log('got project data');
+    assert (typeof data == 'string');
+    //console.log(inData);
+    //console.log(title);
+
+    let project = JSON.parse(data);
+
+    // Get the author username
+    let username = await getUserName(userId);
+    assert (username);
+    //console.log(username);
 
     // Convert the project
     try
     {
-        project = convertProject(project);
+        project = convertProject(project, title);
     }
     catch (e)
     {
         console.log(e);
     }
 
+    // TODO: add a message with the author username
+
+
+
+
+
     let outData = JSON.stringify(project);
 
+    // Generate the output path
+    let idString = projectId.toString().padStart(4, '0');
+    let outPath = path.join(outDir, `${idString}.ncft`);
+    console.log(outPath);
 
-
-
-
-    // TODO: generate output path
-
-
-
-    // TODO: write output
-
-
+    // Write to output file
+    fs.writeFileSync(outPath, outData, { encoding: "utf8" })
 }
 
 db.close();
