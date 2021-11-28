@@ -84,6 +84,53 @@ function convertNode(node)
     return node;
 }
 
+function getFreeId(project)
+{
+    let maxId = 0;
+
+    for (let nodeId in project.nodes)
+    {
+        let numId = Number(nodeId);
+        assert (!isNaN(numId));
+        maxId = Math.max(numId, numId);
+    }
+
+    return String(maxId + 1);
+}
+
+// Add some notes to the project to explain where it came from
+function addNotes(project, username)
+{
+    // Compute where to insert the notes
+    let maxY = 0;
+    for (let nodeId in project.nodes)
+    {
+        let node = project.nodes[nodeId];
+        maxY = Math.max(maxY, node.y);
+    }
+
+    let text = (
+        "This project was automatically exported from the Zupiter music app (NoiseCraft's predecessor), " +
+        "and was originally created by \"" + username + "\"."
+    );
+
+    let notes = {
+        type: 'Notes',
+        name: 'About',
+        x: 10,
+        y: maxY + 200,
+        ins: [],
+        inNames: [],
+        outNames: [],
+        params: {
+            text: text
+        }
+    }
+
+    let nodeId = getFreeId(project);
+    project.nodes[nodeId] = notes;
+}
+
 //===========================================================================
 
 // Connect to the database
@@ -242,10 +289,8 @@ for (let projectId = 1; projectId <= maxProjectId; ++projectId)
         continue;
     }
 
-    // TODO: add a message with the author username
-
-
-
+    // Add a message with the author username
+    addNotes(project, username)
 
     model.validateProject(project);
 
