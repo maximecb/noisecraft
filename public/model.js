@@ -446,7 +446,10 @@ export function validateNode(node)
 
             default:
             //console.log(node.type, key);
-            assert (schema.state.indexOf(key) != -1);
+            if (schema.state.indexOf(key) == -1)
+            {
+                throw TypeError(`unknown node property ${key} for ${node.type}`)
+            }
         }
     }
 }

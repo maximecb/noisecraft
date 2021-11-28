@@ -64,13 +64,20 @@ function convertNode(node)
             node.curPattern = 0;
     }
 
+    if (node.type == 'Notes')
+    {
+        node.params.text = node.text? node.text:'';
+        //console.log(node.text);
+        delete node.text;
+    }
+
     // Add missing parameters
     for (let param of schema.params)
     {
         if (param.name in node.params)
             continue;
 
-        console.log(node.type, param.name);
+        //console.log(node.type, param.name);
         node.params[param.name] = param.default;
     }
 
@@ -232,6 +239,7 @@ for (let projectId = 1; projectId <= maxProjectId; ++projectId)
     catch (e)
     {
         console.log(e);
+        continue;
     }
 
     // TODO: add a message with the author username
@@ -239,6 +247,7 @@ for (let projectId = 1; projectId <= maxProjectId; ++projectId)
 
 
 
+    model.validateProject(project);
 
     let outData = JSON.stringify(project);
 
