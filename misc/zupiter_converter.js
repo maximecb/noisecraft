@@ -99,7 +99,7 @@ function getFreeId(project)
 }
 
 // Add some notes to the project to explain where it came from
-function addNotes(project, username)
+function addNotes(project, projectId, username)
 {
     // Compute where to insert the notes
     let maxY = 0;
@@ -111,7 +111,7 @@ function addNotes(project, username)
 
     let text = (
         "This project was automatically exported from the Zupiter music app (NoiseCraft's predecessor), " +
-        "and was originally created by \"" + username + "\"."
+        "and was originally created by \"" + username + "\". The original project id was #" + projectId + "."
     );
 
     let notes = {
@@ -129,6 +129,61 @@ function addNotes(project, username)
 
     let nodeId = getFreeId(project);
     project.nodes[nodeId] = notes;
+}
+
+// Note: eventually, we could fix this more tightly with a module
+function fixSlide(project, slideNode, slideId)
+{
+    // Create a node for the constant 1000
+    let constId = getFreeId(project);
+    let constNode = {
+        type: 'Const',
+        name: 'Const',
+        x: slideNode.x + 10,
+        y: slideNode.y + 10,
+        ins: [],
+        inNames: [],
+        outNames: [""],
+        params: {
+            value: 1000
+        }
+    }
+    project.nodes[constId] = constNode;
+
+    // Create a node for the division
+    let divId = getFreeId(project);
+    let divNode = {
+        type: 'Div',
+        name: 'Div',
+        x: slideNode.x + 20,
+        y: slideNode.y + 20,
+        ins: [
+            slideNode.ins[1],
+            [constId, 0]
+        ],
+        inNames: ["in", "cst"],
+        outNames: ["out"],
+        params: {}
+    }
+    project.nodes[divId] = divNode;
+
+    // Replace the slide rate input by our divided input
+    slideNode.ins[1] = [divId, 0];
+}
+
+// Fix the scaling of slide node inputs in a project
+function fixSlides(project)
+{
+    // For each node in the project
+    for (let nodeId in project.nodes)
+    {
+        let node = project.nodes[nodeId];
+
+        if (node.type == 'Slide')
+        {
+            fixSlide(project, node, nodeId);
+        }
+    }
 }
 
 //===========================================================================
@@ -289,8 +344,11 @@ for (let projectId = 1; projectId <= maxProjectId; ++projectId)
         continue;
     }
 
+    // Fix the scaling of slide nodes
+    fixSlides(project);
+
     // Add a message with the author username
-    addNotes(project, username)
+    addNotes(project, projectId, username);
 
     model.validateProject(project);
 
