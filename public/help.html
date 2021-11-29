@@ -16,9 +16,10 @@
             <p>
             NoiseCraft is a visual programming language for sound synthesis and music that runs
             in your web browser, loosely inspired by Pure Data and Max/MSP. It's a tool that allows you to build your
-            own synthesizer by creating new nodes (modules) and connecting them together. By connecting nodes with edges,
+            own synthesizer by creating new nodes and connecting them together. By connecting nodes with edges,
             you control how audio data and control signals flow from one
-            node to another and how sound is generated.
+            node to another and how sound is generated. NoiseCraft is ideally suited to play with additive,
+            subtractive and FM synthesis.
             </p>
 
             <p>
@@ -50,7 +51,7 @@
 
             <h3>Creating New Nodes</h3>
             <p>
-            Clicking on empty space in the Edit tab will make a dialog menu pop up which allows you to select the
+            Clicking on empty space in the editor will make a dialog menu pop up which allows you to select the
             kind of node you want to create. Once the node is created, you can drag it around by clicking on the
             node's name and holding the left mouse button as you move the mouse.
             </p>
@@ -116,7 +117,7 @@
             One or more nodes can be copied by first selecting the nodes you want to copy, and then
             pressing Ctrl+X (Command+X on macOS). You can then paste the nodes at the location of your
             mouse pointer by pressing Ctrl+V (Command+V on macOS). It's possible to copy nodes and paste
-            them in a separate NoiseCraft tab, which makes it possible to reuse parts of other project.
+            them in a separate browser tab, which makes it possible to reuse parts of other project.
             </p>
 
             <!-- TODO: Examples will need to wait until we can share projects, so we can link to the examples -->
@@ -163,22 +164,22 @@
             However, you can change the output range of a knob by double clicking on its name (where it
             says "Knob") and editing the node's parameters.
             </p>
+            -->
 
             <h2>MIDI Support</h2>
             <p>
             NoiseCraft can receive input from MIDI keyboards, sequencers and other types of MIDI devices. The
             MidiIn note, by default, will connect to every MIDI device on your system and receive notes. You
             can also map virtual knobs in NoiseCraft to physical knobs on a MIDI device by double-clicking on
-            the virtual knob and then wiggling the physical knob you want to map to. If input from
-            your device is not detected, try refreshing the NoiseCraft page.
+            the virtual knob and then wiggling the physical knob you want to map to. You can also map knobs
+            to the mod wheel of a MIDI keyboard.
             </p>
 
             <p>
             Most MIDI controllers should work with NoiseCraft out of the box, but if you are looking to purchase
             new equipment, I have personally tested the Novation Launch Control, which has multiple mappable knobs,
-            the M-Audio KeyStation 88, and the Akai MPK Mini.
+            the M-Audio KeyStation 88, the Akai MPK Mini and the Arturia KeyStep.
             </p>
-            -->
 
         </div>
 
