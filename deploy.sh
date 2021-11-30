@@ -9,7 +9,6 @@ mkdir deploy/public
 
 cp start_server.sh deploy
 cp server.js deploy
-cp converter.js deploy
 cp package.json deploy
 cp -R public deploy
 
