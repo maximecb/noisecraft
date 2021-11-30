@@ -3,6 +3,7 @@ import { Dialog } from './dialog.js';
 import { Model, Paste, Play, Stop } from './model.js';
 import { Editor } from './editor.js';
 import { AudioView } from './audioview.js';
+import { TitleView } from './titleview.js';
 import * as session from './session.js';
 import * as sharing from './sharing.js';
 
@@ -24,6 +25,9 @@ let editor = new Editor(model);
 
 // Audio view of the model
 let audioView = new AudioView(model);
+
+// View that updates the webpage title
+let titleView = new TitleView(model);
 
 // Most recent location of a mouse or touch event
 let cursor = { x: 0, y: 0 };
@@ -332,8 +336,6 @@ function startPlayback()
     btnPlay.style.display = 'none';
     btnStop.style.display = 'inline-block';
 
-    document.title = '▶ ' + document.title;
-
     // Send the play action to the model
     model.update(new Play());
 }
@@ -348,9 +350,6 @@ function stopPlayback()
     // Hide the stop button
     btnPlay.style.display = 'inline-block';
     btnStop.style.display = 'none';
-
-    // Remove the playback indicator from the title
-    document.title = document.title.substr(2);
 
     // Send the stop action to the model
     model.update(new Stop());

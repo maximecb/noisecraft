@@ -181,7 +181,7 @@ export class AudioView
     }
 
     /**
-     * Receive a message fro the audio thread (audio worklet)
+     * Receive a message from the audio thread (audio worklet)
      */
     onmessage(event)
     {
