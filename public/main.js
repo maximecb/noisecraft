@@ -36,16 +36,6 @@ document.body.onload = async function ()
 {
     browserWarning();
 
-    try
-    {
-        // Create a new blank project
-        model.new();
-    }
-    catch (e)
-    {
-        console.log(e.stack);
-    }
-
     // Parse the projectId from the path
     let path = location.pathname;
     let projectId = parseInt(location.pathname.replace('/',''));
@@ -62,12 +52,16 @@ document.body.onload = async function ()
         return;
     }
 
+    // If a hash location was supplied
     if (location.hash)
     {
-        // Avoid erasing saved state on refresh/reload
         if (location.hash == '#new')
         {
+            model.new();
+
+            // Avoid erasing saved state on refresh/reload
             history.replaceState(null, null, ' ');
+
             return;
         }
 
@@ -89,6 +83,7 @@ document.body.onload = async function ()
 
     if (!serializedModelData)
     {
+        model.new();
         return;
     }
 
@@ -101,7 +96,7 @@ document.body.onload = async function ()
         console.log(e.stack);
 
         // If loading failed, we don't want to reload
-        // the same data again and error repeatedly
+        // the same data again next time
         localStorage.removeItem('latestModelData');
 
         // Reset the project
