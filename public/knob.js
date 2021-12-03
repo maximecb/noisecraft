@@ -8,7 +8,7 @@ import { midi } from './midi.js';
  * */
 export class Knob extends Eventable
 {
-    constructor(minVal, maxVal, value, deviceId, controlNo)
+    constructor(minVal, maxVal, value, deviceId, controlId)
     {
         super();
 
@@ -95,7 +95,7 @@ export class Knob extends Eventable
 
         // Re-bind the controller to MIDI
         if (deviceId)
-            this.bindMidi(deviceId, controlNo);
+            this.bindMidi(deviceId, controlId);
 
         // Rotate the knob to its initial position
         this.drawKnob();
@@ -221,6 +221,14 @@ export class Knob extends Eventable
                 knob.bindMidi(deviceId, cc);
                 midi.removeListener('midimessage', map);
             }
+
+            // MIDI pitch bend
+            if (msgType == 0xE0 && msg.length == 3)
+            {
+                dialog.close();
+                knob.bindMidi(deviceId, 'pitch_bend');
+                midi.removeListener('midimessage', map);
+            }
         }
 
         // Undo the current MIDI binding
@@ -237,9 +245,9 @@ export class Knob extends Eventable
     }
 
     /**
-     * Bind this knob to a MIDI continuous control number
+     * Bind this knob to a MIDI control
      * */
-    bindMidi(deviceId, controlNo)
+    bindMidi(deviceId, controlId)
     {
         function onMidiMessage(deviceId, msg)
         {
@@ -249,18 +257,32 @@ export class Knob extends Eventable
             var msgType = msg[0] & 0xF0;
 
             // MIDI control change
-            if (msgType != 0xB0 || msg.length != 3)
-                return;
+            if (msgType == 0xB0 && msg.length == 3)
+            {
+                let cc = msg[1];
+                let val = msg[2]
 
-            let cc = msg[1];
-            let val = msg[2]
+                // Only respond to a specific controller
+                if (cc != this.controlId)
+                    return;
 
-            // Only respond to a specific controller
-            if (cc != this.controlNo)
-                return;
+                let normVal = val / 127;
+                this.setNormVal(normVal);
+            }
 
-            let normVal = val / 127;
-            this.setNormVal(normVal);
+            // MIDI pitch bend
+            if (msgType == 0xE0 && msg.length == 3)
+            {
+                // Only respond if bound to pitch bend
+                if (this.controlId != 'pitch_bend')
+                    return;
+
+                let lsb = msg[1];
+                let msb = msg[2];
+                let val = (msb << 7) | lsb;
+                let normVal = val / 16383;
+                this.setNormVal(normVal);
+            }
         }
 
         if (this.listener)
@@ -268,15 +290,15 @@ export class Knob extends Eventable
             midi.removeListener('midimessage', this.listener);
         }
 
-        if (controlNo !== null)
+        if (controlId !== null)
         {
             this.deviceId = deviceId;
-            this.controlNo = controlNo;
+            this.controlId = controlId;
             this.listener = onMidiMessage.bind(this);
             midi.on('midimessage', this.listener);
         }
 
         // Call the MIDI bind callbacks
-        this.trigger('bindmidi', deviceId, controlNo);
+        this.trigger('bindmidi', deviceId, controlId);
     }
 }

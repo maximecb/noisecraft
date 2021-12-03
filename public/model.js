@@ -881,6 +881,46 @@ export class SetNodeName extends Action
 }
 
 /**
+ * Set the name of an input port for a given node
+ */
+export class SetInName extends Action
+{
+    constructor(nodeId, portIdx, name)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.portIdx = portIdx;
+        this.name = name;
+    }
+
+    update(model)
+    {
+        let node = model.state.nodes[this.nodeId];
+        node.inNames[this.portIdx] = this.name;
+    }
+}
+
+/**
+ * Set the name of an output port for a given node
+ */
+export class SetOutName extends Action
+{
+    constructor(nodeId, portIdx, name)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.portIdx = portIdx;
+        this.name = name;
+    }
+
+    update(model)
+    {
+        let node = model.state.nodes[this.nodeId];
+        node.outNames[this.portIdx] = this.name;
+    }
+}
+
+/**
  * Set a node parameter to a given value
  */
 export class SetParam extends Action
