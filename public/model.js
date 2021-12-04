@@ -210,7 +210,6 @@ export const NODE_SCHEMA =
     },
 
     'Notes': {
-        unique: true,
         ins: [],
         outs: [],
         params: [
