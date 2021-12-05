@@ -9,45 +9,13 @@ import { assert, treeCopy } from './public/utils.js';
 import * as model from './public/model.js';
 import { compile } from './public/compiler.js';
 
-function convertProject(project)
-{
-    assert (project instanceof Object);
-
-    // Validate each individual node
-    for (let nodeId in project.nodes)
-    {
-        assert (typeof nodeId === 'string');
-        let node = project.nodes[nodeId];
-        project.nodes[nodeId] = convertNode(node);
-    }
-
-    return project;
-}
-
-function convertNode(node)
-{
-    let schema = model.NODE_SCHEMA[node.type];
-
-    if (!node.inNames)
-    {
-        node.inNames = schema.ins.map(s => s.name);
-    }
-
-    if (!node.outNames)
-    {
-        node.outNames = schema.outs.map(n => n);
-    }
-
-    return node;
-}
-
 //===========================================================================
 
 // If the examples directory exists
 if (fs.existsSync('examples'))
 {
     // For each example project
-    fs.readdirSync('examples').forEach(fileName => 
+    fs.readdirSync('examples').forEach(fileName =>
     {
         // Read the example file
         let filePath = path.join('examples', fileName);
@@ -56,7 +24,7 @@ if (fs.existsSync('examples'))
 
         // Convert the project
         let project = JSON.parse(inData);
-        project = convertProject(project);
+        project = model.normalizeProject(project);
         let outData = JSON.stringify(project);
 
         fs.writeFileSync(filePath, outData, { encoding: "utf8" });

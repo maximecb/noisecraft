@@ -4,7 +4,7 @@ import { assert } from './public/utils.js';
 import * as model from './public/model.js';
 import { compile } from './public/compiler.js';
 
-fs.readdirSync('examples').forEach(fileName => 
+fs.readdirSync('examples').forEach(fileName =>
 {
     // Read the example file
     let filePath = path.join('examples', fileName);

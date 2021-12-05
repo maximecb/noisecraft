@@ -315,38 +315,78 @@ export const NODE_SCHEMA =
 };
 
 /**
- * Remove non-persistent state variables from the model's state
+ * Normalize older project formats to match the current schema
+ * This method exists to enable backwards-compatibility
  */
-function resetState(state)
+export function normalizeProject(project)
 {
-    // Properties found on every node
-    let nodeProps = new Set([
-        'type',
-        'name',
-        'x',
-        'y',
-        'ins',
-        'inNames',
-        'outNames',
-        'params'
-    ]);
+    assert (project instanceof Object);
 
-    for (let id in state.nodes)
+    // For each node
+    for (let nodeId in project.nodes)
     {
-        let node = state.nodes[id];
-        let keys = Object.keys(node);
-        let schema = NODE_SCHEMA[node.type];
-        let stateVars = new Set(schema.state);
+        assert (typeof nodeId === 'string');
+        let node = project.nodes[nodeId];
+        project.nodes[nodeId] = normalizeNode(node);
+    }
 
-        for (let key of keys)
+    return project;
+}
+
+/**
+ * Normalize older node formats to match the current schema
+ */
+export function normalizeNode(node)
+{
+    let schema = NODE_SCHEMA[node.type];
+
+    // Make sure that the number of inputs matches the schema
+    if (node.ins.length < schema.ins.length)
+    {
+        let curLen = node.ins.length;
+        node.ins.length = schema.ins.length;
+        node.ins.fill(null, curLen, node.ins.length);
+    }
+
+    if (!node.inNames)
+    {
+        node.inNames = schema.ins.map(s => s.name);
+    }
+
+    // Make sure that there is an input name for every schema input
+    if (node.inNames.length < schema.ins.length)
+    {
+        for (let i = node.inNames.length; i < schema.ins.length; ++i)
         {
-            if (!nodeProps.has(key) && !stateVars.has(key))
-            {
-                console.log('deleting', node.type, key);
-                delete node[key];
-            }
+            node.inNames[i] = schema.ins[i].name;
         }
     }
+
+    if (!node.outNames)
+    {
+        node.outNames = schema.outs.map(n => n);
+    }
+
+    // Make sure that there is an output name for every schema output
+    if (node.outNames.length < schema.outs.length)
+    {
+        for (let i = node.outNames.length; i < schema.outs.length; ++i)
+        {
+            node.outNames[i] = schema.outs[i];
+        }
+    }
+
+    // Add missing parameters
+    for (let param of schema.params)
+    {
+        if (param.name in node.params)
+            continue;
+
+        //console.log(node.type, param.name);
+        node.params[param.name] = param.default;
+    }
+
+    return node;
 }
 
 /**
@@ -365,6 +405,7 @@ export function validateProject(project)
     // Validate each individual node
     for (let nodeId in project.nodes)
     {
+        // Validate the nodeId
         assert (typeof nodeId === 'string');
         assert (nodeId.length <= 10);
         assert (/^\d+$/.test(nodeId));
@@ -399,7 +440,7 @@ export function validateNode(node)
 
     // Validate input format
     assert (node.ins instanceof Array);
-    assert (node.ins.length <= schema.ins.length);
+    assert (node.ins.length >= schema.ins.length);
     for (let input of node.ins)
     {
         if (input)
@@ -412,14 +453,15 @@ export function validateNode(node)
     }
 
     // Validate the input names
-    assert (node.inNames.length <= schema.ins.length);
+    assert (node.inNames.length == node.ins.length);
+    assert (node.inNames.length >= schema.ins.length);
     for (var i = 0; i < node.inNames.length; ++i)
     {
         assert (typeof node.inNames[i] == 'string');
     }
 
     // Validate the output names
-    assert (node.outNames.length <= schema.outs.length);
+    assert (node.outNames.length >= schema.outs.length);
     for (var i = 0; i < node.outNames.length; ++i)
     {
         assert (typeof node.outNames[i] == 'string');
@@ -524,6 +566,41 @@ export function validateParams(nodeType, params)
     {
         if (!isPosInt(params.factor))
             throw RangeError('factor must be a positive integer');
+    }
+}
+
+/**
+ * Remove non-persistent state variables from the model's state
+ */
+function resetState(state)
+{
+    // Properties found on every node
+    let nodeProps = new Set([
+        'type',
+        'name',
+        'x',
+        'y',
+        'ins',
+        'inNames',
+        'outNames',
+        'params'
+    ]);
+
+    for (let id in state.nodes)
+    {
+        let node = state.nodes[id];
+        let keys = Object.keys(node);
+        let schema = NODE_SCHEMA[node.type];
+        let stateVars = new Set(schema.state);
+
+        for (let key of keys)
+        {
+            if (!nodeProps.has(key) && !stateVars.has(key))
+            {
+                console.log('deleting', node.type, key);
+                delete node[key];
+            }
+        }
     }
 }
 
@@ -1584,6 +1661,9 @@ export class Model
     // Load the JSON state into the model
     load(state)
     {
+        // Normalize the project state to support older formats
+        normalizeProject(state);
+
         // Check that the state encoding is valid
         validateProject(state);
 
