@@ -245,6 +245,12 @@ div.node_in_port
     text-align: left;
 }
 
+div.node_in_port:hover div.port_conn
+{
+    background-color: red;
+    cursor: pointer;
+}
+
 div.node_out_port
 {
     display: grid;
@@ -252,6 +258,12 @@ div.node_out_port
     grid-template-columns: 1fr min-content;
     grid-template-rows: auto;
     text-align: right;
+}
+
+div.node_out_port:hover div.port_conn
+{
+    background-color: red;
+    cursor: pointer;
 }
 
 div.port_text
@@ -274,12 +286,6 @@ div.port_conn
     margin-top: 4px;
     margin-bottom: 4px;
     background: #FA0;
-}
-
-div.port_conn:hover
-{
-    background-color: red;
-    cursor: pointer;
 }
 
 div.patsel_btn
