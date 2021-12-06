@@ -290,7 +290,7 @@ export class Knob extends Eventable
             midi.removeListener('midimessage', this.listener);
         }
 
-        if (controlId !== null)
+        if (deviceId !== null && controlId !== null)
         {
             this.deviceId = deviceId;
             this.controlId = controlId;
