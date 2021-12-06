@@ -1,6 +1,6 @@
 # NoiseCraft
 
-**NOTE: NoiseCraft is a work in progress, and we are looking for contributors to help build and debug it!**
+**NoiseCraft is a work in progress, and we are looking for contributors to help build and debug it**
 
 NoiseCraft is an open source, browser-based visual programming language and platform for
 sound synthesis and music making that runs your a web browser, with the goal of creating
@@ -34,7 +34,7 @@ Design principles:
   - Use key combos and controls that will likely seem familiar to most users
   - Avoid ambiguity, use known/existing terminology wherever possible
 - Visual programming language design:
-  - There is only one data type: floating point values
+  - There is only one data type: floating-point numbers
   - There is no distinction between control signals and audio signals
 - Practical considerations:
   - Avoid images and sound samples to keep bandwidth/server costs low
@@ -70,9 +70,7 @@ overall complexity.
 As such, we're going to be
 be conservative about the additions to the project that we accept. If you would
 like to contribute new features or major changes to the codebase, please open an
-issue to discuss the proposed changes first, so
-that we can share feedback on what we're likely to merge and how to go
-about implementing the changes.
+issue to discuss the proposed changes first, or comment on an existing issue.
 
 ## Development Setup Instructions
 
