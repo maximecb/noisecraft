@@ -1,6 +1,6 @@
 # NoiseCraft
 
-**NOTE: NoiseCraft is a work in progress, and we are looking for contributors to help build and debug it!**
+**NoiseCraft is a work in progress, and we are looking for contributors to help build and debug it**
 
 NoiseCraft is an open source, browser-based visual programming language and platform for
 sound synthesis and music making that runs your a web browser, with the goal of creating
