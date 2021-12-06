@@ -116,7 +116,7 @@ export class Editor
         {
             console.log('editor click');
 
-            this.editorDiv.releasePointerCapture(evt.pointerId);
+            if (evt.pointerId) this.editorDiv.releasePointerCapture(evt.pointerId);
             this.startMousePos = null;
 
             // If we were in the process of selecting nodes
