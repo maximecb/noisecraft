@@ -276,6 +276,12 @@ div.port_conn
     background: #FA0;
 }
 
+div.port_conn:hover
+{
+    background-color: red;
+    cursor: pointer;
+}
+
 div.patsel_btn
 {
     display: inline-block;
