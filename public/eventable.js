@@ -1,3 +1,5 @@
+import { assert } from './utils.js';
+
 export class Eventable
 {
     constructor()
@@ -12,16 +14,21 @@ export class Eventable
             this._events[eventName] = [];
         }
 
-        this._events[eventName].push(handler);
+        let handlers = this._events[eventName];
+        assert (handlers.indexOf(handler) == -1);
+        handlers.push(handler);
     }
 
     removeListener(eventName, handler)
     {
         let handlers = this._events[eventName];
         let idx = handlers.indexOf(handler);
+
         if (idx != -1)
         {
             handlers.splice(idx, 1);
+            //console.log('spliced listener', handler.name)
+            //console.log('handlers.length=', handlers.length)
         }
     }
 
