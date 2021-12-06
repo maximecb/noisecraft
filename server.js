@@ -1,6 +1,6 @@
 // node-sqlite3 API:
 // https://github.com/mapbox/node-sqlite3/wiki/API
-import express from 'express';
+import express, {application} from 'express';
 import path from 'path'
 import fs from 'fs';
 import bodyParser from 'body-parser';
@@ -587,4 +587,6 @@ app.get('/del_project', async function (req, res)
 
 //============================================================================
 
-app.listen(7773);
+const server = app.listen(7773, () => {
+    console.log(`app started on ${server.address().address}:${server.address().port}`)
+});
