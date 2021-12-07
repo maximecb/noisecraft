@@ -103,7 +103,7 @@ node tests.js
 
 ## Running using Docker
 
-To run NoiseCraft app using Docker please follow the following steps:
+To run the NoiseCraft server using Docker please follow the following steps:
 ```
 # Build docker NoiseCraft image
 docker build . -t noisecraft
