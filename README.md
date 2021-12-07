@@ -100,3 +100,16 @@ To run tests locally:
 ```
 node tests.js
 ```
+
+## Running using Docker
+
+To run the NoiseCraft server using Docker please follow the following steps:
+```
+# Build docker NoiseCraft image
+docker build . -t noisecraft
+
+# Start docker NoiseCraft container
+docker run -p 7773:7773 -d noisecraft
+```
+
+NoiseCraft is then accessible at `http://localhost:7773/`
