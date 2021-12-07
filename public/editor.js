@@ -944,7 +944,7 @@ class Node
         this.headerDiv = document.createElement('div');
         this.headerDiv.className = 'node_header';
         this.headerDiv.textContent = state.name;
-        this.headerDiv.title = this.nodeType;
+        this.headerDiv.title = `${this.nodeType}: ${this.schema.description}`;
         this.nodeDiv.appendChild(this.headerDiv);
 
         let contentDiv = document.createElement('div');

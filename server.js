@@ -482,7 +482,7 @@ app.post('/share', jsonParser, async function (req, res)
             return res.sendStatus(400);
 
         // Limit the length of the data, max 1MB
-        if (data.length > 1000000)
+        if (data.length > 1_000_000)
             return res.sendStatus(400);
 
         // Check that the session is valid
