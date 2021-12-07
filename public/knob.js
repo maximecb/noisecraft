@@ -93,9 +93,11 @@ export class Knob extends Eventable
         this.div.onclick = onClick.bind(this);
         this.div.ondblclick = onDoubleClick.bind(this);
 
-        // Re-bind the controller to MIDI
+        // Bind the controller to MIDI
         if (deviceId)
+        {
             this.bindMidi(deviceId, controlId);
+        }
 
         // Rotate the knob to its initial position
         this.drawKnob();
@@ -217,37 +219,40 @@ export class Knob extends Eventable
             if (msgType == 0xB0 && msg.length == 3)
             {
                 let cc = msg[1];
+                knob.bindMidi(deviceId, cc, true);
                 dialog.close();
-                knob.bindMidi(deviceId, cc);
-                midi.removeListener('midimessage', map);
             }
 
             // MIDI pitch bend
             if (msgType == 0xE0 && msg.length == 3)
             {
+                knob.bindMidi(deviceId, 'pitch_bend', true);
                 dialog.close();
-                knob.bindMidi(deviceId, 'pitch_bend');
-                midi.removeListener('midimessage', map);
             }
         }
 
-        // Undo the current MIDI binding
-        function unmap(evt)
+        // When the user closes the dialog without binding
+        function abort()
         {
-            knob.bindMidi(null, null);
+            // Undo the current MIDI binding
+            knob.bindMidi(null, null, true);
+        }
+
+        // When the dialog is closed for any reason
+        function close()
+        {
             midi.removeListener('midimessage', map);
         }
 
         midi.on('midimessage', map);
-
-        // If the user closes the dialog, remove/abort the mapping
-        dialog.on('close', unmap);
+        dialog.on('userclose', abort);
+        dialog.on('close', close);
     }
 
     /**
      * Bind this knob to a MIDI control
      * */
-    bindMidi(deviceId, controlId)
+    bindMidi(deviceId, controlId, notify)
     {
         function onMidiMessage(deviceId, msg)
         {
@@ -293,13 +298,21 @@ export class Knob extends Eventable
 
         if (deviceId !== null && controlId !== null)
         {
-            this.deviceId = deviceId;
-            this.controlId = controlId;
             this.listener = onMidiMessage.bind(this);
             midi.on('midimessage', this.listener);
         }
 
+        // Check if the MIDI binding has changed
+        let changed = (deviceId != this.deviceId || controlId != this.controlId);
+
+        // Update the binding parameters
+        this.deviceId = deviceId;
+        this.controlId = controlId;
+
         // Call the MIDI bind callbacks
-        this.trigger('bindmidi', deviceId, controlId);
+        if (changed && notify)
+        {
+            this.trigger('bindmidi', deviceId, controlId);
+        }
     }
 }

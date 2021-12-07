@@ -9,12 +9,6 @@ export class Dialog extends Eventable
     {
         super();
 
-        function bgClick(evt)
-        {
-            this.close();
-            evt.stopPropagation();
-        }
-
         // Div that wraps the dialog
         this.wrapperDiv = document.createElement('div');
         this.wrapperDiv.className = 'dialog';
@@ -44,17 +38,29 @@ export class Dialog extends Eventable
         body.appendChild(this.wrapperDiv);
         body.appendChild(this.bgDiv);
 
+        function bgClick(evt)
+        {
+            this.trigger('userclose');
+            this.close();
+            evt.stopPropagation();
+        }
+
         function keyHandler(evt)
         {
             this.trigger('keydown', evt.key);
 
             // Trigger a special handler for the enter key
             if (evt.key === "Enter")
+            {
                 this.trigger('enter');
+            }
 
             // Close the dialog when the escape key is pressed
             if (evt.key === "Escape")
+            {
+                this.trigger('userclose');
                 this.close();
+            }
         }
 
         this.keyHandler = keyHandler.bind(this);
