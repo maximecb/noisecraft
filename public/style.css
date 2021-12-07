@@ -97,16 +97,12 @@ div.menu_button:hover, a.menu_link:hover
     text-decoration: none;
 }
 
-div.tabcontent
+div.pagecontents
 {
-    flex-grow: 1;
-
-    display: none;
-    padding-left: 10px;
-    padding-right: 10px;
-    /* Limit the width of text tabs */
-    margin: auto;
-    max-width: 900;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 10px;
 }
 
 /****************************************************************************/
