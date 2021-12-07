@@ -51,7 +51,7 @@ export const NODE_SCHEMA =
             { name: 'maxVal', default: 240 },
             { name: 'value', default: 120 },
             { name: 'deviceId', default: null },
-            { name: 'controlNo', default: null },
+            { name: 'controlId', default: null },
         ],
         description: 'MIDI clock signal source with tempo in BPM',
     },
@@ -163,7 +163,7 @@ export const NODE_SCHEMA =
             { name: 'maxVal', default: 1 },
             { name: 'value', default: 0 },
             { name: 'deviceId', default: null },
-            { name: 'controlNo', default: null },
+            { name: 'controlId', default: null },
         ],
         state: [],
         description: 'parameter control knob',
@@ -374,6 +374,13 @@ export function normalizeNode(node)
         {
             node.outNames[i] = schema.outs[i];
         }
+    }
+
+    // Rename controlNo to controlId
+    if ('controlNo' in node.params)
+    {
+        node.params.controlId = node.params.controlNo;
+        delete node.params.controlNo;
     }
 
     // Add missing parameters

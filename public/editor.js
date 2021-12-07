@@ -1413,7 +1413,7 @@ class KnobNode extends Node
             state.params.maxVal,
             state.params.value,
             state.params.deviceId,
-            state.params.controlNo
+            state.params.controlId
         );
         this.centerDiv.append(this.knob.div)
 
@@ -1428,9 +1428,9 @@ class KnobNode extends Node
 
         this.knob.on('change', knobChange);
 
-        this.knob.on('bindmidi', (deviceId, controlNo) => {
+        this.knob.on('bindmidi', (deviceId, controlId) => {
             this.send(new model.SetParam(id, 'deviceId', deviceId));
-            this.send(new model.SetParam(id, 'controlNo', controlNo));
+            this.send(new model.SetParam(id, 'controlId', controlId));
         });
     }
 

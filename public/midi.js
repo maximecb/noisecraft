@@ -2,7 +2,7 @@ import { Eventable } from './eventable.js';
 
 class MIDI extends Eventable
 {
-    constructor(minVal, maxVal, value, controlNo)
+    constructor()
     {
         super();
 
