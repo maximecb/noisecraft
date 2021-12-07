@@ -34,7 +34,7 @@ async function connectDb()
 // Wait until we're connected to the database
 let db = await connectDb();
 
-// Setup tables
+// Setup the database tables
 db.run(`CREATE table IF NOT EXISTS hits (
     time UNSIGNED BIGINT,
     ip STRING NOT NULL);`
@@ -168,7 +168,7 @@ async function getTitle(projectId)
 // Serve static file requests
 app.use('/public', express.static('public'));
 
-// Main/index page
+// Main (index) page
 app.get('/', function(req, res)
 {
     // Record this hit
@@ -209,6 +209,8 @@ app.get('/:projectId([0-9]+)', async function(req, res)
         }
 
         // Set the title tag in the HTML data based on the project title
+        // We do this so the project title can show up in webpage previews
+        // e.g. links on social media
         let title = await getTitle(projectId);
         fileData = String(fileData);
         fileData = fileData.replace(/<title>.*<\/title>/, `<title>${title} - NoiseCraft</title>`);
@@ -281,7 +283,7 @@ Arguments: username, password, email
 */
 app.post('/register', jsonParser, async function (req, res)
 {
-    /// Check that a username is available
+    // Check that a username is available
     async function checkAvail(username)
     {
         // Insert the user into the database
@@ -306,6 +308,7 @@ app.post('/register', jsonParser, async function (req, res)
         let password = req.body.password;
         let email = req.body.email
 
+        // Do some basic validation
         if (username == '' || username.trim() !== username || username.length > 16)
             return res.sendStatus(400);
         if (password.length > 64)
@@ -343,7 +346,7 @@ Arguments: username, password
 */
 app.post('/login', jsonParser, async function (req, res)
 {
-    async function lookupUser (username)
+    async function lookupUser(username)
     {
         return new Promise((resolve, reject) => {
             db.get(
@@ -420,10 +423,10 @@ app.post('/login', jsonParser, async function (req, res)
     }
 })
 
-/// POST /share
+// POST /share
 app.post('/share', jsonParser, async function (req, res)
 {
-    /// Check for duplicate projects
+    // Check for duplicate projects
     async function checkDupes(crc32)
     {
         return new Promise((resolve, reject) => {
@@ -521,7 +524,7 @@ app.post('/share', jsonParser, async function (req, res)
     }
 })
 
-/// GET /browse
+// GET /browse
 app.get('/browse/:from', jsonParser, function (req, res)
 {
     var fromIdx = req.params.from;
@@ -539,7 +542,7 @@ app.get('/browse/:from', jsonParser, function (req, res)
     );
 })
 
-/// GET /get_project
+// GET /get_project
 app.get('/get_project/:id', function (req, res)
 {
     var projectId = req.params.id;
@@ -557,6 +560,7 @@ app.get('/get_project/:id', function (req, res)
     );
 })
 
+/*
 // GET /del_project
 app.get('/del_project', async function (req, res)
 {
@@ -584,9 +588,14 @@ app.get('/del_project', async function (req, res)
         return res.sendStatus(400);
     }
 })
+*/
 
 //============================================================================
 
-const server = app.listen(7773, () => {
-    console.log(`app started on ${server.address().address}:${server.address().port}`)
+const server = app.listen(7773, () =>
+{
+    let address = server.address().address;
+    let port = server.address().port;
+    address = (address == "::")? "localhost":address;
+    console.log(`app started at ${address}:${port}`);
 });
