@@ -9,7 +9,7 @@ function populate(chunkDiv, fromIdx)
     console.log('Populating from', fromIdx);
 
     var xhr = new XMLHttpRequest()
-    xhr.open("GET", 'browse/' + fromIdx, true);
+    xhr.open("GET", 'list/' + fromIdx, true);
     xhr.setRequestHeader("Content-Type", "application/json");
 
     // Request response handler

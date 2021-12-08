@@ -537,8 +537,9 @@ app.post('/share', jsonParser, async function (req, res)
     }
 })
 
-// GET /browse
-app.get('/browse/:from', jsonParser, function (req, res)
+// GET /list
+// List shared projects
+app.get('/list/:from', jsonParser, function (req, res)
 {
     var fromIdx = req.params.from;
 
