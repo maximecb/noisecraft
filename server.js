@@ -127,15 +127,17 @@ async function addUser(username, password, email, ip)
 async function checkSession(userId, sessionId)
 {
     return new Promise((resolve, reject) => {
-        db.all(
+        db.get(
             'SELECT user_id FROM sessions WHERE user_id == ? AND session_id == ?',
             [userId, sessionId],
-            function (err, rows)
+            function (err, row)
             {
-                if (err)
-                    reject();
-                else
-                    resolve();
+                if (err || !row)
+                {
+                    return reject('invalid session');
+                }
+
+                resolve();
             }
         );
     });
@@ -158,6 +160,50 @@ async function getTitle(projectId)
                 }
 
                 resolve(row.title);
+            }
+        );
+    });
+}
+
+// Check for duplicate projects
+async function checkDupes(crc32)
+{
+    return new Promise((resolve, reject) => {
+        // Check for duplicate CRC32 hash
+        db.all(
+            'SELECT id FROM projects WHERE crc32 == ?;',
+            [crc32],
+            function (err, rows)
+            {
+                if (err)
+                    return reject('duplicate check failed');
+
+                // Prevent insertion of duplicates
+                if (rows.length > 0)
+                    return reject('duplicate project');
+
+                resolve();
+            }
+        );
+    });
+}
+
+// Insert the project into the database
+async function insertProject(userId, title, data, crc32, submitTime, submitIP)
+{
+    return new Promise((resolve, reject) => {
+        // Insert the project into the database
+        db.run(
+            'INSERT INTO projects ' +
+            '(user_id, title, data, crc32, pinned, submit_time, submit_ip) ' +
+            'VALUES (?, ?, ?, ?, ?, ?, ?);',
+            [userId, title, data, crc32, 0, submitTime, submitIP],
+            function (err)
+            {
+                if (err)
+                    return reject();
+
+                resolve(this.lastID);
             }
         );
     });
@@ -426,50 +472,6 @@ app.post('/login', jsonParser, async function (req, res)
 // POST /share
 app.post('/share', jsonParser, async function (req, res)
 {
-    // Check for duplicate projects
-    async function checkDupes(crc32)
-    {
-        return new Promise((resolve, reject) => {
-            // Check for duplicate CRC32 hash
-            db.all(
-                'SELECT id FROM projects WHERE crc32 == ?;',
-                [crc32],
-                function (err, rows)
-                {
-                    if (err)
-                        return reject('duplicate check failed');
-
-                    // Prevent insertion of duplicates
-                    if (rows.length > 0)
-                        return reject('duplicate project');
-
-                    resolve();
-                }
-            );
-        });
-    }
-
-    // Insert the project into the database
-    async function insertProject(userId, title, data, crc32, submitTIme, submitIP)
-    {
-        return new Promise((resolve, reject) => {
-            // Insert the project into the database
-            db.run(
-                'INSERT INTO projects ' +
-                '(user_id, title, data, crc32, pinned, submit_time, submit_ip) ' +
-                'VALUES (?, ?, ?, ?, ?, ?, ?);',
-                [userId, title, data, crc32, 0, submitTime, submitIP],
-                function (err)
-                {
-                    if (err)
-                        return reject();
-
-                    resolve(this.lastID);
-                }
-            );
-        });
-    }
-
     try
     {
         var userId = req.body.userId;
@@ -495,6 +497,7 @@ app.post('/share', jsonParser, async function (req, res)
         var submitTime = Date.now();
         var submitIP = getClientIP(req);
 
+        // Insert the project in the database
         let projectId = await insertProject(
             userId,
             title,
