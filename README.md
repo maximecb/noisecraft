@@ -2,11 +2,13 @@
 
 **NoiseCraft is a work in progress, and we are looking for contributors to help build and debug it**
 
-NoiseCraft is an open source, browser-based visual programming language and platform for
-sound synthesis and music making that runs your a web browser, with the goal of creating
-a community for the open exchange of musical ideas. The design is loosely inspired by
-PureData, Max/MSP and other visual programming languages.
-The plan is for the app to remain free to use and ad-free for the foreseeable future.
+NoiseCraft is an open source, visual programming language and platform for
+sound synthesis and music making, with the goal of creating a community for
+the open exchange of musical ideas. The design is loosely inspired by
+PureData, Max/MSP as well as other visual programming languages.
+NoiseCraft is built on technologies such as the Web Audio and Web MIDI APIs, and
+runs in a web browser. The plan is for the app to remain free to use and ad-free
+for the foreseeable future.
 
 <p align="center">
   <img width="800" src="doc/screenshot.png">
