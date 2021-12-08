@@ -429,8 +429,14 @@ export class Editor
         // For each node
         for (let [nodeId, node] of this.nodes)
         {
-            maxWidth = Math.max(maxWidth, node.x + node.nodeDiv.offsetWidth);
-            maxHeight = Math.max(maxHeight, node.y + node.nodeDiv.offsetHeight);
+            maxWidth = Math.max(
+                maxWidth,
+                node.x + node.nodeDiv.offsetWidth + model.EDGE_PADDING
+            );
+            maxHeight = Math.max(
+                maxHeight,
+                node.y + node.nodeDiv.offsetHeight + model.EDGE_PADDING
+            );
         }
 
         setSvg(this.svg, 'width', maxWidth);

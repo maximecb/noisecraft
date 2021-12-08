@@ -123,6 +123,25 @@ async function addUser(username, password, email, ip)
     });
 }
 
+// Check that a username is available
+async function checkAvail(username)
+{
+    // Insert the user into the database
+    return new Promise((resolve, reject) => {
+        db.all(
+            'SELECT id FROM users WHERE username == ?',
+            [username],
+            function (err, rows)
+            {
+                if (rows.length == 0)
+                    resolve();
+                else
+                    reject('username not available "' + username + '"');
+            }
+        );
+    });
+}
+
 // Check that a session is valid
 async function checkSession(userId, sessionId)
 {
@@ -329,25 +348,6 @@ Arguments: username, password, email
 */
 app.post('/register', jsonParser, async function (req, res)
 {
-    // Check that a username is available
-    async function checkAvail(username)
-    {
-        // Insert the user into the database
-        return new Promise((resolve, reject) => {
-            db.all(
-                'SELECT id FROM users WHERE username == ?',
-                [username],
-                function (err, rows)
-                {
-                    if (rows.length == 0)
-                        resolve();
-                    else
-                        reject('username not available "' + username + '"');
-                }
-            );
-        });
-    }
-
     try
     {
         let username = req.body.username;
@@ -489,6 +489,16 @@ app.post('/share', jsonParser, async function (req, res)
 
         // Check that the session is valid
         await checkSession(userId, sessionId);
+
+        // Parse and validate the project data
+        let project = JSON.parse(data);
+        model.validateProject(project);
+
+        // Reposition the nodes
+        model.reposition(project);
+
+        // Re-serialize the project data
+        data = JSON.stringify(project);
 
         // Check for duplicate projects
         var crc32 = crc.crc32(data);

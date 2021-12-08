@@ -5,9 +5,8 @@
 import fs from 'fs';
 import path from 'path';
 import sqlite3 from 'sqlite3';
-import { assert, treeCopy } from './public/utils.js';
-import * as model from './public/model.js';
-import { compile } from './public/compiler.js';
+import { assert } from '../public/utils.js';
+import * as model from '../public/model.js';
 
 //===========================================================================
 
@@ -24,7 +23,8 @@ if (fs.existsSync('examples'))
 
         // Convert the project
         let project = JSON.parse(inData);
-        project = model.normalizeProject(project);
+        model.normalizeProject(project);
+        model.reposition(project);
         let outData = JSON.stringify(project);
 
         fs.writeFileSync(filePath, outData, { encoding: "utf8" });
@@ -37,7 +37,7 @@ if (fs.existsSync('examples'))
 async function connect()
 {
     return new Promise((resolve, reject) => {
-        let db = new sqlite3.Database('./database.db', (err) =>
+        let db = new sqlite3.Database('database.db', (err) =>
         {
             if (err)
                 reject();
@@ -126,7 +126,8 @@ for (let projectId = 1; projectId <= maxProjectId; ++projectId)
 
     // Convert the project
     let project = JSON.parse(inData);
-    project = convertProject(project);
+    model.normalizeProject(project);
+    model.reposition(project);
     let outData = JSON.stringify(project);
 
     await setProjectData(projectId, outData);

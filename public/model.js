@@ -2,7 +2,10 @@ import { assert, isPosInt, treeCopy, treeEq, isString, isObject } from './utils.
 import * as music from './music.js';
 
 // Maximum number of undo steps we support
-const MAX_UNDO_STEPS = 400;
+export const MAX_UNDO_STEPS = 400;
+
+// Number of pixels to pad the canvas along the edges
+export const EDGE_PADDING = 25;
 
 /**
  * High-level description/schema for each type of node
@@ -579,7 +582,7 @@ export function validateParams(nodeType, params)
 /**
  * Remove non-persistent state variables from the model's state
  */
-function resetState(state)
+function resetState(project)
 {
     // Properties found on every node
     let nodeProps = new Set([
@@ -593,13 +596,15 @@ function resetState(state)
         'params'
     ]);
 
-    for (let id in state.nodes)
+    // For each node
+    for (let id in project.nodes)
     {
-        let node = state.nodes[id];
+        let node = project.nodes[id];
         let keys = Object.keys(node);
         let schema = NODE_SCHEMA[node.type];
         let stateVars = new Set(schema.state);
 
+        // For each property of the node
         for (let key of keys)
         {
             if (!nodeProps.has(key) && !stateVars.has(key))
@@ -608,6 +613,37 @@ function resetState(state)
                 delete node[key];
             }
         }
+    }
+}
+
+/**
+ * Reposition the nodes towards the top-left of the canvas
+ * This is used when projects are shared, because some people
+ * have really large monitors and will place nodes far away from
+ * the top-left corner.
+ */
+export function reposition(project)
+{
+    // Compute the minimum x/y coordinates
+    let xMin = Infinity;
+    let yMin = Infinity;
+    for (let nodeId in project.nodes)
+    {
+        let node = project.nodes[nodeId];
+        xMin = Math.min(xMin, node.x);
+        yMin = Math.min(yMin, node.y);
+    }
+
+    let dx = EDGE_PADDING - xMin;
+    let dy = EDGE_PADDING - yMin;
+
+    // Reposition the nodes and round the
+    // coordinates to the nearest integer
+    for (let nodeId in project.nodes)
+    {
+        let node = project.nodes[nodeId];
+        node.x = Math.round(node.x + dx);
+        node.y = Math.round(node.y + dy);
     }
 }
 
