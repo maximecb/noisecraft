@@ -174,7 +174,7 @@ async function getTitle(projectId)
             {
                 if (err || !row)
                 {
-                    reject('user not found');
+                    reject('project not found');
                     return;
                 }
 
