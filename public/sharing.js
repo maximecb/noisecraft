@@ -72,6 +72,14 @@ export async function shareProject(model)
 
     shareBtn.onclick = async function ()
     {
+        let title = model.state.title;
+
+        if (!title || title == "New Project")
+        {
+            dialog.showError('Choose a title for your project');
+            return;
+        }
+
         if (!agreeElem.checked)
         {
             dialog.showError('You must agree to release this work into the public domain to share it');
@@ -81,7 +89,6 @@ export async function shareProject(model)
         try
         {
             // Serialize the project
-            let title = model.state.title;
             let data = model.serialize();
 
             // Send a request to share the project

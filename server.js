@@ -480,7 +480,7 @@ app.post('/share', jsonParser, async function (req, res)
         var data = req.body.data;
 
         // Validate the title
-        if (typeof title != 'string' || title.length > 50)
+        if (typeof title != 'string' || title.length == 0 || title.length > 50)
             return res.sendStatus(400);
 
         // Limit the length of the data, max 1MB
@@ -493,6 +493,12 @@ app.post('/share', jsonParser, async function (req, res)
         // Parse and validate the project data
         let project = JSON.parse(data);
         model.validateProject(project);
+
+        // Do some extra validation on the project
+        if (project.title != title)
+            return res.sendStatus(400);
+        if (Object.keys(project.nodes).length == 0)
+            return res.sendStatus(400);
 
         // Reposition the nodes
         model.reposition(project);
