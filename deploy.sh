@@ -6,11 +6,13 @@ set -e
 rm -rf deploy
 mkdir deploy
 mkdir deploy/public
+mkdir deploy/misc
 
 cp start_server.sh deploy
 cp server.js deploy
 cp package.json deploy
 cp -R public deploy
+cp -R misc deploy
 
 rsync -avz deploy "${SERVER_ADDR}:noisecraft"
 rm -rf deploy

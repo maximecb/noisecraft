@@ -272,8 +272,7 @@ export function compile(graph)
     for (let nodeId of order)
     {
         let node = graph.nodes[nodeId];
-
-        console.log(`compiling ${node.type}, nodeId=${nodeId}`);
+        //console.log(`compiling ${node.type}, nodeId=${nodeId}`);
 
         if (node.type == 'Add')
         {
@@ -493,7 +492,7 @@ export function compile(graph)
         addLine('return [0, 0]');
     }
 
-    console.log(src);
+    //console.log(src);
 
     // This will be assembled into an audio processing graph
     // by the audio thread (audioworklet.js)
