@@ -470,7 +470,7 @@ app.post('/login', jsonParser, async function (req, res)
 })
 
 // POST /share
-app.post('/share', jsonParser, async function (req, res)
+app.post('/projects', jsonParser, async function (req, res)
 {
     try
     {
@@ -532,6 +532,7 @@ app.post('/share', jsonParser, async function (req, res)
             projectId: projectId
         };
 
+        res.statusCode = 201;
         return res.send(JSON.stringify(resData));
     }
 
@@ -562,8 +563,8 @@ app.get('/list/:from', jsonParser, function (req, res)
     );
 })
 
-// GET /get_project
-app.get('/get_project/:id', function (req, res)
+// GET /projects - returns project by ID
+app.get('/projects/:id', function (req, res)
 {
     var projectId = req.params.id;
 
