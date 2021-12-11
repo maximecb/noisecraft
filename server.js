@@ -470,7 +470,7 @@ app.post('/login', jsonParser, async function (req, res)
 })
 
 // POST /share
-app.post('/share', jsonParser, async function (req, res)
+app.post('/projects', jsonParser, async function (req, res)
 {
     try
     {
@@ -532,6 +532,8 @@ app.post('/share', jsonParser, async function (req, res)
             projectId: projectId
         };
 
+        res.statusCode = 201;
+        res.setHeader('Content-Type', 'application/json');
         return res.send(JSON.stringify(resData));
     }
 
@@ -557,13 +559,14 @@ app.get('/list/:from', jsonParser, function (req, res)
         function (err, rows)
         {
             let jsonStr = JSON.stringify(rows);
+            res.setHeader('Content-Type', 'application/json');
             res.send(jsonStr);
         }
     );
 })
 
-// GET /get_project
-app.get('/get_project/:id', function (req, res)
+// GET /projects - returns project by ID
+app.get('/projects/:id', function (req, res)
 {
     var projectId = req.params.id;
 
@@ -575,6 +578,7 @@ app.get('/get_project/:id', function (req, res)
             if (err || !row)
                 return res.sendStatus(400);
 
+            res.setHeader('Content-Type', 'application/json');
             res.send(JSON.stringify(row));
         }
     );
