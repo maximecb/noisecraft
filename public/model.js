@@ -182,6 +182,17 @@ export const NODE_SCHEMA =
         description: 'MIDI note input (cv/gate)',
     },
 
+    'Mod': {
+        ins: [
+            { name: 'in0', default: 0 },
+            { name: 'in1', default: 1 }
+        ],
+        outs: ['out'],
+        params: [],
+        state: [],
+        description: 'floating-point modulo',
+    },
+
     'MonoSeq': {
         ins: [
             { name: 'clock', default: 0 },

@@ -221,17 +221,6 @@ export function compile(graph)
         addLet(outName(nodeId, 0), str);
     }
 
-    function addObj(prefix, obj)
-    {
-        if (typeof obj != 'object')
-            throw 'addObj failed, not an object';
-
-        let idx = Object.keys(lib.objs).length;
-        let name = 'lib.objs.' + prefix + idx;
-        lib.objs[prefix + idx] = obj;
-        return name;
-    }
-
     // Split delay nodes
     graph = splitDelays(graph);
 
@@ -391,6 +380,17 @@ export function compile(graph)
                 `let [${outName(nodeId, 0)}, ${outName(nodeId, 1)}] = ` +
                 `nodes[${nodeId}].update()`
             );
+
+            continue;
+        }
+
+        // Modulo
+        if (node.type == 'Mod')
+        {
+            addDef(nodeId, inVal(node, 0) + ' % ' + inVal(node, 1));
+
+            // Prevent NaN values because they will propagate through everything
+            addLine(`${outName(nodeId, 0)} = isNaN(${outName(nodeId, 0)})? 0:${outName(nodeId, 0)}`);
 
             continue;
         }
