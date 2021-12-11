@@ -533,6 +533,7 @@ app.post('/projects', jsonParser, async function (req, res)
         };
 
         res.statusCode = 201;
+        res.setHeader('Content-Type', 'application/json');
         return res.send(JSON.stringify(resData));
     }
 
@@ -558,6 +559,7 @@ app.get('/list/:from', jsonParser, function (req, res)
         function (err, rows)
         {
             let jsonStr = JSON.stringify(rows);
+            res.setHeader('Content-Type', 'application/json');
             res.send(jsonStr);
         }
     );
@@ -576,6 +578,7 @@ app.get('/projects/:id', function (req, res)
             if (err || !row)
                 return res.sendStatus(400);
 
+            res.setHeader('Content-Type', 'application/json');
             res.send(JSON.stringify(row));
         }
     );
