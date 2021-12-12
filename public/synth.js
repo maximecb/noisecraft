@@ -327,6 +327,7 @@ Delay.prototype.write = function (s)
 
 Delay.prototype.read = function (delayTime)
 {
+    // Calculate how far in the past to read
     let numSamples = Math.floor(this.sampleRate * delayTime);
 
     if (numSamples >= this.buffer.length)

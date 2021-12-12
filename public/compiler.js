@@ -3,8 +3,7 @@ import { NODE_SCHEMA } from './model.js';
 import * as music from './music.js';
 
 /**
- * Split delay nodes into two pseudo-nodes to break cycles produces a
- * new graph reusing the same nodes.
+ * Split delay nodes into two pseudo-nodes to break cycles.
  * Note: this function assumes that all nodes inside modules have been
  * inlined, and there are no modules in the input.
  */
@@ -20,8 +19,8 @@ function splitDelays(graph)
         maxId = Math.max(maxId, nodeId);
     }
 
-    // Mapping of ids of delay nodes that were split
-    // to the new read and write nodes
+    // Mapping of ids of delay nodes that were
+    // split to the new output nodes
     let splitMap = {};
 
     // For each node
@@ -50,8 +49,8 @@ function splitDelays(graph)
         let readNodeId = String(++maxId);
         graph.nodes[readNodeId] = readNode;
 
-        // Keep track of split delays
-        splitMap[nodeId] = { readId: readNodeId, writeId: writeNodeId };
+        // Keep track of the read nodes
+        splitMap[nodeId] = readNodeId;
 
         // Remove the original delay node
         delete graph.nodes[nodeId];
@@ -72,7 +71,7 @@ function splitDelays(graph)
 
             if (srcId in splitMap)
             {
-                node.ins[i] = [splitMap[srcId].readId, 0];
+                node.ins[i] = [splitMap[srcId], 0];
             }
         }
     }
@@ -83,7 +82,7 @@ function splitDelays(graph)
 /**
  * Topologically sort the nodes in a graph (Kahn's algorithm)
  * Note: this function assumes that all nodes inside modules have been
- * inlined, and there are no modules in the input.
+ * inlined, and there are no more modules in the input.
  */
 function topoSort(graph)
 {
