@@ -180,6 +180,29 @@ export const NODE_SCHEMA =
         description: 'sample and hold',
     },
 
+    // Used during compilation, reads from a sample and hold
+    'hold_read': {
+        internal: true,
+        ins: [
+            { name: 'in', default: 0 },
+            { name: 'trig', default: 0 }
+        ],
+        outs: ['out'],
+        params: [],
+        state: [],
+    },
+
+    // Used during compilation, writes to a sample and hold
+    'hold_write': {
+        internal: true,
+        ins: [
+            { name: 'in', default: 0 },
+        ],
+        outs: [],
+        params: [],
+        state: [],
+    },
+
     'Knob': {
         ins: [],
         outs: [''],
