@@ -135,6 +135,17 @@ export const NODE_SCHEMA =
         description: 'divide one input by another',
     },
 
+    'Equal': {
+        ins: [
+            { name: 'in0', default: 0 },
+            { name: 'in1', default: 1 }
+        ],
+        outs: ['out'],
+        params: [],
+        state: [],
+        description: 'compare two values (a == b)',
+    },
+
     'Filter': {
         ins: [
             { name: 'in', default: 0 },
@@ -145,6 +156,17 @@ export const NODE_SCHEMA =
         params: [],
         state: [],
         description: 'classic two-pole low-pass filter',
+    },
+
+    'Greater': {
+        ins: [
+            { name: 'in0', default: 0 },
+            { name: 'in1', default: 1 }
+        ],
+        outs: ['out'],
+        params: [],
+        state: [],
+        description: 'compare two values (a > b)',
     },
 
     'Hold': {

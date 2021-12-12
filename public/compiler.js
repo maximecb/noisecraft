@@ -302,7 +302,6 @@ export function compile(graph)
             continue;
         }
 
-
         if (node.type == 'ClockDiv')
         {
             audioNodes[nodeId] = node;
@@ -348,6 +347,12 @@ export function compile(graph)
             continue;
         }
 
+        if (node.type == 'Equal')
+        {
+            addDef(nodeId, inVal(node, 0) + ' == ' + inVal(node, 1));
+            continue;
+        }
+
         if (node.type == 'Filter')
         {
             audioNodes[nodeId] = node;
@@ -355,6 +360,12 @@ export function compile(graph)
                 nodeId,
                 `nodes[${nodeId}].update(${inVal(node, 0)}, ${inVal(node, 1)}, ${inVal(node, 2)})`
             );
+            continue;
+        }
+
+        if (node.type == 'Greater')
+        {
+            addDef(nodeId, inVal(node, 0) + ' > ' + inVal(node, 1));
             continue;
         }
 
