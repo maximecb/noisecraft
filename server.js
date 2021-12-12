@@ -276,7 +276,11 @@ app.get('/:projectId([0-9]+)', async function(req, res)
         // Set the title tag in the HTML data based on the project title
         // We do this so the project title can show up in webpage previews
         // e.g. links on social media
-        let title = await getTitle(projectId);
+        let title = await getTitle(projectId)
+            .catch(err =>{
+                console.error(err);
+            });
+
         fileData = String(fileData);
         fileData = fileData.replace(/<title>.*<\/title>/, `<title>${title} - NoiseCraft</title>`);
 
@@ -568,7 +572,9 @@ app.get('/list/:from', jsonParser, function (req, res)
 // GET /projects - returns project by ID
 app.get('/projects/:id', function (req, res)
 {
-    var projectId = req.params.id;
+    let projectId = req.params.id;
+    if (isNaN(projectId) || projectId < 1)
+        return res.sendStatus(400);
 
     db.get(
         'SELECT user_id, title, data FROM projects WHERE id == ?;',
@@ -576,7 +582,7 @@ app.get('/projects/:id', function (req, res)
         function (err, row)
         {
             if (err || !row)
-                return res.sendStatus(400);
+                return res.sendStatus(404);
 
             res.setHeader('Content-Type', 'application/json');
             res.send(JSON.stringify(row));
