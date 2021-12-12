@@ -324,9 +324,12 @@ class PulseOsc extends AudioNode
 
     update(freq, duty)
     {
+        let minVal = this.params.minVal;
+        let maxVal = this.params.maxVal;
+
         this.phase += this.sampleTime * freq;
         let cyclePos = this.phase % 1;
-        return (cyclePos < duty)? -1:1;
+        return (cyclePos < duty)? minVal:maxVal;
     }
 }
 
@@ -345,9 +348,12 @@ class SawOsc extends AudioNode
 
     update(freq)
     {
+        let minVal = this.params.minVal;
+        let maxVal = this.params.maxVal;
+
         this.phase += this.sampleTime * freq;
         let cyclePos = this.phase % 1;
-        return -1 + 2 * cyclePos;
+        return minVal + cyclePos * (maxVal - minVal);
     }
 }
 
@@ -402,13 +408,16 @@ class TriOsc extends AudioNode
 
     update(freq)
     {
+        let minVal = this.params.minVal;
+        let maxVal = this.params.maxVal;
+
         this.phase += this.sampleTime * freq;
         let cyclePos = this.phase % 1;
 
-        if (cyclePos < 0.5)
-            return -1 + (4 * cyclePos);
+        // Compute a value between 0 and 1
+        let normVal = (cyclePos < 0.5)? (2 * cyclePos):(1 - 2 * (cyclePos - 0.5));
 
-        return 1 - (4 * (cyclePos - 0.5));
+        return minVal + normVal * (maxVal - minVal);
     }
 }
 

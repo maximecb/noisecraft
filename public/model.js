@@ -261,7 +261,10 @@ export const NODE_SCHEMA =
             { name: 'pw', default: 0.5 }
         ],
         outs: ['out'],
-        params: [],
+        params: [
+            { name: 'minVal', default: -1 },
+            { name: 'maxVal', default: 1 }
+        ],
         state: [],
         description: 'pulse/square oscillator',
     },
@@ -271,7 +274,10 @@ export const NODE_SCHEMA =
             { name: 'freq', default: 0 }
         ],
         outs: ['out'],
-        params: [],
+        params: [
+            { name: 'minVal', default: -1 },
+            { name: 'maxVal', default: 1 }
+        ],
         state: [],
         description: 'sawtooth oscillator',
     },
@@ -333,7 +339,10 @@ export const NODE_SCHEMA =
             { name: 'freq', default: 0 }
         ],
         outs: ['out'],
-        params: [],
+        params: [
+            { name: 'minVal', default: -1 },
+            { name: 'maxVal', default: 1 }
+        ],
         state: [],
         description: 'triangle wave oscillator',
     },
