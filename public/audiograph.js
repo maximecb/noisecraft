@@ -299,13 +299,16 @@ class Hold extends AudioNode
         this.trigSgn = false;
     }
 
-    update(input, trig)
+    write(value, trig)
     {
         if (!this.trigSgn && trig > 0)
-            this.value = input;
+            this.value = value;
 
         this.trigSgn = (trig > 0);
+    }
 
+    read()
+    {
         return this.value;
     }
 }

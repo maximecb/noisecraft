@@ -3,11 +3,11 @@ import { NODE_SCHEMA } from './model.js';
 import * as music from './music.js';
 
 /**
- * Split delay nodes into two pseudo-nodes to break cycles.
+ * Split delay and hold nodes into two pseudo-nodes to break cycles.
  * Note: this function assumes that all nodes inside modules have been
  * inlined, and there are no modules in the input.
  */
-function splitDelays(graph)
+function splitNodes(graph)
 {
     // Copy the graph before modifying it
     graph = treeCopy(graph);
@@ -28,23 +28,22 @@ function splitDelays(graph)
     {
         let node = graph.nodes[nodeId];
 
-        if (node.type != 'Delay')
+        if (node.type != 'Delay' && node.type != 'Hold')
             continue;
 
-        // delay_write writes a value, produces no output
+        // The write node writes takes two inputs, produces no outputs
         let writeNode = {...node};
-        writeNode.type = 'delay_write';
-        writeNode.delayNode = node;
-        writeNode.delayId = nodeId;
+        writeNode.type = (node.type == 'Delay')? 'delay_write':'hold_write';
+        writeNode.originalNode = node;
+        writeNode.originalId = nodeId;
         writeNode.ins = node.ins;
         let writeNodeId = String(++maxId);
         graph.nodes[writeNodeId] = writeNode;
 
-        // delay_read takes a delay time as input, produces an output signal
-        // It does not take the signal as input
+        // The read node takes no inputs, produces an output
         let readNode = {...node};
-        readNode.type = 'delay_read';
-        readNode.delayId = nodeId;
+        readNode.type = (node.type == 'Delay')? 'delay_read':'hold_read';
+        readNode.originalId = nodeId;
         readNode.ins = [];
         let readNodeId = String(++maxId);
         graph.nodes[readNodeId] = readNode;
@@ -220,8 +219,8 @@ export function compile(graph)
         addLet(outName(nodeId, 0), str);
     }
 
-    // Split delay nodes
-    graph = splitDelays(graph);
+    // Split nodes to break cycles
+    graph = splitNodes(graph);
 
     // Produce a topological sort of the graph
     let order = topoSort(graph);
@@ -317,14 +316,14 @@ export function compile(graph)
 
         if (node.type == 'delay_write')
         {
-            audioNodes[node.delayId] = node.delayNode;
-            addLine(`nodes[${node.delayId}].delay.write(${inVal(node, 0)}, ${inVal(node, 1)})`);
+            audioNodes[node.originalId] = node.originalNode;
+            addLine(`nodes[${node.originalId}].delay.write(${inVal(node, 0)}, ${inVal(node, 1)})`);
             continue;
         }
 
         if (node.type == 'delay_read')
         {
-            addDef(nodeId, `nodes[${node.delayId}].delay.read()`);
+            addDef(nodeId, `nodes[${node.originalId}].delay.read()`);
             continue;
         }
 
@@ -364,10 +363,16 @@ export function compile(graph)
             continue;
         }
 
-        if (node.type == 'Hold')
+        if (node.type == 'hold_write')
         {
-            audioNodes[nodeId] = node;
-            addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)}, ${inVal(node, 1)})`);
+            audioNodes[node.originalId] = node.originalNode;
+            addLine(`nodes[${node.originalId}].write(${inVal(node, 0)}, ${inVal(node, 1)})`);
+            continue;
+        }
+
+        if (node.type == 'hold_read')
+        {
+            addDef(nodeId, `nodes[${node.originalId}].read()`);
             continue;
         }
 

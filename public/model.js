@@ -184,10 +184,7 @@ export const NODE_SCHEMA =
     // Used during compilation, reads from a sample and hold
     'hold_read': {
         internal: true,
-        ins: [
-            { name: 'in', default: 0 },
-            { name: 'trig', default: 0 }
-        ],
+        ins: [],
         outs: ['out'],
         params: [],
         state: [],
@@ -198,6 +195,7 @@ export const NODE_SCHEMA =
         internal: true,
         ins: [
             { name: 'in', default: 0 },
+            { name: 'trig', default: 0 }
         ],
         outs: [],
         params: [],
