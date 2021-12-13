@@ -44,10 +44,10 @@ Design principles:
 
 NoiseCraft uses a multi-page design, as opposed to a single-page app. This means
 the New, Help and Browse links open new tabs. This helps users avoid accidentally
-losing their work when clicking other tabs, and make it possible for us to send new users
+losing their work when clicking other tabs, and makes it possible for us to send new users
 direct links to the `/browse` and `/help` pages, for example.
 
-The user-interface uses an immediate-mode GUI. That is, the UI gets redrawn every time
+The user interface uses an immediate-mode GUI. That is, the UI gets redrawn every time
 an action is performed on the model. This makes it trivial to implement features such
 as undo/redo, because we can simply store copies of previous project states. It also reduces
 the coupling between the UI and the model. In practice, caching is used to avoid
