@@ -40,8 +40,8 @@
             To start generating audio, press the "Play" button in the top-right corner of the page. You can also press
             the spacebar to start and stop generating audio. Currently, NoiseCraft
             is able to produce audio in the Chrome and Edge browsers, but not in Safari or Firefox, because NoiseCraft
-            uses relatively recent JavaScript features and APIs. Note that projects using the MidiIn node may not
-            produce any input until you press keys on your keyboard or on a MIDI controller.
+            uses relatively recent JavaScript features and APIs. Note that projects using the <code>MidiIn</code> node may not
+            produce any sound until you press keys on your keyboard or on a MIDI controller.
             </p>
 
             <h3>Keyboard Shortcuts</h3>
@@ -68,8 +68,9 @@
 
             <h3>Node Types</h3>
             Each node has input ports on the left, output ports on the right, and performs some operation
-            internally. Nodes like Add and Mul will add and multiply two input signals together. Sine, Saw, Pulse
-            and Noise are oscillators (signal sources). The AudioOut node takes a left and right signal and plays
+            internally. Nodes like Add and Mul will add and multiply two input signals together. <code>Sine</code>,
+            <code>Saw</code>, <code>Pulse</code> and <code>Noise</code> are oscillators (signal sources). The
+            <code>AudioOut</code> node takes a left and right signal and plays
             it back on your speakers.
 
             <h3>Connecting Nodes</h3>
@@ -111,7 +112,7 @@
             <p>
             Double-clicking on a node's name will make a Node Parameters menu specific to this node pop up.
             This allows you to edit advanced parameters, such as the minimum and maximum value a knob can output,
-            or the output range of a sine oscillator.
+            or the output range of a <code>Sine</code> oscillator.
             </p>
 
             <h3>Selecting Nodes</h3>
@@ -180,7 +181,7 @@
             <h3>Keyboard and Sequencers</h3>
             <p>
             NoiseCraft can receive input from MIDI keyboards, sequencers and other types of MIDI devices. The
-            MidiIn note, by default, will connect to every MIDI device on your system and receive notes.
+            <code>MidiIn</code> node, by default, will connect to every MIDI device on your system and receive notes.
             </p>
 
             <h3>Mapping Controls</h3>
@@ -190,7 +191,7 @@
             You can also map knobs to the mod wheel or pitch bend wheel of a MIDI keyboard. In cases
             where you can't easily physically move a specific physical control to bind it, it's also
             possible to double-click on a knob's header to open the node parameters menu, and then
-            manually edit the controlId parameter.
+            manually edit the <code>controlId</code> parameter.
             </p>
 
             <h3>Unmapping Controls</h3>

@@ -106,6 +106,13 @@ div.pagecontents
     margin-bottom: 18px;
 }
 
+/* code literal */
+code
+{
+    background:rgb(40, 0, 0);
+    border: 1px solid rgb(100, 0, 0);
+}
+
 /****************************************************************************/
 
 #editor_div
