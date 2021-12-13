@@ -301,44 +301,57 @@ KrajeskiFilter.prototype.setCutoff = function (cutoff)
 }
 
 /**
-Delay line, implemented as a circular buffer
-*/
-export function Delay(sampleRate)
+ * Delay line, implemented as a circular buffer
+ * */
+export class Delay
 {
-    this.sampleRate = sampleRate;
-    this.buffer = new Float32Array(Delay.MAX_TIME * 44100);
-    this.writeIdx = 0;
-};
-
-// Maximum delay time
-Delay.MAX_TIME = 10;
-
-Delay.prototype.reset = function ()
-{
-    this.buffer.fill(0);
-    this.writeIdx = 0;
-}
-
-Delay.prototype.write = function (s)
-{
-    this.writeIdx = (this.writeIdx + 1) % this.buffer.length;
-    this.buffer[this.writeIdx] = s;
-};
-
-Delay.prototype.read = function (delayTime)
-{
-    // Calculate how far in the past to read
-    let numSamples = Math.floor(this.sampleRate * delayTime);
-
-    if (numSamples >= this.buffer.length)
+    constructor(sampleRate)
     {
-        numSamples = this.buffer.length - 1;
+        // Maximum delay time
+        const MAX_DELAY_TIME = 10;
+
+        this.sampleRate = sampleRate;
+        this.buffer = new Float32Array(MAX_DELAY_TIME * sampleRate);
+        this.buffer.fill(0);
+
+        // Write and read positions in the buffer
+        this.writeIdx = 0;
+        this.readIdx = 0;
     }
 
-    let readIdx = this.writeIdx - numSamples;
+    reset()
+    {
+        this.buffer.fill(0);
+        this.writeIdx = 0;
+        this.readIdx = 0;
+    }
 
-    if (readIdx < 0)
-        readIdx += this.buffer.length;
+    /**
+     * Write a sample into the delay line
+     * This is intentionally structured so that both inputs are in the
+     * write function, so that the delay line can be split into two nodes
+     * one with no inputs.
+     */
+    write(s, delayTime)
+    {
+        this.writeIdx = (this.writeIdx + 1) % this.buffer.length;
+        this.buffer[this.writeIdx] = s;
 
-    return this.buffer[readIdx];
-};
+        // Calculate how far in the past to read
+        let numSamples = Math.min(
+            Math.floor(this.sampleRate * delayTime),
+            this.buffer.length - 1
+        );
+
+        this.readIdx = this.writeIdx - numSamples;
+
+        // If past the start of the buffer, wrap around
+        if (this.readIdx < 0)
+            this.readIdx += this.buffer.length;
+    }
+
+    read(delayTime)
+    {
+        return this.buffer[this.readIdx];
+    }
+}

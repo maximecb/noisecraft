@@ -36,7 +36,7 @@ function splitDelays(graph)
         writeNode.type = 'delay_write';
         writeNode.delayNode = node;
         writeNode.delayId = nodeId;
-        writeNode.ins = [node.ins[0]]
+        writeNode.ins = node.ins;
         let writeNodeId = String(++maxId);
         graph.nodes[writeNodeId] = writeNode;
 
@@ -45,7 +45,7 @@ function splitDelays(graph)
         let readNode = {...node};
         readNode.type = 'delay_read';
         readNode.delayId = nodeId;
-        readNode.ins = [node.ins[1]]
+        readNode.ins = [];
         let readNodeId = String(++maxId);
         graph.nodes[readNodeId] = readNode;
 
@@ -318,17 +318,13 @@ export function compile(graph)
         if (node.type == 'delay_write')
         {
             audioNodes[node.delayId] = node.delayNode;
-            addLine(`nodes[${node.delayId}].delay.write(${inVal(node, 0)})`);
+            addLine(`nodes[${node.delayId}].delay.write(${inVal(node, 0)}, ${inVal(node, 1)})`);
             continue;
         }
 
         if (node.type == 'delay_read')
         {
-            addDef(
-                nodeId,
-                `nodes[${node.delayId}].delay.read(${inVal(node, 0)})`
-            );
-
+            addDef(nodeId, `nodes[${node.delayId}].delay.read()`);
             continue;
         }
 

@@ -107,6 +107,7 @@ export const NODE_SCHEMA =
         internal: true,
         ins: [
             { name: 'in', default: 0 },
+            { name: 'time', default: 0 },
         ],
         outs: [],
         params: [],
@@ -504,6 +505,7 @@ export function validateNode(node)
     assert (node instanceof Object);
     assert (node.type in NODE_SCHEMA);
     let schema = NODE_SCHEMA[node.type];
+    assert (!schema.internal);
 
     // Node name
     assert (typeof node.name == 'string');
