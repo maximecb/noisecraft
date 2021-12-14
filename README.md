@@ -115,3 +115,12 @@ docker run -p 7773:7773 -d noisecraft
 ```
 
 NoiseCraft is then accessible at `http://localhost:7773/`
+
+## Application Configuration Parameters
+
+The application can be configured using the following environment variable parameters:
+
+| Config Variable | Default Value | Description             |
+|-----------------|---------------|-------------------------|
+| DB_FILE_PATH    | ./database.db | SQLite file path        |
+| HTTP_PORT_NO    | 7773          | HTTP server port number |

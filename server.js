@@ -11,16 +11,20 @@ import crypto from 'crypto';
 // Load the model so we can validate projects
 import * as model from './public/model.js';
 
+// Initializing application configuration parameters
+const dbFilePathConfigValue = process.env.DB_FILE_PATH || './database.db';
+const serverHTTPPortNoConfigValue = process.env.HTTP_PORT_NO  || 7773;
+
 var app = express();
 
 // Create application/json parser
 var jsonParser = bodyParser.json()
 
 // Connect to the database
-async function connectDb()
+async function connectDb(dbFilePath)
 {
     return new Promise((resolve, reject) => {
-        let db = new sqlite3.Database('./database.db', (err) =>
+        let db = new sqlite3.Database(dbFilePath, (err) =>
         {
             if (err)
                 return reject();
@@ -32,7 +36,7 @@ async function connectDb()
 }
 
 // Wait until we're connected to the database
-let db = await connectDb();
+let db = await connectDb(dbFilePathConfigValue);
 
 // Setup the database tables
 db.run(`CREATE table IF NOT EXISTS hits (
@@ -622,7 +626,7 @@ app.get('/del_project', async function (req, res)
 
 //============================================================================
 
-const server = app.listen(7773, () =>
+const server = app.listen(serverHTTPPortNoConfigValue, () =>
 {
     let address = server.address().address;
     let port = server.address().port;
