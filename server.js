@@ -1,6 +1,6 @@
 // node-sqlite3 API:
 // https://github.com/mapbox/node-sqlite3/wiki/API
-import express, {application} from 'express';
+import express from 'express';
 import path from 'path'
 import fs from 'fs';
 import bodyParser from 'body-parser';
@@ -9,11 +9,12 @@ import crc from 'crc';
 import crypto from 'crypto';
 
 // Load the model so we can validate projects
+import { escapeHTML } from './public/utils.js';
 import * as model from './public/model.js';
 
 // Initializing application configuration parameters
-const dbFilePathConfigValue = process.env.DB_FILE_PATH || './database.db';
-const serverHTTPPortNoConfigValue = process.env.HTTP_PORT_NO  || 7773;
+const dbFilePath = process.env.DB_FILE_PATH || './database.db';
+const serverHTTPPortNo = process.env.HTTP_PORT_NO  || 7773;
 
 var app = express();
 
@@ -36,7 +37,7 @@ async function connectDb(dbFilePath)
 }
 
 // Wait until we're connected to the database
-let db = await connectDb(dbFilePathConfigValue);
+let db = await connectDb(dbFilePath);
 
 // Setup the database tables
 db.run(`CREATE table IF NOT EXISTS hits (
@@ -285,6 +286,7 @@ app.get('/:projectId([0-9]+)', async function(req, res)
                 console.error(err);
             });
 
+        title = escapeHTML(title);
         fileData = String(fileData);
         fileData = fileData.replace(/<title>.*<\/title>/, `<title>${title} - NoiseCraft</title>`);
 
@@ -306,7 +308,7 @@ app.get('/browse', function(req, res)
     res.sendFile(path.resolve('public/browse.html'));
 });
 
-app.get('/allthestats', function (req, res)
+app.get('/stats', function (req, res)
 {
     var timestamp = Date.now();
     var oneHourAgo = timestamp - 1000 * 3600;
@@ -595,8 +597,9 @@ app.get('/projects/:id', function (req, res)
 })
 
 /*
-// GET /del_project
-app.get('/del_project', async function (req, res)
+// TODO: this needs admin/moderator user status verification
+// DELETE /projects
+app.delete('/projects', async function (req, res)
 {
     try
     {
@@ -626,7 +629,7 @@ app.get('/del_project', async function (req, res)
 
 //============================================================================
 
-const server = app.listen(serverHTTPPortNoConfigValue, () =>
+const server = app.listen(serverHTTPPortNo, () =>
 {
     let address = server.address().address;
     let port = server.address().port;

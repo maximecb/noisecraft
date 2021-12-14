@@ -13,6 +13,21 @@ export function assert(condition, errorText)
 }
 
 /**
+ * Escape a string to be included in HTML
+ */
+export function escapeHTML(unsafe)
+{
+    return (
+        unsafe
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;')
+    );
+}
+
+/**
  * Check if any input element in the page is active
  */
 export function anyInputActive()
