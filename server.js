@@ -249,7 +249,7 @@ app.use('/public', express.static('public'));
 // Main (index) page
 app.get('/', function(req, res)
 {
-    recordHit(req)
+    recordHit(req);
     res.sendFile(path.resolve('public/index.html'));
 });
 
@@ -262,7 +262,7 @@ app.get('/:projectId([0-9]+)', async function(req, res)
     if (isNaN(projectId) || projectId < 1)
         return res.sendStatus(400);
 
-    recordHit(req)
+    recordHit(req);
 
     // Get the path of the index file
     const indexPath = path.resolve('public/index.html');
