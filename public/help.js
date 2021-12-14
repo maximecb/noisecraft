@@ -7,16 +7,19 @@ function formatSections(elem)
 
     let lastLevel = 0;
 
-    for (let child of elem.childNodes)
+    // For each child node of the help contents
+    for (let child of Array.from(elem.childNodes))
     {
         if (!child.tagName)
             continue;
 
         let tag = child.tagName.toUpperCase();
 
+        // If this is not a section heading tag, skip it
         if (tag[0] != 'H' || tag.length != 2)
             continue;
 
+        // Get the heading level
         let level = parseInt(tag[1]) - 1;
 
         // Increment the numbering at this level
@@ -47,11 +50,17 @@ function formatSections(elem)
             numStr += nums[i];
         }
 
+        // Store the numbering string and original section name
+        child.dataset.numStr = numStr;
+        child.dataset.sectionName = child.textContent;
+
+        // Add the numbering string to the visible section name
         child.textContent = numStr + ' ' + child.textContent;
     }
 
     let sections = []
 
+    // Create a list of major sections
     for (let child of elem.childNodes)
     {
         if (child.tagName && child.tagName.toUpperCase() == 'H2')
@@ -60,10 +69,27 @@ function formatSections(elem)
         }
     }
 
+    // Add hr separators between sections
     for (var i = 1; i < sections.length; ++i)
     {
         let hr = document.createElement('hr');
         elem.insertBefore(hr, sections[i]);
+    }
+
+    // Add section anchors
+    for (let child of Array.from(elem.childNodes))
+    {
+        if (child.dataset && child.dataset.sectionName)
+        {
+            // Get the section name
+            let name = child.dataset.sectionName;
+
+            let anchorId = name.trim().toLowerCase().replace(/[\W]/g, '_');
+            let anchor = document.createElement("a");
+            anchor.id = anchorId;
+
+            elem.insertBefore(anchor, child);
+        }
     }
 }
 
