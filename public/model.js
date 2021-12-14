@@ -524,6 +524,7 @@ export function validateNode(node)
             assert (input.length == 2);
             assert (typeof input[0] == 'string');
             assert (typeof input[1] == 'number');
+            assert (input[1] >= 0);
         }
     }
 
