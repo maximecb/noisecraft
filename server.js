@@ -83,6 +83,14 @@ function getClientIP(req)
     return String(req.connection.remoteAddress);
 }
 
+function recordHit(req) {
+    db.run(
+        'INSERT INTO hits VALUES (?, ?);',
+        Date.now(),
+        getClientIP(req)
+    );
+}
+
 // Hash a string using SHA512
 function cryptoHash(str)
 {
@@ -241,13 +249,7 @@ app.use('/public', express.static('public'));
 // Main (index) page
 app.get('/', function(req, res)
 {
-    // Record this hit
-    db.run(
-        'INSERT INTO hits VALUES (?, ?);',
-        Date.now(),
-        getClientIP(res.req)
-    );
-
+    recordHit(req);
     res.sendFile(path.resolve('public/index.html'));
 });
 
@@ -260,12 +262,7 @@ app.get('/:projectId([0-9]+)', async function(req, res)
     if (isNaN(projectId) || projectId < 1)
         return res.sendStatus(400);
 
-    // Record this hit
-    db.run(
-        'INSERT INTO hits VALUES (?, ?);',
-        Date.now(),
-        getClientIP(res.req)
-    );
+    recordHit(req);
 
     // Get the path of the index file
     const indexPath = path.resolve('public/index.html');
