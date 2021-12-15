@@ -2141,6 +2141,7 @@ class Notes extends Node
         textArea.onchange = oninput.bind(this);
         textArea.onpointerdown = evt => evt.stopPropagation();
         textArea.onpointerup = evt => evt.stopPropagation();
+        textArea.onclick = evt => evt.stopPropagation();
         textArea.ondblclick = evt => evt.stopPropagation();
         textArea.onkeydown = evt => evt.stopPropagation();
 
