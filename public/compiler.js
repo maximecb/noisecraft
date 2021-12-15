@@ -156,7 +156,7 @@ function topoSort(graph)
     // While we have nodes with no inputs
     while (S.length > 0)
     {
-        // Remove a node from S, add to tail of L
+        // Remove a node from S, add it at the end of L
         var nodeId = S.pop();
         L.push(nodeId);
 
@@ -173,6 +173,12 @@ function topoSort(graph)
             if (countInEdges(dstId) == 0)
                 S.push(dstId);
         }
+    }
+
+    // If the topological ordering doesn't include all the nodes
+    if (L.length != Object.keys(graph.nodes).length)
+    {
+        throw SyntaxError('graph contains cycles');
     }
 
     return L;
