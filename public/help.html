@@ -126,26 +126,26 @@
             <h3>Copying and Pasting</h3>
             <p>
             One or more nodes can be copied by first selecting the nodes you want to copy, and then
-            pressing Ctrl+X (Command+X on macOS). You can then paste the nodes at the location of your
-            mouse pointer by pressing Ctrl+V (Command+V on macOS). It's possible to copy nodes and paste
-            them in a separate browser tab, which makes it possible to reuse parts of other project.
+            pressing Ctrl+C (Command+C on macOS). You can then paste the nodes at the location of your
+            mouse pointer by pressing Ctrl+V (Command+V on macOS). You can copy and paste nodes
+            between different browser tabs, which makes it possible to reuse useful parts of
+            other projects.
             </p>
 
-            <!-- TODO: Examples will need to wait until we can share projects, so we can link to the examples -->
-            <!--
             <h2>Examples</h2>
 
-            This section contains some simple example synth graphs which can serve as mini tutorials to
+            This section contains some simple example projects which can serve as mini tutorials to
             help you get started.
 
             <h3>Producing Sound</h3>
             <p>
             In order to produce a sound, we need to connect an audio signal source to an audio output. The
-            <a href="#28">simplest possible graph</a>
-            that you could make to do this involves connecting a Noise node directly to an AudioOut
-            node. Try creating this simple graph, and then press the Play button in the top-right corner.
+            <a href="https://noisecraft.app/161">simplest possible graph</a> that you could make to do this
+            involves connecting a <code>Noise</code> node directly to an <code>AudioOut</code> node. Try
+            creating this simple graph, and then press the Play button in the top-right corner.
             </p>
 
+            <!--
             <h3>Playing Some Notes</h3>
             <p>
             The MidiIn node allows you to get pitch and gate inputs for notes played on a computer keyboard
@@ -164,18 +164,19 @@
             If you want to use a MIDI input device, you should connect this device to your computer
             before loading up NoiseCraft (or refresh the page).
             </p>
+            -->
 
             <h3>Volume Knob</h3>
             <p>
             It's useful to be able to change the amplitude (intensity) of a signal. An easy way to do this
-            is to multiply that signal by some number. In <a href="#32">this example</a>,
-            we multiply the output of a noise source by some factor that is controlled by a knob. You can
-            change the value that the knob produces by clicking on the knob, holding the mouse button
+            is to multiply that signal by some number. In <a href="https://noisecraft.app/162">this example</a>,
+            we multiply the output of a <code>Noise</code> node by some factor that is controlled by a
+            <code>Knob</code> node. You can
+            change the value that the knob outputs by clicking on the knob, holding the mouse button
             down and moving your mouse up and down. Knobs, by default, produce values between 0 and 1.
             However, you can change the output range of a knob by double clicking on its name (where it
             says "Knob") and editing the node's parameters.
             </p>
-            -->
 
             <h2>MIDI Support</h2>
             <h3>Keyboard and Sequencers</h3>
