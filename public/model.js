@@ -407,6 +407,10 @@ export function normalizeNode(node)
 {
     let schema = NODE_SCHEMA[node.type];
 
+    // Convert the coordinates to integers
+    node.x = Math.round(node.x);
+    node.x = Math.round(node.x);
+
     // Make sure that the number of inputs matches the schema
     if (node.ins.length < schema.ins.length)
     {
@@ -703,8 +707,8 @@ export function reposition(project)
     let dx = EDGE_PADDING - xMin;
     let dy = EDGE_PADDING - yMin;
 
-    // Reposition the nodes and round the
-    // coordinates to the nearest integer
+    // Reposition the nodes and convert the
+    // coordinates to integers
     for (let nodeId in project.nodes)
     {
         let node = project.nodes[nodeId];
