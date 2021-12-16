@@ -145,6 +145,27 @@
             creating this simple graph, and then press the Play button in the top-right corner.
             </p>
 
+            <h3>Volume Knob</h3>
+            <p>
+            It's useful to be able to change the amplitude (intensity) of a signal. An easy way to do this
+            is to multiply that signal by some number. In <a href="https://noisecraft.app/162">this example</a>,
+            we multiply the output of a <code>Noise</code> node by some factor that is controlled by a
+            <code>Knob</code> node. You can
+            change the value that the knob outputs by clicking on the knob, holding the mouse button
+            down and moving your mouse up and down. Knobs, by default, produce values between 0 and 1.
+            However, you can change the output range of a knob by double clicking on its name (where it
+            says "Knob") and editing the node's parameters.
+            </p>
+
+            <h3>Low Frequency Oscillators (LFOs)</h3>
+            <p>
+            The <code>Sine</code>, <code>Saw</code> and <code>Tri</code> oscillator nodes can be used as LFOs.
+            You can double-click on these nodes to edit their minimum and maximum output range,
+            and then use their output to modulate the parameters of other nodes. In this simple example,
+            we use a sine LFO to <a href="https://noisecraft.app/164">modulate the cutoff</a> of a low-pass
+            filter.
+            </p>
+
             <!--
             <h3>Playing Some Notes</h3>
             <p>
@@ -165,18 +186,6 @@
             before loading up NoiseCraft (or refresh the page).
             </p>
             -->
-
-            <h3>Volume Knob</h3>
-            <p>
-            It's useful to be able to change the amplitude (intensity) of a signal. An easy way to do this
-            is to multiply that signal by some number. In <a href="https://noisecraft.app/162">this example</a>,
-            we multiply the output of a <code>Noise</code> node by some factor that is controlled by a
-            <code>Knob</code> node. You can
-            change the value that the knob outputs by clicking on the knob, holding the mouse button
-            down and moving your mouse up and down. Knobs, by default, produce values between 0 and 1.
-            However, you can change the output range of a knob by double clicking on its name (where it
-            says "Knob") and editing the node's parameters.
-            </p>
 
             <h2>MIDI Support</h2>
             <h3>Keyboard and Sequencers</h3>
