@@ -21,11 +21,13 @@ export async function shareProject(model)
 
     dialog.paragraph(
         'All of the projects shared on the NoiseCraft platform are available under the ' +
-        '<a href="https://creativecommons.org/publicdomain/zero/1.0/" target=”_blank”>' +
-        'Creative Commons CC0 license</a>. ' +
+        'Creative Commons CC0 license, ' +
         'In order to share your project on this platform, you must agree ' +
-        'to release it into the public domain, ' +
-        'which means you agree to renounce any rights or copyright claim over it. ' +
+        'to make it available under the ' +
+        '<a href="https://creativecommons.org/publicdomain/zero/1.0/" target=”_blank”>' +
+        'Creative Commons CC0 license</a>, ' +
+        'which means you agree to renounce any rights or copyright claim over it, ' +
+        'and effectively release it into the public domain. ' +
         'We also ask that you please not share copyrighted materials.'
     );
 
@@ -47,8 +49,7 @@ export async function shareProject(model)
     paramDiv.appendChild(agreeElem);
     let agreeText = document.createElement('span');
     agreeText.innerHTML = (
-        ' <b>I agree</b> to release this work into the public ' +
-        'domain and renounce any copyright claims over it.'
+        ' <b>I agree</b> to make this work publicly available under the terms of the Creative Commons CC0 license.'
     );
     paramDiv.appendChild(agreeText);
     dialog.appendChild(paramDiv);
