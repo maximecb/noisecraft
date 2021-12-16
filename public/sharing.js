@@ -9,7 +9,7 @@ export async function shareProject(model)
     // Have the user login/register first
     let [userId, sessionId] = await login();
 
-    let dialog = new Dialog('Share Your Creation');
+    let dialog = new Dialog('Share Your Project');
     dialog.wrapperDiv.style.width = '500px';
 
     dialog.paragraph(
