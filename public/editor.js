@@ -283,7 +283,7 @@ export class Editor
         for (let nodeId in newState.nodes)
         {
             let nodeState = newState.nodes[nodeId];
-            let nodeClass = (nodeState.type in NODE_CLASSES)? NODE_CLASSES[nodeState.type]:Node;
+            let nodeClass = (nodeState.type in NODE_CLASSES)? NODE_CLASSES[nodeState.type]:UINode;
             let node = new nodeClass(nodeId, nodeState, this);
             this.nodes.set(nodeId, node);
             this.graphDiv.appendChild(node.nodeDiv);
@@ -831,7 +831,7 @@ class Edge
 /**
  * Represent a node in the UI
  */
-class Node
+class UINode
 {
     constructor(id, state, editor)
     {
@@ -1282,7 +1282,7 @@ class Node
 /**
  * Clock signal divider
  */
-class ClockDiv extends Node
+class ClockDiv extends UINode
 {
     constructor(id, state, editor)
     {
@@ -1324,7 +1324,7 @@ class ClockDiv extends Node
 /**
  * Constant value node
  */
-class ConstNode extends Node
+class ConstNode extends UINode
 {
     constructor(id, state, editor)
     {
@@ -1408,7 +1408,7 @@ class ConstNode extends Node
 /**
  * Rotary knob control
  */
-class KnobNode extends Node
+class KnobNode extends UINode
 {
     constructor(id, state, editor)
     {
@@ -1466,7 +1466,7 @@ class ClockNode extends KnobNode
 /**
 Keep track of the currently active keys on a musical keyboard
 */
-class MidiIn extends Node
+class MidiIn extends UINode
 {
     constructor(id, state, editor)
     {
@@ -1642,7 +1642,7 @@ class MidiIn extends Node
 /**
  * Monophonic note sequencer
  */
-class MonoSeq extends Node
+class MonoSeq extends UINode
 {
     constructor(id, state, editor)
     {
@@ -2112,7 +2112,7 @@ class MonoSeq extends Node
 /**
 Textual notes
 */
-class Notes extends Node
+class Notes extends UINode
 {
     constructor(id, state, editor)
     {
@@ -2152,7 +2152,7 @@ class Notes extends Node
 /**
  * Scope to plot incoming signals
  */
-class Scope extends Node
+class Scope extends UINode
 {
     constructor(id, state, editor)
     {
