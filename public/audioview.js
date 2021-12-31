@@ -126,18 +126,45 @@ export class AudioView
     {
         assert (!this.audioCtx);
 
-        this.audioCtx = new AudioContext({
-            latencyHint: 'interactive',
-            sampleRate: 44100
-        });
+        let agent = navigator.userAgent;
 
-        await this.audioCtx.audioWorklet.addModule('/public/audioworklet.js');
+        if (agent.includes('Chrome') || agent.includes('Edge')) {
+            this.audioCtx = new AudioContext({
+                latencyHint: 'interactive',
+                sampleRate: 44100
+            });
 
-        this.audioWorklet = new AudioWorkletNode(
-            this.audioCtx,
-            'sample-generator',
-            { outputChannelCount: [2] }
-        );
+            await this.audioCtx.audioWorklet.addModule('/public/audioworklet.js');
+
+            this.audioWorklet = new AudioWorkletNode(
+                this.audioCtx,
+                'sample-generator',
+                { outputChannelCount: [2] }
+            );
+        } else {
+            // Delete the global AudioWorkletNode to convince standardized-audio-context that it is not available.
+            delete window.AudioWorkletNode;
+
+            const { AudioContext, AudioWorkletNode } = await import('https://jspm.dev/standardized-audio-context');
+
+            this.audioCtx = new AudioContext({
+                latencyHint: 'interactive',
+                sampleRate: 44100
+            });
+
+            // Overwrite the audioWorklet property to make sure standardized-audio-context uses the fallback implementation.
+            Object.defineProperty(this.audioCtx._nativeContext, 'audioWorklet', {
+                value: undefined
+            });
+
+            await this.audioCtx.audioWorklet.addModule('/public/audioworklet.js');
+
+            this.audioWorklet = new AudioWorkletNode(
+                this.audioCtx,
+                'sample-generator',
+                { outputChannelCount: [2] }
+            );
+        }
 
         // Callback to receive messages from the audioworklet
         this.audioWorklet.port.onmessage = this.onmessage.bind(this);
