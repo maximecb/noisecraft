@@ -1,6 +1,6 @@
 # NoiseCraft
 
-**NoiseCraft is a work in progress, and we are looking for contributors to help build and debug it**
+**NoiseCraft is a work in progress, and we are looking for contributors to help build and debug it :)**
 
 NoiseCraft is an open source, visual programming language and platform for
 sound synthesis and music making, with the goal of creating a community for
@@ -15,17 +15,16 @@ for the foreseeable future.
 </p>
 
 You can try NoiseCraft at [noisecraft.app](https://noisecraft.app), and browse projects shared by other
-users at [noisecraft.app/browse](https://noisecraft.app/browse). Currently, this works in Chrome and Edge but not
-Firefox or Safari. We are waiting for a [Firefox bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1572644) to be fixed.
-Please note that it's a work in progress,
-You may run into bugs, and support for mobile devices is currently poor. Reporting
-bugs and helping us fix them is one way you can contribute to this project.
+users at [noisecraft.app/browse](https://noisecraft.app/browse). Currently, this works in Chrome, Firefox and Edge but 
+not reliably in Safari due to issues with their web audio implementation.
+Please note that NoiseCraft is a passion project and a work in progress.
+You may run into bugs, and support for mobile devices is currently poor.
 
 ## Design
 
 Design principles:
 - NoiseCraft follows a minimalistic philosophy:
-  - No web frameworks, just bare JS/HTML/CSS
+  - No web frameworks, just plain JS/HTML/CSS
   - Intentionally keep dependencies to a minimum
   - Prioritize features the users need
   - Avoid redundant features and feature creep
@@ -73,8 +72,15 @@ As such, we're going to be
 be conservative about the additions to the project that we accept. If you would
 like to contribute new features or major changes to the codebase, please open an
 issue to discuss the proposed changes first, or comment on an existing issue.
+Some of the contributions we're the most likely to accept are bugfixes. Helping
+us track and eliminate bugs is a very useful contribution.
 
 ## Development Setup Instructions
+
+We recommend developing using the Chrome web browser because it has the most mature
+web audio implementation and has been the most extensively tested. 
+We are waiting for a [Firefox bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1572644) to be fixed,
+and there are reliability issues with the Safari web audio implementation.
 
 Installing dependencies:
 
@@ -105,7 +111,7 @@ node tests.js
 
 ## Running using Docker
 
-To run the NoiseCraft server using Docker please follow the following steps:
+To run the NoiseCraft server using Docker please follow these steps:
 ```
 # Build docker NoiseCraft image
 docker build . -t noisecraft
