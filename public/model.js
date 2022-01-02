@@ -1908,7 +1908,7 @@ export class Model
 
         let result = {};
 
-        if (!nodeIds instanceof Array)
+        if (!nodeIds)
             return result;
 
         // Start by fully copying node information. This will be the basis of
@@ -1917,7 +1917,8 @@ export class Model
         for (let nodeId of nodeIds)
         {
             let node = this.state.nodes[nodeId];
-            if (!node instanceof Object)
+
+            if (!node)
                 continue;
 
             result[nodeId] = treeCopy(node);
