@@ -92,11 +92,11 @@ function createChunk(fromIdx, visCheck)
     {
         var rect = chunkDiv.getBoundingClientRect();
         var elemTop = rect.top;
-        var elemBottom = rect.bottom;
 
-        // Partially visible elements return true:
-        if (elemTop < window.innerHeight && elemBottom > 0)
+        // If the top of the chunk is almost visible
+        if (elemTop < window.innerHeight + 400)
         {
+            // Populate the chunk
             populate(chunkDiv, fromIdx);
             window.removeEventListener("scroll", visCheck);
         }
