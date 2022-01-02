@@ -18,7 +18,7 @@ You can try NoiseCraft at [noisecraft.app](https://noisecraft.app), and browse p
 users at [noisecraft.app/browse](https://noisecraft.app/browse). Currently, this works in Chrome, Firefox and Edge but 
 not reliably in Safari due to issues with their web audio implementation.
 Please note that NoiseCraft is a passion project and a work in progress.
-You may run into bugs, and support for mobile devices is currently poor.
+You may run into bugs, and support for mobile devices is currently lacking.
 
 ## Design
 
