@@ -357,7 +357,7 @@ function browserWarning()
 
     let agent = navigator.userAgent;
 
-    if (agent.includes('Chrome') || agent.includes('Edge'))
+    if (agent.includes('Chrome') || agent.includes('Edge') || agent.includes('Firefox'))
         return;
 
     if (localStorage.getItem('displayed_browser_warning'))
