@@ -41,9 +41,6 @@ export class Editor
         // This is not persistent and the audio view doesn't care.
         this.selected = [];
 
-        // List of nodes ids for nodes being dragged
-        this.dragNodes = [];
-
         // Position of nodes being drag at the start of node movement
         this.startDragPos = null;
 
@@ -90,7 +87,7 @@ export class Editor
             var mousePos = this.getMousePos(evt);
 
             // If currently moving one or more nodes
-            if (this.dragNodes.length > 0)
+            if (this.startDragPos)
             {
                 this.moveNodes(mousePos);
                 return;
@@ -519,32 +516,26 @@ export class Editor
     startDrag(nodeId, mousePos)
     {
         // Can't start a drag if one is already in progress
-        if (this.dragNodes.length > 0)
+        if (this.startDragPos)
             return;
 
         console.log('starting drag');
 
-        // If the node that was clicked is currently selected
-        if (this.selected.indexOf(nodeId) != -1)
+        // If the node that was clicked is not already selected
+        if (this.selected.indexOf(nodeId) == -1)
         {
-            this.dragNodes = this.selected;
-        }
-        else
-        {
-            this.dragNodes = [nodeId];
-            this.deselect();
+            this.selectNodes([nodeId]);
         }
 
         this.startDragPos = this.getDragPos();
         this.startMousePos = mousePos;
-        //this.lastMousePos = mousePos;
     }
 
     // Stop dragging/moving nodes
     endDrag(mousePos)
     {
         // Can't stop a drag if none is in progress
-        if (this.dragNodes.length == 0)
+        if (!this.startDragPos)
             return;
 
         console.log('end drag');
@@ -558,13 +549,12 @@ export class Editor
         if (dx != 0 || dy != 0)
         {
             this.model.update(new model.MoveNodes(
-                this.dragNodes,
+                this.selected,
                 dx,
                 dy
             ));
         }
 
-        this.dragNodes = [];
         this.startDragPos = null;
         this.startMousePos = null;
     }
@@ -592,7 +582,7 @@ export class Editor
         dy = Math.max(dy, -dragPos.y);
 
         // Move the nodes
-        for (let nodeId of this.dragNodes)
+        for (let nodeId of this.selected)
         {
             let node = this.nodes.get(nodeId);
             node.move(dx, dy);
@@ -612,7 +602,7 @@ export class Editor
         let yMin = Infinity;
 
         // Move the nodes
-        for (let nodeId of this.dragNodes)
+        for (let nodeId of this.selected)
         {
             let node = this.nodes.get(nodeId);
             xMin = Math.min(xMin, node.x);
@@ -896,16 +886,11 @@ class UINode
 
             console.log('pointerdown on node');
 
-            // Shift + click is delete node
-            if (evt.shiftKey)
-            {
-                console.log('aborting');
-                return;
-            }
-
             // Can't drag a node while connecting a port
             if (this.editor.edge)
+            {
                 return;
+            }
 
             let mousePos = this.editor.getMousePos(evt);
             this.editor.startDrag(this.nodeId, mousePos);
@@ -924,16 +909,6 @@ class UINode
         function onClick(evt)
         {
             evt.stopPropagation();
-
-            console.log('onclick on node');
-
-            // Only delete on shift + click
-            if (evt.shiftKey && !this.editor.edge)
-            {
-                this.send(
-                    new model.DeleteNodes([this.nodeId])
-                );
-            }
         }
 
         // Top-level element for this node
