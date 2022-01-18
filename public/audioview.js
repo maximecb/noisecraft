@@ -130,6 +130,7 @@ export class AudioView
             latencyHint: 'interactive',
             sampleRate: 44100
         });
+        this.audioCtx.resume();
 
         await this.audioCtx.audioWorklet.addModule('/public/audioworklet.js');
 
