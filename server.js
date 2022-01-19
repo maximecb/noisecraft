@@ -46,7 +46,7 @@ db.run(`CREATE table IF NOT EXISTS hits (
 );
 db.run(`CREATE table IF NOT EXISTS projects (
     id INTEGER PRIMARY KEY,
-    user_id integer,
+    user_id INTEGER,
     title TEXT NOT NULL,
     data BLOB,
     crc32 UNSIGNED INT,
