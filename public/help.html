@@ -16,7 +16,7 @@
             <p>
             NoiseCraft is a visual programming language for sound synthesis and music that runs
             in your web browser, loosely inspired by Pure Data and Max/MSP. It's a tool that allows you to build your
-            own synthesizer by creating new nodes and connecting them together. By connecting nodes with edges,
+            own synthesizer by creating new nodes and connecting them together. By connecting nodes together,
             you control how audio data and control signals flow from one
             node to another and how sound is generated. NoiseCraft is ideally suited to play with additive,
             subtractive and FM synthesis.
@@ -79,13 +79,16 @@
             a node are always on the left side, and the output ports are on the right. You can only connect output
             ports to input ports. One output can be connected to multiple inputs, but each in put can only be
             connected to one output. To make a connection, simply click on the first port to connect, and then
-            on the second. A line (edge) representing the connection will appear.
+            on the second. A new curved line representing the connection will appear.
+            </p>
 
-
-
-
-
-
+            <p>
+            Connections or wires can have different colors. The colors are meant to make it easier to tell them
+            apart visually. The color of the wires is not completely random, it is dependent on the output port
+            they are coming from.
+            All the wires coming from the same output will have the same color. The color associated with an
+            output port is decided based on the node type and the name of the output port, so that two nodes
+            of the same type will produce outputs of the same color.
             </p>
 
             <h3>Selecting Nodes</h3>
