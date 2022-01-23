@@ -224,7 +224,7 @@ async function registerForm()
     let nameElem = document.createElement('input');
     nameElem.type = 'text';
     nameElem.size = model.MAX_USERNAME_LENGTH;
-    nameElem.maxlength = model.MAX_USERNAME_LENGTH;
+    nameElem.maxLength = model.MAX_USERNAME_LENGTH;
     paramDiv.appendChild(document.createTextNode('Username '));
     paramDiv.appendChild(nameElem);
     dialog.appendChild(paramDiv);
