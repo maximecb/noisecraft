@@ -50,7 +50,7 @@ db.run(`CREATE table IF NOT EXISTS projects (
     title TEXT NOT NULL,
     data BLOB,
     crc32 UNSIGNED INT,
-    pinned UNSIGNED INT,
+    featured UNSIGNED INT DEFAULT 0,
     submit_time BIGINT,
     submit_ip STRING NOT NULL);`
 );
@@ -61,7 +61,8 @@ db.run(`CREATE table IF NOT EXISTS users (
     pwd_hash TEXT NOT NULL,
     pwd_salt TEXT NOT NULL,
     reg_time BIGINT,
-    reg_ip STRING NOT NULL);`
+    reg_ip STRING NOT NULL,
+    access STRING NOT NULL DEFAULT 'default');`
 );
 db.run(`CREATE table IF NOT EXISTS sessions (
     user_id INTEGER,
@@ -227,13 +228,13 @@ async function insertProject(userId, title, data, crc32, submitTime, submitIP)
         // Insert the project into the database
         db.run(
             'INSERT INTO projects ' +
-            '(user_id, title, data, crc32, pinned, submit_time, submit_ip) ' +
+            '(user_id, title, data, crc32, featured, submit_time, submit_ip) ' +
             'VALUES (?, ?, ?, ?, ?, ?, ?);',
             [userId, title, data, crc32, 0, submitTime, submitIP],
             function (err)
             {
                 if (err)
-                    return reject();
+                    return reject('failed to insert project');
 
                 resolve(this.lastID);
             }
