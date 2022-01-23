@@ -361,9 +361,8 @@ app.post('/register', jsonParser, async function (req, res)
         let password = req.body.password;
         let email = req.body.email
 
-        // Do some basic validation
-        if (username == '' || username.trim() !== username || username.length > 16)
-            return res.sendStatus(400);
+        // Validate the username, password and email
+        model.validateUserName(username);
         if (password.length > 64)
             return res.sendStatus(400);
         if (email.length > 64)

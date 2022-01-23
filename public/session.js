@@ -1,4 +1,5 @@
 import { Dialog } from './dialog.js';
+import * as model from './model.js';
 
 let btnLogin = document.getElementById('btn_login');
 let btnUser = document.getElementById('btn_user');
@@ -222,8 +223,8 @@ async function registerForm()
     paramDiv.className = 'form_div';
     let nameElem = document.createElement('input');
     nameElem.type = 'text';
-    nameElem.size = 16;
-    nameElem.maxlength = 16;
+    nameElem.size = model.MAX_USERNAME_LENGTH;
+    nameElem.maxlength = model.MAX_USERNAME_LENGTH;
     paramDiv.appendChild(document.createTextNode('Username '));
     paramDiv.appendChild(nameElem);
     dialog.appendChild(paramDiv);
@@ -267,16 +268,13 @@ async function registerForm()
     {
         let name = nameElem.value;
 
-        if (name.trim() !== name)
+        try
         {
-            dialog.showError('Invalid username');
-            registerBtn.disabled = true;
-            return;
+            model.validateUserName(name);
         }
-
-        if (name.length == 0)
+        catch (e)
         {
-            dialog.showError('Username too short');
+            dialog.showError(e.message);
             registerBtn.disabled = true;
             return;
         }

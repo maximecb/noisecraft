@@ -7,6 +7,10 @@ export const MAX_UNDO_STEPS = 400;
 // Number of pixels to pad the canvas along the edges
 export const EDGE_PADDING = 25;
 
+// Min/max username length
+export const MIN_USERNAME_LENGTH = 2;
+export const MAX_USERNAME_LENGTH = 16;
+
 // Max project title length
 export const MAX_TITLE_LENGTH = 50;
 
@@ -468,6 +472,30 @@ export function normalizeNode(node)
     }
 
     return node;
+}
+
+/**
+ * Validate a username
+ */
+export function validateUserName(name)
+{
+    if (name.length < MIN_USERNAME_LENGTH)
+    {
+        throw TypeError('username too short');
+    }
+
+    if (name.length > MAX_USERNAME_LENGTH)
+    {
+        throw TypeError('username too long');
+    }
+
+    // Spaces and hyphens are only allowed in the middle of the username
+    let regex = /^[a-zA-Z0-9_]+[a-zA-Z0-9_\- ]*[a-zA-Z0-9_]+$/;
+
+    if (!name.match(regex))
+    {
+        throw TypeError('username contains invalid characters');
+    }
 }
 
 /**
