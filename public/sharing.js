@@ -1,6 +1,6 @@
 import { Dialog } from './dialog.js';
 import { login } from './session.js';
-import { SetTitle } from './model.js';
+import { SetTitle, MAX_TITLE_LENGTH } from './model.js';
 
 export async function shareProject(model)
 {
@@ -35,8 +35,8 @@ export async function shareProject(model)
     paramDiv.className = 'form_div';
     let titleElem = document.createElement('input');
     titleElem.type = 'text';
-    titleElem.size = 50;
-    titleElem.maxLength = 50;
+    titleElem.size = MAX_TITLE_LENGTH;
+    titleElem.maxLength = MAX_TITLE_LENGTH;
     titleElem.value = model.state.title;
     paramDiv.appendChild(document.createTextNode('Project title '));
     paramDiv.appendChild(titleElem);

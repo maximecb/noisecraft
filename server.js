@@ -476,7 +476,7 @@ app.post('/login', jsonParser, async function (req, res)
     }
 })
 
-// POST /share
+// POST /projects
 app.post('/projects', jsonParser, async function (req, res)
 {
     try
@@ -487,7 +487,7 @@ app.post('/projects', jsonParser, async function (req, res)
         var data = req.body.data;
 
         // Validate the title
-        if (typeof title != 'string' || title.length == 0 || title.length > 50)
+        if (typeof title != 'string' || title.length == 0 || title.length > model.MAX_TITLE_LENGTH)
             return res.sendStatus(400);
 
         // Limit the length of the data, max 1MB

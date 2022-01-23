@@ -7,6 +7,9 @@ export const MAX_UNDO_STEPS = 400;
 // Number of pixels to pad the canvas along the edges
 export const EDGE_PADDING = 25;
 
+// Max project title length
+export const MAX_TITLE_LENGTH = 50;
+
 /**
  * High-level description/schema for each type of node
  */
@@ -476,7 +479,7 @@ export function validateProject(project)
 
     // Validate the project title
     assert (typeof project.title === 'string');
-    assert (project.title.length <= 50);
+    assert (project.title.length <= MAX_TITLE_LENGTH);
 
     assert (project.nodes instanceof Object);
 
