@@ -403,7 +403,7 @@ app.post('/login', jsonParser, async function (req, res)
     {
         return new Promise((resolve, reject) => {
             db.get(
-                'SELECT id, pwd_hash, pwd_salt FROM users WHERE username == ?;',
+                'SELECT id, pwd_hash, pwd_salt, access FROM users WHERE username == ?;',
                 [username],
                 function (err, row)
                 {
@@ -414,7 +414,7 @@ app.post('/login', jsonParser, async function (req, res)
                     }
                     else
                     {
-                        resolve([row.id, row.pwd_hash, row.pwd_salt]);
+                        resolve([row.id, row.pwd_hash, row.pwd_salt, row.access]);
                     }
                 }
             );
@@ -445,7 +445,7 @@ app.post('/login', jsonParser, async function (req, res)
         var username = req.body.username;
         var password = req.body.password;
 
-        let [userId, pwdHash, pwdSalt] = await lookupUser(username);
+        let [userId, pwdHash, pwdSalt, access] = await lookupUser(username);
 
         // Check the password
         if (cryptoHash(password + pwdSalt) != pwdHash)
@@ -462,9 +462,12 @@ app.post('/login', jsonParser, async function (req, res)
 
         await createSession(userId, sessionId, loginTime, loginIP);
 
+        console.log(`login from user "${username}" with access "${access}"`);
+
         return res.send(JSON.stringify({
             userId: userId,
-            sessionId: sessionId
+            sessionId: sessionId,
+            access: access
         }));
     }
 
