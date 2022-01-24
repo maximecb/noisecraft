@@ -1039,9 +1039,20 @@ class UINode
 
         let portDiv = document.createElement('div');
         portDiv.className = (side == 'dst')? 'node_in_port':'node_out_port';
-        portDiv.onpointerdown = (evt) => evt.stopPropagation();
-        portDiv.onpointerup = (evt) => evt.stopPropagation();
-        portDiv.onclick = portClick.bind(this);
+
+        portDiv.onpointerdown = (evt) => {
+          evt.stopPropagation();
+          portDiv.setPointerCapture(evt.pointerId);
+          portClick.call(this, evt);
+        }
+
+        portDiv.onpointerup = (evt) => {
+          evt.stopPropagation();
+          portDiv.releasePointerCapture(evt.pointerId);
+        }
+
+        portDiv.onclick = (evt) => evt.stopPropagation();
+
         parentDiv.appendChild(portDiv);
 
         // Port name text
