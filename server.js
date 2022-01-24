@@ -465,6 +465,7 @@ app.post('/login', jsonParser, async function (req, res)
         console.log(`login from user "${username}" with access "${access}"`);
 
         return res.send(JSON.stringify({
+            username: username,
             userId: userId,
             sessionId: sessionId,
             access: access

@@ -1,3 +1,4 @@
+import { assert } from './utils.js';
 import { Dialog } from './dialog.js';
 import * as model from './model.js';
 
@@ -7,9 +8,7 @@ let btnUser = document.getElementById('btn_user');
 /// Log the user out
 export function logout()
 {
-    localStorage.removeItem('username');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('sessionId');
+    localStorage.removeItem('session');
 
     btnLogin.style.display = 'block';
     btnUser.style.display = 'none';
@@ -18,30 +17,29 @@ export function logout()
 /// Get the user id and session id or make the user log in
 export async function login()
 {
-    var userId = localStorage.getItem('userId');
-    var sessionId = localStorage.getItem('sessionId');
+    var session = localStorage.getItem('session');
 
-    if (userId)
-        return [userId, sessionId];
+    if (session)
+    {
+        return JSON.parse(session);
+    }
 
     // Prompt the user for user name and password
-    var [username, userId, sessionId] = await loginForm();
+    session = await loginForm();
 
-    console.log('username:', username);
-    console.log('userId:', userId);
-    console.log('sessionId:', sessionId);
-
-    // Show the logged in username
-    btnLogin.style.display = 'none';
-    btnUser.style.display = 'block';
-    btnUser.textContent = username;
+    console.log('username:', session.username);
+    console.log('userId:', session.userId);
+    console.log('sessionId:', session.sessionId);
+    console.log('access:', session.access);
+    session.admin = (session.access == 'admin');
 
     // Store logged in user info
-    localStorage.setItem('username', username);
-    localStorage.setItem('userId', userId);
-    localStorage.setItem('sessionId', sessionId);
+    localStorage.setItem('session', JSON.stringify(session));
 
-    return [userId, sessionId];
+    // Show the logged in username
+    showLogin();
+
+    return session;
 }
 
 /**
@@ -65,7 +63,7 @@ async function loginRequest(username, password)
             if (this.readyState == 4 && this.status == 200)
             {
                 var resp = JSON.parse(this.responseText);
-                resolve([resp.userId, resp.sessionId]);
+                resolve(resp);
             }
 
             if (this.readyState == 4 && this.status == 400)
@@ -126,10 +124,10 @@ async function loginForm()
             try
             {
                 // Send a login request to the server
-                let [userId, sessionId] = await loginRequest(username, password);
+                let session = await loginRequest(username, password);
 
                 dialog.close();
-                resolve([username, userId, sessionId]);
+                resolve(session);
             }
             catch (e)
             {
@@ -146,10 +144,10 @@ async function loginForm()
             try
             {
                 // Send a login request to the server
-                let [userId, sessionId] = await loginRequest(username, password);
+                let session = await loginRequest(username, password);
 
                 dialog.close();
-                resolve([username, userId, sessionId]);
+                resolve(session);
             }
             catch (e)
             {
@@ -329,21 +327,22 @@ async function registerForm()
 function showLogin()
 {
     /// User id and session id from current session
-    let username = localStorage.getItem('username');
+    let session = localStorage.getItem('session');
 
-    if (!username)
+    if (!session)
         return;
 
-    // TODO: send request to server to validate session id still valid?
+    session = JSON.parse(session);
 
     btnLogin.style.display = 'none';
     btnUser.style.display = 'block';
-    btnUser.textContent = username;
+    btnUser.textContent = session.username + (session.admin? ' ★':'');
 }
 
 btnLogin.onclick = login;
-
 btnUser.onclick = logout;
+
+// TODO: send request to server to validate session id still valid?
 
 // Show logged in user on startup
 showLogin();
