@@ -36,6 +36,7 @@ export class Knob extends Eventable
         this.div.appendChild(this.valDiv);
 
         let knobMoving = false;
+        let lastY = null;
 
         function onPointerDown(evt)
         {
@@ -46,6 +47,7 @@ export class Knob extends Eventable
 
             this.div.setPointerCapture(evt.pointerId);
             knobMoving = true;
+            lastY = evt.screenY;
         }
 
         function onPointerUp(evt)
@@ -62,7 +64,9 @@ export class Knob extends Eventable
             // Map the current value in [0, 1]
             let normVal = this.getNormVal();
 
-            let deltaY = -evt.movementY
+            let deltaY = -(evt.screenY - lastY)
+            lastY = evt.screenY
+
             let scaleY = 1 / 100;
 
             // If the shift key is down, fine-tune mode
