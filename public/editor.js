@@ -1043,7 +1043,6 @@ class UINode
         portDiv.onpointerdown = (evt) => {
           evt.stopPropagation();
           portDiv.setPointerCapture(evt.pointerId);
-          portClick.call(this, evt);
         }
 
         portDiv.onpointerup = (evt) => {
@@ -1051,7 +1050,7 @@ class UINode
           portDiv.releasePointerCapture(evt.pointerId);
         }
 
-        portDiv.onclick = (evt) => evt.stopPropagation();
+        portDiv.onclick = portClick.bind(this);
 
         parentDiv.appendChild(portDiv);
 
