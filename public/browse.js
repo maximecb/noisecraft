@@ -5,6 +5,28 @@ var browseDiv = document.getElementById('browse_div');
 // Project ids received while browsing
 var projectIds = {};
 
+// Generate a string for how much time has passed
+function timeAgo(oldTime, curTime)
+{
+    var secsAgo = Math.max((curTime - oldTime) / 1000, 0);
+    var minsAgo = Math.floor(secsAgo / 60);
+    var hoursAgo = Math.floor(minsAgo / 60);
+    var daysAgo = Math.floor(hoursAgo / 24);
+
+    if (daysAgo == 1)
+        return 'yesterday';
+    if (daysAgo > 1)
+        return daysAgo + ' days ago';
+    if (hoursAgo == 1)
+        return '1 hour ago';
+    if (hoursAgo > 1)
+        return hoursAgo + ' hours ago';
+    if (minsAgo > 1)
+        return minsAgo + ' mins ago';
+
+    return 'now';
+}
+
 // Fill a div with project listings
 function fillChunk(chunkDiv, fromIdx, rows)
 {
@@ -39,25 +61,7 @@ function fillChunk(chunkDiv, fromIdx, rows)
         rowDiv.appendChild(document.createTextNode(' by ' ));
         rowDiv.appendChild(document.createTextNode(row.username));
 
-        var secsAgo = Math.max((curTime - row.submit_time) / 1000, 0);
-        var minsAgo = Math.floor(secsAgo / 60);
-        var hoursAgo = Math.floor(minsAgo / 60);
-        var daysAgo = Math.floor(hoursAgo / 24);
-
-        var timeStr;
-        if (daysAgo == 1)
-            timeStr = 'yesterday';
-        else if (daysAgo > 1)
-            timeStr = daysAgo + ' days ago';
-        else if (hoursAgo == 1)
-            timeStr = '1 hour ago';
-        else if (hoursAgo > 1)
-            timeStr = hoursAgo + ' hours ago';
-        else if (minsAgo > 1)
-            timeStr = minsAgo + ' mins ago';
-        else
-            timeStr = 'now';
-
+        let timeStr = timeAgo(row.submit_time, curTime);
         rowDiv.appendChild(document.createTextNode(' (' + timeStr + ')'));
 
         chunkDiv.appendChild(rowDiv);
