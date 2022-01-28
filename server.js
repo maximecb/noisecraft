@@ -563,7 +563,7 @@ app.get('/list/:from', jsonParser, function (req, res)
     var fromIdx = req.params.from;
 
     db.all(
-        'SELECT projects.id, projects.title, projects.user_id, projects.submit_time, users.username from projects ' +
+        'SELECT projects.id, projects.title, projects.user_id, projects.submit_time, projects.featured, users.username from projects ' +
         'LEFT JOIN users ON projects.user_id = users.id ' +
         'ORDER BY submit_time DESC LIMIT ?,40;',
         [fromIdx],
