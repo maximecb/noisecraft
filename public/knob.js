@@ -64,6 +64,8 @@ export class Knob extends Eventable
             // Map the current value in [0, 1]
             let normVal = this.getNormVal();
 
+            // Normally we would use evt.movementY, but we
+            // avoid this because of a bug in Safari
             let deltaY = -(evt.screenY - lastY)
             lastY = evt.screenY
 
