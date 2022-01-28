@@ -5,7 +5,9 @@ import * as model from './model.js';
 let btnLogin = document.getElementById('btn_login');
 let btnUser = document.getElementById('btn_user');
 
-/// Log the user out
+/**
+ * Log the user out
+ */
 export function logout()
 {
     localStorage.removeItem('session');
@@ -14,7 +16,9 @@ export function logout()
     btnUser.style.display = 'none';
 }
 
-/// Get the user id and session id or make the user log in
+/**
+ * Get the user id and session id or make the user log in
+ */
 export async function login()
 {
     var session = localStorage.getItem('session');
@@ -43,8 +47,33 @@ export async function login()
 }
 
 /**
-Send a login request to the server
-*/
+ * Check if currently logged in as admin, but don't open a login popup
+ */
+export function isAdmin()
+{
+    if (isAdmin.admin !== undefined)
+    {
+        return isAdmin.admin;
+    }
+
+    var sessionJson = localStorage.getItem('session');
+
+    if (sessionJson)
+    {
+        return false;
+    }
+
+    let session = JSON.parse(sessionJson);
+
+    // Cache the result to avoid repeated JSON parsing
+    isAdmin.admin = session.admin;
+
+    return session.admin;
+}
+
+/**
+ * Send a login request to the server
+ */
 async function loginRequest(username, password)
 {
     return new Promise((resolve, reject) => {
@@ -339,10 +368,14 @@ function showLogin()
     btnUser.textContent = session.username + (session.admin? ' ★':'');
 }
 
-btnLogin.onclick = login;
-btnUser.onclick = logout;
+// If we're on a page with a login button
+if (btnLogin)
+{
+    btnLogin.onclick = login;
+    btnUser.onclick = logout;
 
-// TODO: send request to server to validate session id still valid?
+    // TODO: send request to server to validate session id still valid?
 
-// Show logged in user on startup
-showLogin();
+    // Show logged in user on startup
+    showLogin();
+}

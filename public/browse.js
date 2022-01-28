@@ -1,3 +1,5 @@
+import { isAdmin } from './session.js';
+
 var browseDiv = document.getElementById('browse_div');
 
 // Project ids received while browsing
