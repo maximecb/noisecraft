@@ -3,7 +3,6 @@ import path from 'path';
 import { assert } from './public/utils.js';
 import * as model from './public/model.js';
 import { compile } from './public/compiler.js';
-import { execPath } from 'process';
 
 function assertThrows(fn)
 {
