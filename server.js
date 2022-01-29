@@ -176,6 +176,48 @@ async function checkSession(userId, sessionId)
     });
 }
 
+// Get the access level for a given user
+async function getAccess(userId)
+{
+    return new Promise((resolve, reject) =>
+    {
+        db.get(
+            'SELECT access FROM users WHERE id == ?',
+            [userId],
+            function (err, row)
+            {
+                if (err || !row)
+                {
+                    reject('userId not found');
+                    return;
+                }
+
+                resolve(row.access);
+            }
+        );
+    });
+}
+
+// Check that a user has sufficient access
+async function checkAccess(userId, sessionId, access)
+{
+    // Check that the session is valid
+    await checkSession(userId, sessionId);
+
+    // Get the access level for this userId
+    let userAccess = await getAccess(userId);
+
+    // Verify that the user has sufficient access
+    switch (access)
+    {
+        case 'admin':
+        return (userAccess == 'admin');
+
+        default:
+        throw TypeError('invalid access level:', access);
+    }
+}
+
 // Get the title for a given projectId
 async function getTitle(projectId)
 {
@@ -572,6 +614,39 @@ app.get('/list/:from', jsonParser, function (req, res)
             let jsonStr = JSON.stringify(rows);
             res.setHeader('Content-Type', 'application/json');
             res.send(jsonStr);
+        }
+    );
+})
+
+// POST /featured - set the featured flag for a project
+app.post('/featured/:id', jsonParser, async function (req, res)
+{
+    let projectId = req.params.id;
+    let userId = req.body.userId;
+    let sessionId = req.body.sessionId;
+    let featured = req.body.featured;
+
+    // Check that the user has admin access
+    await checkAccess(userId, sessionId, 'admin');
+
+    if (isNaN(projectId) || projectId < 1)
+        return res.sendStatus(400);
+
+    featured = Boolean(featured)? 1:0;
+
+    db.run(
+        `UPDATE projects SET featured = ? WHERE id == ?;`,
+        [featured, projectId],
+        function (err, rows)
+        {
+            if (err)
+            {
+                console.log(err);
+                return res.sendStatus(400);
+            }
+
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(featured));
         }
     );
 })

@@ -1,4 +1,4 @@
-import { isAdmin } from './session.js';
+import { getSessionInfo } from './session.js';
 
 var browseDiv = document.getElementById('browse_div');
 
@@ -30,8 +30,8 @@ function timeAgo(oldTime, curTime)
 // Create a div to display/set the featured flag for a given project
 function makeFeatStar(projectId, featured)
 {
-    // Check if we are an admin user
-    let admin = isAdmin();
+    // Get the current session information
+    let session = getSessionInfo();
 
     let div = document.createElement('div');
     div.style.display = 'inline';
@@ -55,11 +55,15 @@ function makeFeatStar(projectId, featured)
             }
         };
 
-        // Send the featured flag
-        xhr.send(JSON.stringify(!featured));
+        let request = {
+            userId: session.userId,
+            sessionId: session.sessionId,
+            featured: !featured
+        };
+        xhr.send(JSON.stringify(request));
     }
 
-    if (admin)
+    if (session && session.admin)
     {
         div.innerHTML = featured? '★':'☆';
         div.onclick = setFeatured;

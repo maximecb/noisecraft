@@ -47,6 +47,22 @@ export async function login()
 }
 
 /**
+ * Get the current session information without opening a login popup
+ */
+export function getSessionInfo()
+{
+    var sessionJson = localStorage.getItem('session');
+
+    if (!sessionJson)
+    {
+        return null;
+    }
+
+    let session = JSON.parse(sessionJson);
+    return session;
+}
+
+/**
  * Check if currently logged in as admin, but don't open a login popup
  */
 export function isAdmin()
