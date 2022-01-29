@@ -58,7 +58,7 @@ export function isAdmin()
 
     var sessionJson = localStorage.getItem('session');
 
-    if (sessionJson)
+    if (!sessionJson)
     {
         return false;
     }

@@ -27,12 +27,54 @@ function timeAgo(oldTime, curTime)
     return 'now';
 }
 
-// Fill a div with project listings
-function fillChunk(chunkDiv, fromIdx, rows)
+// Create a div to display/set the featured flag for a given project
+function makeFeatStar(projectId, featured)
 {
     // Check if we are an admin user
     let admin = isAdmin();
 
+    let div = document.createElement('div');
+    div.style.display = 'inline';
+    div.style.cursor = 'pointer';
+    div.style.color = 'red';
+
+    // Set the featured status for this project
+    function setFeatured()
+    {
+        var xhr = new XMLHttpRequest()
+        xhr.open("POST", 'featured/' + projectId, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        // Request response handler
+        xhr.onreadystatechange = function()
+        {
+            if (this.readyState == 4 && this.status == 200)
+            {
+                featured = JSON.parse(this.responseText);
+                div.innerHTML = featured? '★':'☆';
+            }
+        };
+
+        // Send the featured flag
+        xhr.send(JSON.stringify(!featured));
+    }
+
+    if (admin)
+    {
+        div.innerHTML = featured? '★':'☆';
+        div.onclick = setFeatured;
+    }
+    else if (featured)
+    {
+        div.innerHTML = '★';
+    }
+
+    return div;
+}
+
+// Fill a div with project listings
+function fillChunk(chunkDiv, fromIdx, rows)
+{
     var curTime = Date.now();
 
     // For each project to list
@@ -63,6 +105,11 @@ function fillChunk(chunkDiv, fromIdx, rows)
 
         let timeStr = timeAgo(row.submit_time, curTime);
         rowDiv.appendChild(document.createTextNode(' (' + timeStr + ')'));
+
+        // Show the featured state
+        rowDiv.appendChild(document.createTextNode(' '));
+        let featStar = makeFeatStar(projectId, row.featured);
+        rowDiv.appendChild(featStar);
 
         chunkDiv.appendChild(rowDiv);
     }
