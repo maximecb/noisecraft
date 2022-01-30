@@ -602,15 +602,27 @@ app.post('/projects', jsonParser, async function (req, res)
 // List shared projects
 app.get('/list/:from', jsonParser, function (req, res)
 {
-    var fromIdx = req.params.from;
+    let fromIdx = req.params.from;
+    let featured = !!req.query.featured;
+
+    let sqlStr = (
+        'SELECT projects.id, projects.title, projects.user_id, projects.submit_time, projects.featured, users.username FROM projects ' +
+        'LEFT JOIN users ON projects.user_id = users.id ' +
+        (featured? 'WHERE projects.featured == 1 ':'') +
+        'ORDER BY submit_time DESC LIMIT ?,40;'
+    );
 
     db.all(
-        'SELECT projects.id, projects.title, projects.user_id, projects.submit_time, projects.featured, users.username from projects ' +
-        'LEFT JOIN users ON projects.user_id = users.id ' +
-        'ORDER BY submit_time DESC LIMIT ?,40;',
+        sqlStr,
         [fromIdx],
         function (err, rows)
         {
+            if (err)
+            {
+                console.log(err);
+                return res.sendStatus(400);
+            }
+
             let jsonStr = JSON.stringify(rows);
             res.setHeader('Content-Type', 'application/json');
             res.send(jsonStr);

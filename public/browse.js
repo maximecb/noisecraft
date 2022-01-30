@@ -68,10 +68,6 @@ function makeFeatStar(projectId, featured)
         div.innerHTML = featured? '★':'☆';
         div.onclick = setFeatured;
     }
-    else if (featured)
-    {
-        div.innerHTML = '★';
-    }
 
     return div;
 }
@@ -119,13 +115,22 @@ function fillChunk(chunkDiv, fromIdx, rows)
     }
 }
 
+
+
+
+
+
+
+
+
+
 // Populate a div with a chunk of projects to display
 function populate(chunkDiv, fromIdx)
 {
     console.log('Populating from', fromIdx);
 
-    var xhr = new XMLHttpRequest()
-    xhr.open("GET", 'list/' + fromIdx, true);
+    let xhr = new XMLHttpRequest()
+    xhr.open("GET", `list/${fromIdx}`, true);
     xhr.setRequestHeader("Content-Type", "application/json");
 
     // Request response handler
@@ -133,7 +138,7 @@ function populate(chunkDiv, fromIdx)
     {
         if (this.readyState == 4 && this.status == 200)
         {
-            var rows = JSON.parse(this.responseText);
+            let rows = JSON.parse(this.responseText);
             fillChunk(chunkDiv, fromIdx, rows);
 
             // Create a new chunk to receive the next batch
