@@ -1,9 +1,10 @@
 import { getSessionInfo } from './session.js';
 
-var browseDiv = document.getElementById('browse_div');
+let featuredDiv = document.getElementById('featured_div');
+let latestDiv = document.getElementById('latest_div');
 
 // Project ids received while browsing
-var projectIds = {};
+let projectIds = {};
 
 // Generate a string for how much time has passed
 function timeAgo(oldTime, curTime)
@@ -72,7 +73,7 @@ function makeFeatStar(projectId, featured)
     return div;
 }
 
-// Fill a div with project listings
+// Fill a chunk div with project listings
 function fillChunk(chunkDiv, fromIdx, rows)
 {
     var curTime = Date.now();
@@ -84,11 +85,11 @@ function fillChunk(chunkDiv, fromIdx, rows)
         let projectId = row.id;
 
         // Avoid showing duplicates
-        if (projectId in projectIds)
-            continue;
+        //if (projectId in projectIds)
+        //    continue;
 
         // Keep track of received ids
-        projectIds[projectId] = true;
+        //projectIds[projectId] = true;
 
         var rowDiv = document.createElement('div');
 
@@ -115,22 +116,13 @@ function fillChunk(chunkDiv, fromIdx, rows)
     }
 }
 
-
-
-
-
-
-
-
-
-
 // Populate a div with a chunk of projects to display
-function populate(chunkDiv, fromIdx)
+function populate(sectionDiv, fromIdx, queryStr, chunkDiv)
 {
     console.log('Populating from', fromIdx);
 
     let xhr = new XMLHttpRequest()
-    xhr.open("GET", `list/${fromIdx}`, true);
+    xhr.open("GET", `list/${fromIdx}${queryStr}`, true);
     xhr.setRequestHeader("Content-Type", "application/json");
 
     // Request response handler
@@ -144,7 +136,11 @@ function populate(chunkDiv, fromIdx)
             // Create a new chunk to receive the next batch
             if (rows.length > 0)
             {
-                createChunk(fromIdx + rows.length);
+                createChunk(
+                    sectionDiv,
+                    fromIdx + rows.length,
+                    queryStr
+                );
             }
         }
     };
@@ -153,13 +149,13 @@ function populate(chunkDiv, fromIdx)
 }
 
 // Create a chunk of project listings to be populated
-function createChunk(fromIdx, visCheck)
+function createChunk(sectionDiv, fromIdx, queryStr)
 {
     //console.log('creating chunk, from', fromIdx);
 
     // Create a div for this chunk
     var chunkDiv = document.createElement('div');
-    browseDiv.appendChild(chunkDiv);
+    sectionDiv.appendChild(chunkDiv);
 
     function visCheck()
     {
@@ -170,7 +166,13 @@ function createChunk(fromIdx, visCheck)
         if (elemTop < window.innerHeight + 400)
         {
             // Populate the chunk
-            populate(chunkDiv, fromIdx);
+            populate(
+                sectionDiv,
+                fromIdx,
+                queryStr,
+                chunkDiv
+            );
+
             window.removeEventListener("scroll", visCheck);
         }
     }
@@ -179,5 +181,6 @@ function createChunk(fromIdx, visCheck)
     visCheck();
 }
 
-// Create the first chunk
-createChunk(0);
+// Create the first chunk for the featured and latest project sections
+createChunk(featuredDiv, 0, '?featured=1');
+createChunk(latestDiv, 0, '');
