@@ -547,6 +547,8 @@ export function validateNode(node)
     // Node x/y position
     assert (typeof node.x === 'number');
     assert (typeof node.y === 'number');
+    assert (isInt(node.x));
+    assert (isInt(node.y));
 
     // Validate input format
     assert (node.ins instanceof Array);
