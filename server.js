@@ -156,6 +156,61 @@ async function checkAvail(username)
     });
 }
 
+// Lookup a user by username
+async function lookupUser(username)
+{
+    return new Promise((resolve, reject) => {
+        db.get(
+            'SELECT id, pwd_hash, pwd_salt, access FROM users WHERE username == ?;',
+            [username],
+            function (err, row)
+            {
+                // Check that the user exists
+                if (err || !row)
+                {
+                    reject('user not found');
+                }
+                else
+                {
+                    resolve(row);
+                }
+            }
+        );
+    });
+}
+
+// Create a new session
+async function createSession(userId, sessionId, loginTime, loginIP)
+{
+    return new Promise((resolve, reject) =>
+    {
+        // Serialize the commands
+        db.serialize(() =>
+        {
+            // Delete previous sessions for this user id
+            db.run(
+                'DELETE FROM sessions WHERE user_id == ?;',
+                [userId]
+            );
+
+            // Insert the new session into the table
+            db.run(
+                'INSERT INTO sessions ' +
+                '(user_id, session_id, login_ip, login_time) ' +
+                'VALUES (?, ?, ?, ?);',
+                [userId, sessionId, loginIP, loginTime],
+                function (err)
+                {
+                    if (err)
+                        return reject('failed to create session');
+
+                    resolve();
+                }
+            );
+        })
+    });
+}
+
 // Check that a session is valid
 async function checkSession(userId, sessionId)
 {
@@ -441,56 +496,16 @@ Arguments: username, password
 */
 app.post('/login', jsonParser, async function (req, res)
 {
-    async function lookupUser(username)
-    {
-        return new Promise((resolve, reject) => {
-            db.get(
-                'SELECT id, pwd_hash, pwd_salt, access FROM users WHERE username == ?;',
-                [username],
-                function (err, row)
-                {
-                    // Check that the user exists
-                    if (err || !row)
-                    {
-                        reject('user not found');
-                    }
-                    else
-                    {
-                        resolve([row.id, row.pwd_hash, row.pwd_salt, row.access]);
-                    }
-                }
-            );
-        });
-    }
-
-    async function createSession(userId, sessionId, loginTime, loginIP)
-    {
-        return new Promise((resolve, reject) => {
-            db.run(
-                'INSERT INTO sessions ' +
-                '(user_id, session_id, login_ip, login_time) ' +
-                'VALUES (?, ?, ?, ?);',
-                [userId, sessionId, loginIP, loginTime],
-                function (err)
-                {
-                    if (err)
-                        return reject('failed to create session');
-
-                    resolve();
-                }
-            );
-        });
-    }
-
     try
     {
         var username = req.body.username;
         var password = req.body.password;
 
-        let [userId, pwdHash, pwdSalt, access] = await lookupUser(username);
+        // Lookup the user by username
+        let {id, pwd_hash, pwd_salt, access} = await lookupUser(username);
 
         // Check the password
-        if (cryptoHash(password + pwdSalt) != pwdHash)
+        if (cryptoHash(password + pwd_salt) != pwd_hash)
         {
             console.log('invalid password');
             return res.sendStatus(400);
@@ -502,13 +517,13 @@ app.post('/login', jsonParser, async function (req, res)
         var loginTime = Date.now();
         var loginIP = getClientIP(req);
 
-        await createSession(userId, sessionId, loginTime, loginIP);
+        await createSession(id, sessionId, loginTime, loginIP);
 
         console.log(`login from user "${username}" with access "${access}"`);
 
         return res.send(JSON.stringify({
             username: username,
-            userId: userId,
+            userId: id,
             sessionId: sessionId,
             access: access
         }));
