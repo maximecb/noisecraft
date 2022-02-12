@@ -1,4 +1,4 @@
-import { assert, isPosInt, treeCopy, treeEq, isString, isObject } from './utils.js';
+import { assert, isInt, isPosInt, treeCopy, treeEq, isString, isObject } from './utils.js';
 import * as music from './music.js';
 
 // Maximum number of undo steps we support
@@ -825,6 +825,10 @@ export class CreateNode extends Action
 {
     constructor(nodeType, x, y)
     {
+        // Ensure that the coordinates are integers
+        assert(isInt(x));
+        assert(isInt(y));
+
         super();
         this.nodeType = nodeType;
         this.x = x;
