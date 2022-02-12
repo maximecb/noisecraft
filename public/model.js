@@ -885,6 +885,10 @@ export class MoveNodes extends Action
 {
     constructor(nodeIds, dx, dy)
     {
+        // Ensure that node coordinates remain integers
+        assert(isInt(dx));
+        assert(isInt(dy));
+
         super();
         this.nodeIds = nodeIds;
         this.dx = dx;

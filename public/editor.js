@@ -451,10 +451,12 @@ export class Editor
         if (evt.touches)
             evt = evt.touches[0];
 
-        return {
-            x: (evt.clientX - CTM.e) / CTM.a,
-            y: (evt.clientY - CTM.f) / CTM.d
-        };
+        // Round coordinates to integers so we can ensure
+        // that all node coordinates remain integers
+        let x = Math.round((evt.clientX - CTM.e) / CTM.a);
+        let y = Math.round((evt.clientY - CTM.f) / CTM.d);
+
+        return { x: x, y: y };
     }
 
     // Show node creation dialog
