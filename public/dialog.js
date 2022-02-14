@@ -121,3 +121,20 @@ export class Dialog extends Eventable
         this.trigger('close');
     }
 }
+
+/**
+ * Show a dialog with an error message and an Ok button
+ */
+export function errorDialog(message)
+{
+    let dialog = new Dialog('Error');
+
+    dialog.paragraph(message);
+
+    let saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Ok';
+    saveBtn.className = 'form_btn';
+    dialog.appendChild(saveBtn);
+
+    return dialog;
+}
