@@ -221,6 +221,21 @@ document.oncopy = function (evt)
     evt.preventDefault();
 }
 
+document.oncut = function (evt)
+{
+    if (anyInputActive())
+        return;
+
+    if (!editor.selected.length)
+        return;
+
+    let data = JSON.stringify(model.copy(editor.selected));
+    evt.clipboardData.setData('text/plain', data);
+    evt.preventDefault();
+
+    editor.deleteSelected();
+}
+
 function handleMouseEvent(evt)
 {
     cursor = editor.getMousePos(evt);
