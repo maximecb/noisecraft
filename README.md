@@ -80,12 +80,13 @@ us track and eliminate bugs is a very useful contribution.
 We recommend developing using the Chrome web browser because it has the most mature
 web audio implementation and has been the most extensively tested. 
 We are waiting for a [Firefox bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1572644) to be fixed,
-and there are reliability issues with the Safari web audio implementation.
+and we've run into issues with the Safari web audio and pointer capture implementation.
 
 Installing dependencies:
 
 ```
 # Install nodejs and npm
+# Use apt-get on Ubuntu/Debian or brew on macOS
 sudo apt-get install -y nodejs npm
 
 # Update npm
