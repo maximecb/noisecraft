@@ -1,5 +1,5 @@
 import { anyInputActive } from './utils.js';
-import { Dialog } from './dialog.js';
+import { Dialog, errorDialog } from './dialog.js';
 import { Model, Paste, Play, Stop } from './model.js';
 import { Editor } from './editor.js';
 import { AudioView } from './audioview.js';
@@ -240,7 +240,7 @@ function openModelFile()
     input.type = 'file';
     input.accept = '.ncft,.json,application/json,application/JSON';
 
-    input.onchange = e =>
+    input.onchange = (e) =>
     {
         if (!e || !e.target || !e.target.files)
             return;
@@ -252,12 +252,19 @@ function openModelFile()
         let reader = new FileReader();
         reader.readAsText(file, 'UTF-8');
 
-        reader.onload = e =>
+        reader.onload = (e) =>
         {
             if (!e || !e.target)
                 return;
 
-            importModel(e.target.result);
+            try
+            {
+                importModel(e.target.result);
+            }
+            catch (error)
+            {
+                errorDialog("Failed to load project file.");
+            }
 
             // Clear any hash tag in the URL
             history.replaceState(null, null, ' ');
