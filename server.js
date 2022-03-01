@@ -699,8 +699,6 @@ app.get('/projects/:id', function (req, res)
     );
 })
 
-/*
-// TODO: this needs admin/moderator user status verification
 // DELETE /projects
 app.delete('/projects', async function (req, res)
 {
@@ -710,13 +708,36 @@ app.delete('/projects', async function (req, res)
         var userId = req.body.userId;
         var sessionId = req.body.sessionId;
 
-        // Check that the session is valid
-        await checkSession(userId, sessionId);
+        // Check that the user has admin access
+        await checkAccess(userId, sessionId, 'admin');
 
+        console.log(`delete projectId=${projectId}`);
+
+        /*
         db.run(
             'DELETE FROM projects WHERE id == ?;',
             [projectId]
         );
+        */
+
+
+        /*
+        db.run(
+            `UPDATE projects SET featured = ? WHERE id == ?;`,
+            [featured, projectId],
+            function (err, rows)
+            {
+                if (err)
+                {
+                    console.log(err);
+                    return res.sendStatus(400);
+                }
+
+                res.setHeader('Content-Type', 'application/json');
+                res.send(JSON.stringify(featured));
+            }
+        );
+        */
 
         return res.send('ok');
     }
@@ -728,7 +749,6 @@ app.delete('/projects', async function (req, res)
         return res.sendStatus(400);
     }
 })
-*/
 
 //============================================================================
 
