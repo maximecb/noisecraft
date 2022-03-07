@@ -80,11 +80,12 @@ div.top_buttons
 
 div.menu_button, a.menu_link:link, a.menu_link:visited
 {
-    display: inline-block;
+    display: inline-flex;
     margin: 4px;
     padding: 4px;
     color: #FFF;
     text-align: center;
+    align-items:center;
     font-size: 18;
     font-family: sans-serif;
     cursor: pointer;
@@ -121,6 +122,18 @@ code
     position: relative;
     top: 0px;
     left: 0px;
+}
+
+#btn_play, #btn_player:hover
+{
+    background-color: #080;
+    width: 45pt;
+}
+
+#btn_stop, #btn_stop:hover
+{
+    background-color: #F00;
+    width: 45pt;
 }
 
 #graph_div

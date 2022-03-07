@@ -351,7 +351,7 @@ function startPlayback()
 
     // Hide the play button
     btnPlay.style.display = 'none';
-    btnStop.style.display = 'inline-block';
+    btnStop.style.display = 'inline-flex';
 
     // Send the play action to the model
     model.update(new Play());
@@ -365,7 +365,7 @@ function stopPlayback()
     console.log('stopping playback');
 
     // Hide the stop button
-    btnPlay.style.display = 'inline-block';
+    btnPlay.style.display = 'inline-flex';
     btnStop.style.display = 'none';
 
     // Send the stop action to the model
