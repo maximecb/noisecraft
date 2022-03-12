@@ -113,19 +113,18 @@ export class Editor
         {
             console.log('editor click');
 
-            if (evt.pointerId) this.editorDiv.releasePointerCapture(evt.pointerId);
+            if (evt.pointerId)
+            {
+                this.editorDiv.releasePointerCapture(evt.pointerId);
+            }
+
             this.startMousePos = null;
 
             // If we were in the process of selecting nodes
             if (this.selectDiv)
             {
-                console.log('end selection');
-
                 this.editorDiv.removeChild(this.selectDiv);
                 this.selectDiv = null;
-
-                evt.stopPropagation();
-
                 return;
             }
 
@@ -139,16 +138,14 @@ export class Editor
                 return;
             }
 
+            // If nodes are currently selected, deselect them
             if (this.selected.length > 0)
             {
                 this.deselect();
-            }
-            else
-            {
-                this.createNodeDialog(this.getMousePos(evt));
-                evt.stopPropagation();
                 return;
             }
+
+            this.createNodeDialog(this.getMousePos(evt));
         }
 
         this.editorDiv.onpointerdown = onPointerDown.bind(this);
@@ -325,7 +322,7 @@ export class Editor
         this.resize();
     }
 
-    // Update an in progress selection
+    // Start a selection or update an in progress selection
     updateSelect(startPos, curPos)
     {
         let xMin = Math.min(startPos.x, curPos.x);
@@ -335,29 +332,30 @@ export class Editor
         let dx = xMax - xMin;
         let dy = yMax - yMin;
 
-        if (this.selectDiv)
+        // If we meet the criteria for starting a new selection
+        if (!this.selectDiv && (Math.abs(dx) > 5 || Math.abs(dy) > 5))
         {
-            // Update group selection outline
-            this.selectDiv.style.left = xMin;
-            this.selectDiv.style.top = yMin;
-            this.selectDiv.style.width = dx;
-            this.selectDiv.style.height = dy;
-        }
-        else if (Math.abs(dx) > 5 || Math.abs(dy) > 5)
-        {
-            // Create group selection outline
+            // Start a new selection
             this.selectDiv = document.createElement('div');
             this.selectDiv.id = "select_div";
-            this.selectDiv.style.left = xMin;
-            this.selectDiv.style.top = yMin;
-            this.selectDiv.style.width = dx;
-            this.selectDiv.style.height = dx;
             this.editorDiv.appendChild(this.selectDiv);
         }
 
+        // If no selection is in progress, stop
+        if (!this.selectDiv)
+        {
+            return;
+        }
+
+        // Update visible group selection outline
+        this.selectDiv.style.left = xMin;
+        this.selectDiv.style.top = yMin;
+        this.selectDiv.style.width = dx;
+        this.selectDiv.style.height = dy;
+
         let selected = [];
 
-        // For each node
+        // For each node in the graph
         for (let [nodeId, node] of this.nodes)
         {
             let left = node.nodeDiv.offsetLeft;
@@ -397,6 +395,9 @@ export class Editor
     // Select a given set of nodes
     selectNodes(nodeIds)
     {
+        nodeIds = Array.from(nodeIds);
+        console.log(`selecting ${nodeIds.length} nodes`);
+
         // Unhighlight the currently selected nodes
         for (let nodeId of this.selected)
         {
@@ -405,7 +406,7 @@ export class Editor
         }
 
         // Update the selected node ids
-        this.selected = Array.from(nodeIds);
+        this.selected = nodeIds;
 
         // Highlight selected nodes
         for (let nodeId of this.selected)
