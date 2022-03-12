@@ -21,6 +21,7 @@ export class Knob extends Eventable
         this.div.style['padding'] = '4px';
         this.div.style['text-align'] = 'center';
 
+        // Canvas to draw the rotating part of the knob
         var canvas = document.createElement('canvas');
         canvas.width = 30;
         canvas.height = 30;
@@ -29,31 +30,50 @@ export class Knob extends Eventable
         this.ctx.height = canvas.height;
         this.div.appendChild(canvas);
 
+        // Div to display the knob's current value
         this.valDiv = document.createElement('div');
         this.valDiv.style['font-size'] = '12px';
         this.valDiv.style.color = '#BBB';
         this.valDiv.appendChild(document.createTextNode('1.00'));
         this.div.appendChild(this.valDiv);
 
+        // Current knob state
         let knobMoving = false;
         let lastY = null;
 
         function onPointerDown(evt)
         {
-            console.log('knob mouseDown');
+            if (knobMoving)
+                return;
 
-            //evt.preventDefault();
             evt.stopPropagation();
 
-            this.div.setPointerCapture(evt.pointerId);
             knobMoving = true;
             lastY = evt.screenY;
+
+            // Make it so we receive all pointer events until the knob is done moving
+            document.body.style['pointer-events'] = 'none';
+            this.div.style['pointer-events'] = 'auto';
+            this.pointerUpListener = onPointerUp.bind(this);
+            this.pointerMoveListener = onPointerMove.bind(this);
+            window.addEventListener('pointerup', this.pointerUpListener);
+            window.addEventListener('pointermove', this.pointerMoveListener);
         }
 
         function onPointerUp(evt)
         {
-            this.div.releasePointerCapture(evt.pointerId);
+            if (!knobMoving)
+                return;
+
+            evt.stopPropagation();
+
             knobMoving = false;
+
+            // Undo pointer event capture
+            document.body.style['pointer-events'] = 'auto';
+            this.div.style['pointer-events'] = 'auto';
+            window.removeEventListener('pointerup', this.pointerUpListener);
+            window.removeEventListener('pointermove', this.pointerMoveListener);
         }
 
         function onPointerMove(evt)
@@ -94,8 +114,6 @@ export class Knob extends Eventable
         }
 
         this.div.onpointerdown = onPointerDown.bind(this);
-        this.div.onpointerup = onPointerUp.bind(this);
-        this.div.onpointermove = onPointerMove.bind(this);
         this.div.onclick = onClick.bind(this);
         this.div.ondblclick = onDoubleClick.bind(this);
 
@@ -116,7 +134,16 @@ export class Knob extends Eventable
     {
         // Remove the MIDI event listener
         if (this.listener)
+        {
             midi.removeListener('midimessage', this.listener);
+        }
+
+        if (this.pointerMoveListener)
+        {
+            document.body.style['pointer-events'] = 'auto';
+            window.removeEventListener('pointerup', this.pointerUpListener);
+            window.removeEventListener('pointermove', this.pointerMoveListener);
+        }
     }
 
     /**
