@@ -978,17 +978,19 @@ class UINode
     {
         let editor = this.editor;
 
-        function portClick(evt)
+        function portClick(action)
         {
-            console.log(`port click ${portName}`);
-
-            evt.stopPropagation();
-
             let [cx, cy] = this.getPortPos(portIdx, side);
 
             // If no connection is in progress
             if (!editor.edge)
             {
+                // New connections can only be started on pointer down
+                if (action == 'up')
+                {
+                    return;
+                }
+
                 let edge = new Edge();
 
                 // If this is an input port, remove previous connection
@@ -1013,9 +1015,11 @@ class UINode
                 return;
             }
 
-            // Must connect in to out
+            // Must connect in port to out port
             if (editor.edge.openSide != side)
+            {
                 return;
+            }
 
             if (side == 'dst')
             {
@@ -1044,16 +1048,20 @@ class UINode
         portDiv.className = (side == 'dst')? 'node_in_port':'node_out_port';
 
         portDiv.onpointerdown = (evt) => {
-          evt.stopPropagation();
-          portDiv.setPointerCapture(evt.pointerId);
+            console.log(`pointer down ${portName} ${side}`);
+            evt.stopPropagation();
+            portClick.call(this, 'down');
         }
 
         portDiv.onpointerup = (evt) => {
-          evt.stopPropagation();
-          portDiv.releasePointerCapture(evt.pointerId);
+            console.log(`pointer up ${portName} ${side}`);
+            evt.stopPropagation();
+            portClick.call(this, 'up');
         }
 
-        portDiv.onclick = portClick.bind(this);
+        portDiv.onclick = (evt) => {
+            evt.stopPropagation()
+        };
 
         parentDiv.appendChild(portDiv);
 
