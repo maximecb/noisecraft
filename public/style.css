@@ -1,4 +1,5 @@
-body {
+body
+{
     margin: 0;
     padding: 0;
 
@@ -14,21 +15,25 @@ body {
     touch-action: none;
 }
 
-h1 {
+h1
+{
     text-align: center;
 }
 
-hr {
+hr
+{
     border: 0px;
     height: 2px;
     background: #444;
 }
 
-a:link {
+a:link
+{
     color: #F00;
     text-decoration: none;
 }
-a:hover {
+a:hover
+{
     color: #F00;
     text-decoration: underline;
 }
@@ -180,7 +185,8 @@ code
 }
 
 /* Track title display/edit box on the main page */
-#project_title {
+#project_title
+{
     position: fixed;
     bottom: 18;
     right: 18;
@@ -211,6 +217,7 @@ div.node
     border-color: #666;
 
     /* prevent the text from being selected when user clicks */
+    cursor: default;
     user-select: none;
     -moz-user-select: none;
 }
@@ -371,7 +378,8 @@ div.cell_high
 /****************************************************************************/
 
 /* Modal dialog box */
-.dialog {
+.dialog
+{
     z-index:3;
     width: 400px;
 
@@ -388,16 +396,19 @@ div.cell_high
     font-family: monospace
 }
 
-.dialog p {
+.dialog p
+{
     font-family: sans-serif;
     text-align: justify;
 }
 
-.dialog a {
+.dialog a
+{
     color: #FA0;
 }
 
-.dialog_title {
+.dialog_title
+{
     font-size: 24px;
     font-family: sans-serif;
     text-align: center;
@@ -406,23 +417,27 @@ div.cell_high
 }
 
 /* Div to space out form elements vertically */
-.form_div {
+.form_div
+{
     margin-top: 6;
     margin-bottom: 6;
 }
 
-.form_btn {
+.form_btn
+{
     margin-top: 4;
     margin-right: 4;
 }
 
-.form_link {
+.form_link
+{
     margin-top: 6;
     margin-bottom: 6;
     color: #FA0;
 }
 
-.form_error {
+.form_error
+{
     display: none;
     margin-top: 6;
     margin-bottom: 6;
@@ -434,7 +449,8 @@ div.cell_high
 }
 
 /* Invisible overlay div to intercept events */
-.overlay {
+.overlay
+{
     position: fixed;
     width: 100%;
     height: 100%;
@@ -445,7 +461,8 @@ div.cell_high
 }
 
 /* Dark overlay div to hide dialog background */
-.dark_overlay {
+.dark_overlay
+{
     position: fixed;
     width: 100%;
     height: 100%;
