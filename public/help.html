@@ -38,10 +38,9 @@
             <h3>Starting Audio Generation</h3>
             <p>
             To start generating audio, press the "Play" button in the top-right corner of the page. You can also press
-            the spacebar to start and stop generating audio. Currently, NoiseCraft
-            is able to produce audio in the Chrome and Edge browsers, but not in Safari or Firefox, because NoiseCraft
-            uses relatively recent JavaScript features and APIs. Note that projects using the <code>MidiIn</code> node may not
+            the spacebar to start and stop generating audio. Note that projects using the <code>MidiIn</code> node may not
             produce any sound until you press keys on your keyboard or on a <a href=#midi_support>MIDI controller</a>.
+            Also note that NoiseCraft has been primarily tested and works most reliably with the Chrome web browser.
             </p>
 
             <h3>Keyboard Shortcuts</h3>
@@ -81,6 +80,13 @@
             ports to input ports. One output can be connected to multiple inputs, but each in put can only be
             connected to one output. To make a connection, simply click on the first port to connect, and then
             on the second. A new curved line representing the connection will appear.
+            </p>
+
+            <p>
+            NoiseCraft does audio synthesis through virtual analog modeling. All values coming out of a node's
+            output port are floating-point value that can fluctuate over time. Typically, these values are in
+            the range from -1 to 1, or from 0 to 1, but this can vary from one node type to another. Knobs,
+            for example, can be configured to output values in any desired range.
             </p>
 
             <p>
