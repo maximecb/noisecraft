@@ -34,7 +34,7 @@ let cursor = { x: 0, y: 0 };
 
 document.body.onload = async function ()
 {
-    browserWarning();
+    //browserWarning();
 
     // Parse the projectId from the path
     let path = location.pathname;
@@ -70,7 +70,7 @@ document.body.onload = async function ()
         // compatibility with old URLs
         //
         // Download the serialized project data
-        let projectId = location.hash.substr(1);
+        let projectId = location.hash.slice(1);
         let data = await sharing.getProject(projectId);
 
         // Try to import the project
