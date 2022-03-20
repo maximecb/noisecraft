@@ -109,7 +109,7 @@ export class Editor
         }
 
         // Mouse click callback
-        function onClick(evt)
+        function onPointerUp(evt)
         {
             console.log('editor click');
 
@@ -150,7 +150,7 @@ export class Editor
 
         this.editorDiv.onpointerdown = onPointerDown.bind(this);
         this.editorDiv.onpointermove = onPointerMove.bind(this);
-        this.editorDiv.onclick = onClick.bind(this);
+        this.editorDiv.onpointerup = onPointerUp.bind(this);
 
         // If the window is resized, adjust the graph size
         window.onresize = this.resize.bind(this);
@@ -903,6 +903,8 @@ class UINode
 
         function pointerUp(evt)
         {
+            evt.stopPropagation();
+
             let mousePos = this.editor.getMousePos(evt);
             this.editor.endDrag(mousePos);
 
