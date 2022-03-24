@@ -53,7 +53,6 @@ export class Knob extends Eventable
 
             // Make it so we receive all pointer events until the knob is done moving
             document.body.style['pointer-events'] = 'none';
-            this.div.style['pointer-events'] = 'auto';
             this.pointerUpListener = onPointerUp.bind(this);
             this.pointerMoveListener = onPointerMove.bind(this);
             window.addEventListener('pointerup', this.pointerUpListener);
@@ -71,7 +70,6 @@ export class Knob extends Eventable
 
             // Undo pointer event capture
             document.body.style['pointer-events'] = 'auto';
-            this.div.style['pointer-events'] = 'auto';
             window.removeEventListener('pointerup', this.pointerUpListener);
             window.removeEventListener('pointermove', this.pointerMoveListener);
         }
@@ -102,11 +100,6 @@ export class Knob extends Eventable
             this.setNormVal(normVal);
         }
 
-        function onClick(evt)
-        {
-            evt.stopPropagation();
-        }
-
         function onDoubleClick(evt)
         {
             evt.stopPropagation();
@@ -114,7 +107,6 @@ export class Knob extends Eventable
         }
 
         this.div.onpointerdown = onPointerDown.bind(this);
-        this.div.onclick = onClick.bind(this);
         this.div.ondblclick = onDoubleClick.bind(this);
 
         // Bind the controller to MIDI
