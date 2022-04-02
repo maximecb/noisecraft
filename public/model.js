@@ -890,6 +890,9 @@ export class CreateNode extends Action
             // Set the default scale
             node.numRows = 4;
 
+            // Create the output ports
+            node.outNames = ['gate0', 'gate1', 'gate2', 'gate3'];
+
             // Currently active pattern
             node.curPattern = 0;
 
