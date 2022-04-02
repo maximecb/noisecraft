@@ -166,6 +166,17 @@ export const NODE_SCHEMA =
         description: 'classic two-pole low-pass filter',
     },
 
+    'GateSeq': {
+        ins: [
+            { name: 'clock', default: 0 },
+            { name: 'gateT', default: 0.1 },
+        ],
+        outs: [],
+        params: [],
+        state: ['numRows', 'patterns', 'curPattern'],
+        description: 'step sequencer with multiple gate outputs',
+    },
+
     'Greater': {
         ins: [
             { name: 'in0', default: 0 },
@@ -377,7 +388,7 @@ export const NODE_SCHEMA =
     },
 
     'Module': {
-        // Marked internal because you can't create a module
+        // Marked as internal because you can't create a module
         // from the node creation menu
         internal: true,
         ins: [],
@@ -804,8 +815,23 @@ function initPattern(node, patIdx)
     if (node.patterns[patIdx])
         return;
 
-    let scaleNotes = music.genScale(node.scaleRoot, node.scaleName, node.numOctaves);
-    let numRows = scaleNotes.length;
+    // Compute the number of rows
+    let numRows;
+    switch (node.type)
+    {
+        case 'GateSeq':
+        numRows = node.numRows;
+        break;
+
+        case 'MonoSeq':
+        let scaleNotes = music.genScale(node.scaleRoot, node.scaleName, node.numOctaves);
+        numRows = scaleNotes.length;
+        break;
+
+        default:
+        assert (false, "unknown node type in initPattern");
+        break;
+    }
 
     // Initialize an empty pattern
     let numSteps = 16;
@@ -858,7 +884,21 @@ export class CreateNode extends Action
             node.params[param.name] = param.default;
         }
 
-        // If this is a sequencer node
+        // If this is a gate sequencer node
+        if (this.nodeType == 'GateSeq')
+        {
+            // Set the default scale
+            node.numRows = 4;
+
+            // Currently active pattern
+            node.curPattern = 0;
+
+            // Initialize an empty pattern
+            node.patterns = [];
+            initPattern(node, 0);
+        }
+
+        // If this is a monophonic  sequencer node
         if (this.nodeType == 'MonoSeq')
         {
             // Set the default scale
@@ -877,6 +917,8 @@ export class CreateNode extends Action
         // Add the node to the state
         let nodeId = model.getFreeId();
         model.state.nodes[nodeId] = node;
+
+        return nodeId;
     }
 }
 
@@ -1454,9 +1496,13 @@ export class ToggleCell extends Action
         let curVal = grid[this.stepIdx][this.rowIdx];
         let newVal = curVal? 0:1;
 
-        // Zero-out all other cells at this step
-        for (let i = 0; i < numRows; ++i)
-            grid[this.stepIdx][i] = 0;
+        // If this is a monophonic sequencer,
+        // zero-out all other cells at this step
+        if (node.type == 'MonoSeq')
+        {
+            for (let i = 0; i < numRows; ++i)
+                grid[this.stepIdx][i] = 0;
+        }
 
         grid[this.stepIdx][this.rowIdx] = newVal;
 
@@ -1549,8 +1595,6 @@ export class SetScale extends Action
         );
 
         // Compute the old and new number of scale degrees
-        //var oldDegs = Math.floor(oldScale.length / node.numOctaves);
-        //var newDegs = Math.floor(newScale.length / this.numOctaves);
         let oldDegs = (oldScale.length - 1) / node.numOctaves;
         let newDegs = (newScale.length - 1) / this.numOctaves;
         assert (isPosInt(oldDegs));
@@ -1604,8 +1648,57 @@ export class SetScale extends Action
 }
 
 /**
+ * Transpose the number of rows for a sequencer
+ */
+export class SetNumRows extends Action
+{
+    constructor(nodeId, numRows)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.numRows = numRows;
+    }
+
+    update(model)
+    {
+        let node = model.state.nodes[this.nodeId];
+
+        // Tranpose each pattern
+        for (let patIdx = 0; patIdx < node.patterns.length; ++patIdx)
+        {
+            let oldGrid = node.patterns[patIdx];
+
+            // Grid to transpose the pattern into
+            let newGrid = new Array(oldGrid.length);
+            for (let step = 0; step < newGrid.length; ++step)
+            {
+                newGrid[step] = new Array(newScale.length);
+                newGrid[step].fill(0);
+            }
+
+            // For each step
+            for (let step = 0; step < newGrid.length; ++step)
+            {
+                // For each row
+                for (let row = 0; row < numRows; ++row)
+                {
+                    if (!oldGrid[step][row])
+                        continue;
+
+                    newGrid[step][row] = 1;
+                }
+            }
+
+            node.patterns[patIdx] = newGrid;
+        }
+
+        node.numRows = this.numRows;
+    }
+}
+
+/**
  * Immediately set the currently playing pattern in a sequencer
- * Note that the editor never sends this action, it sends QueuePattern.
+ * Note that the editor will send QueuePattern during playback instead.
  */
 export class SetPattern extends Action
 {

@@ -412,6 +412,27 @@ export function compile(graph)
             continue;
         }
 
+        if (node.type == 'GateSeq')
+        {
+            audioNodes[nodeId] = node;
+
+            // Assemble the output names (one gate output per row)
+            let outNames = '';
+            for (let i = 0; i < node.numRows; ++i)
+            {
+                if (i > 0)
+                    outNames += ', ';
+                outNames += outName(nodeId, i);
+            }
+
+            addLine(
+                `let [${outNames}] = ` +
+                `nodes[${nodeId}].update(time, ${inVal(node, 0)}, ${inVal(node, 1)})`
+            );
+
+            continue;
+        }
+
         if (node.type == 'MonoSeq')
         {
             audioNodes[nodeId] = node;
