@@ -838,8 +838,8 @@ class UINode
         this.nodeType = state.type;
         this.x = state.x;
         this.y = state.y;
-        this.numIns = (state.type == 'Module')? state.inNames.length:this.schema.ins.length;
-        this.numOuts = (state.type == 'Module')? state.outNames.length:this.schema.outs.length;
+        this.numIns = state.inNames.length;
+        this.numOuts = state.outNames.length;
 
         // DOM div wrapping the whole node
         this.nodeDiv = null;
