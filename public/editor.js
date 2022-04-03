@@ -224,7 +224,7 @@ export class Editor
             let nodeState = newState.nodes[action.nodeId];
             node.setPattern(
                 action.patIdx,
-                nodeState.patterns[action.patIdx]
+                nodeState
             );
 
             return;
@@ -1637,11 +1637,6 @@ class MidiIn extends UINode
     }
 }
 
-
-
-
-
-
 /**
  * Parent class for grid sequencer nodes
  */
@@ -1656,18 +1651,13 @@ class Sequencer extends UINode
         div.style['text-align'] = 'center';
         this.centerDiv.append(div)
 
-
-        // TODO: we need to store this on the sequencer
         // Buttons and drop boxes
-        let btnDiv = document.createElement('div');
-        btnDiv.style.display = 'flex';
-        btnDiv.style['justify-content'] = 'center';
-        btnDiv.style['flex-wrap'] = 'nowrap';
-        btnDiv.style['margin-bottom'] = 4;
-        div.appendChild(btnDiv);
-
-
-
+        this.btnDiv = document.createElement('div');
+        this.btnDiv.style.display = 'flex';
+        this.btnDiv.style['justify-content'] = 'center';
+        this.btnDiv.style['flex-wrap'] = 'nowrap';
+        this.btnDiv.style['margin-bottom'] = 4;
+        div.appendChild(this.btnDiv);
 
         // Shrink the pattern by one bar
         let shrinkBtn = document.createElement("button");
@@ -1675,7 +1665,7 @@ class Sequencer extends UINode
         shrinkBtn.onclick = evt => this.send(new model.ShrinkPattern(this.nodeId));
         shrinkBtn.onpointerdown = evt => evt.stopPropagation();
         shrinkBtn.ondblclick = evt => evt.stopPropagation();
-        btnDiv.appendChild(shrinkBtn);
+        this.btnDiv.appendChild(shrinkBtn);
 
         // Extend the pattern by one bar
         let extendBtn = document.createElement("button");
@@ -1683,7 +1673,7 @@ class Sequencer extends UINode
         extendBtn.onclick = evt => this.send(new model.ExtendPattern(this.nodeId));
         extendBtn.onpointerdown = evt => evt.stopPropagation();
         extendBtn.ondblclick = evt => evt.stopPropagation();
-        btnDiv.appendChild(extendBtn);
+        this.btnDiv.appendChild(extendBtn);
 
         // Copy one bar and extend the pattern
         let copyBtn = document.createElement("button");
@@ -1691,7 +1681,7 @@ class Sequencer extends UINode
         copyBtn.onclick = evt => this.send(new model.ExtendCopy(this.nodeId));
         copyBtn.onpointerdown = evt => evt.stopPropagation();
         copyBtn.ondblclick = evt => evt.stopPropagation();
-        btnDiv.appendChild(copyBtn);
+        this.btnDiv.appendChild(copyBtn);
 
         // Shorten the pattern by one step
         let minusBtn = document.createElement("button");
@@ -1699,7 +1689,7 @@ class Sequencer extends UINode
         minusBtn.onclick = evt => this.send(new model.ShrinkPattern(this.nodeId, 1));
         minusBtn.onpointerdown = evt => evt.stopPropagation();
         minusBtn.ondblclick = evt => evt.stopPropagation();
-        btnDiv.appendChild(minusBtn);
+        this.btnDiv.appendChild(minusBtn);
 
         // Extend the pattern by one step
         let plusBtn = document.createElement("button");
@@ -1707,7 +1697,7 @@ class Sequencer extends UINode
         plusBtn.onclick = evt => this.send(new model.ExtendPattern(this.nodeId, 1));
         plusBtn.onpointerdown = evt => evt.stopPropagation();
         plusBtn.ondblclick = evt => evt.stopPropagation();
-        btnDiv.appendChild(plusBtn);
+        this.btnDiv.appendChild(plusBtn);
 
         // Div to contain the sequencer grid
         this.gridDiv = document.createElement('div');
@@ -1761,14 +1751,6 @@ class Sequencer extends UINode
             this.patBtns.push(patSel);
         }
 
-
-
-        // TODO: will we need to store a numRows here?
-        // should this be an argument to the constructor?
-        // we need this to do the initial setPattern?
-        // No, we can get this from state.patterns!
-
-
         // Currently active pattern
         this.patIdx = state.curPattern;
 
@@ -1779,15 +1761,26 @@ class Sequencer extends UINode
         this.curStep = undefined;
 
         // Set the currently active pattern
-        this.setPattern(this.patIdx, state.patterns[this.patIdx]);
+        this.setPattern(this.patIdx, state);
+    }
+
+    /**
+     * Get the name of the rows
+     */
+    getRowNames(state)
+    {
+        return 'row' + rowIdx;
     }
 
     /**
      * (Re)generate the grid DOM elements
      */
-    genGridDOM(patIdx, grid)
+    genGridDOM(patIdx, state)
     {
         assert (patIdx !== undefined);
+
+        let grid = state.patterns[patIdx];
+        assert (grid instanceof Array);
 
         let numSteps = grid.length;
         let numRows = grid[0].length;
@@ -1804,7 +1797,7 @@ class Sequencer extends UINode
             // It's larger and therefore easier to click
             var cell = document.createElement('div');
             cell.style['display'] = 'inline-block';
-            cell.title = this.scale[j].toString();
+            //cell.title = this.getRowName(j);
 
             // 4-step beat separator
             if (i % 4 == 0)
@@ -1979,14 +1972,12 @@ class Sequencer extends UINode
     /**
      * Select a pattern by index
      */
-    setPattern(patIdx, grid)
+    setPattern(patIdx, state)
     {
-        assert (grid instanceof Array);
-
         // Initialize this pattern if it doesn't exist yet
         if (!(this.patDivs[patIdx]))
         {
-            this.genGridDOM(patIdx, grid);
+            this.genGridDOM(patIdx, state);
         }
 
         // Un-highlight the last step of the current pattern
@@ -2023,14 +2014,6 @@ class Sequencer extends UINode
         let row = cellDivs[stepIdx];
         assert (rowIdx < row.length);
 
-        // FIXME: need to account for mono/poly
-        // where is this method called?
-        // can we reimplement the method for MonoSeq?
-
-        // Clear all other cells in this row
-        for (let i = 0; i < row.length; ++i)
-            row[i].className = 'cell_off';
-
         row[rowIdx].className = value? 'cell_on':'cell_off';
     }
 
@@ -2066,76 +2049,20 @@ class Sequencer extends UINode
     }
 }
 
-
-
-
-
-
 /**
  * Monophonic step sequencer
  */
-class MonoSeq extends UINode
+class MonoSeq extends Sequencer
 {
     constructor(id, state, editor)
     {
         super(id, state, editor);
 
-        var div = document.createElement('div');
-        div.style['padding'] = '4px';
-        div.style['text-align'] = 'center';
-        this.centerDiv.append(div)
-
-        // Buttons and drop boxes
-        let btnDiv = document.createElement('div');
-        btnDiv.style.display = 'flex';
-        btnDiv.style['justify-content'] = 'center';
-        btnDiv.style['flex-wrap'] = 'nowrap';
-        btnDiv.style['margin-bottom'] = 4;
-        div.appendChild(btnDiv);
-
         // Root and scale selection boxes
         var selectNum = document.createElement("select");
         var selectRoot = document.createElement("select");
         var selectScale = document.createElement("select");
-        btnDiv.appendChild(selectNum);
-        btnDiv.appendChild(selectRoot);
-        btnDiv.appendChild(selectScale);
-
-        // Shrink and extend pattern buttons
-        let shrinkBtn = document.createElement("button");
-        shrinkBtn.appendChild(document.createTextNode("←"));
-        shrinkBtn.onclick = evt => this.send(new model.ShrinkPattern(this.nodeId));
-        shrinkBtn.onpointerdown = evt => evt.stopPropagation();
-        shrinkBtn.ondblclick = evt => evt.stopPropagation();
-        btnDiv.appendChild(shrinkBtn);
-
-        let extendBtn = document.createElement("button");
-        extendBtn.appendChild(document.createTextNode("→"));
-        extendBtn.onclick = evt => this.send(new model.ExtendPattern(this.nodeId));
-        extendBtn.onpointerdown = evt => evt.stopPropagation();
-        extendBtn.ondblclick = evt => evt.stopPropagation();
-        btnDiv.appendChild(extendBtn);
-
-        let copyBtn = document.createElement("button");
-        copyBtn.appendChild(document.createTextNode("⇒"));
-        copyBtn.onclick = evt => this.send(new model.ExtendCopy(this.nodeId));
-        copyBtn.onpointerdown = evt => evt.stopPropagation();
-        copyBtn.ondblclick = evt => evt.stopPropagation();
-        btnDiv.appendChild(copyBtn);
-
-        let minusBtn = document.createElement("button");
-        minusBtn.appendChild(document.createTextNode("-1"));
-        minusBtn.onclick = evt => this.send(new model.ShrinkPattern(this.nodeId, 1));
-        minusBtn.onpointerdown = evt => evt.stopPropagation();
-        minusBtn.ondblclick = evt => evt.stopPropagation();
-        btnDiv.appendChild(minusBtn);
-
-        let plusBtn = document.createElement("button");
-        plusBtn.appendChild(document.createTextNode("+1"));
-        plusBtn.onclick = evt => this.send(new model.ExtendPattern(this.nodeId, 1));
-        plusBtn.onpointerdown = evt => evt.stopPropagation();
-        plusBtn.ondblclick = evt => evt.stopPropagation();
-        btnDiv.appendChild(plusBtn);
+        this.btnDiv.prepend(selectNum, selectRoot, selectScale);
 
         function scaleChange()
         {
@@ -2190,306 +2117,16 @@ class MonoSeq extends UINode
             opt.selected = (scale == state.scaleName);
             selectScale.appendChild(opt);
         }
-
-        // Div to contain the sequencer grid
-        this.gridDiv = document.createElement('div');
-        this.gridDiv.style['margin-top'] = 4;
-        this.gridDiv.style['padding-top'] = 4;
-        this.gridDiv.style['padding-bottom'] = 4;
-        this.gridDiv.style.background = '#111';
-        this.gridDiv.style.border = '1px solid #AAA';
-        this.gridDiv.style['text-align'] = 'left';
-        this.gridDiv.style.width = '364';
-        this.gridDiv.style['overflow-x'] = 'scroll';
-        this.gridDiv.style['overscroll-behavior-x'] = 'none';
-        this.gridDiv.style['white-space'] = 'nowrap';
-        div.appendChild(this.gridDiv);
-
-        // Prevent mouse events from propagating to node
-        // This is needed because clicks on grid cells are frequent
-        this.gridDiv.onpointerdown = evt => evt.stopPropagation();
-        this.gridDiv.ondblclick = evt => evt.stopPropagation();
-
-        // Pattern grid containers, indexed by pattern
-        this.patDivs = [];
-
-        // Divs for grid cells, indexed by pattern
-        this.cellDivs = [];
-
-        // Pattern selection block
-        let selDiv = document.createElement('div');
-        selDiv.style.display = 'flex';
-        selDiv.style['justify-content'] = 'center';
-        selDiv.style['flex-wrap'] = 'nowrap';
-        selDiv.style['margin-top'] = 4;
-        div.appendChild(selDiv);
-
-        // Pattern selection buttons
-        this.patBtns = []
-
-        // Pattern selection bar
-        for (let i = 0; i < 8; ++i)
-        {
-            let patSel = document.createElement('div');
-            patSel.className = 'patsel_btn';
-            patSel.textContent = String(i+1);
-
-            // When clicked, select this pattern
-            patSel.onpointerdown = evt => evt.stopPropagation();
-            patSel.onpointerup = evt => evt.stopPropagation();
-            patSel.onclick = evt => this.selectPat(i);
-
-            selDiv.appendChild(patSel);
-            this.patBtns.push(patSel);
-        }
-
-        // Generate the scale notes
-        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
-
-        // Currently active pattern
-        this.patIdx = state.curPattern;
-
-        // Next pattern to play
-        this.nextPat = undefined;
-
-        // Currently active step
-        this.curStep = undefined;
-
-        // Set the currently active pattern
-        this.setPattern(this.patIdx, state.patterns[this.patIdx]);
     }
 
     /**
-     * (Re)generate the grid DOM elements
+     * Get the name of the rows
      */
-    genGridDOM(patIdx, grid)
-    {
-        assert (patIdx !== undefined);
-
-        //let seq = this;
-        //let grid = this.data.patterns[patIdx];
-        let numSteps = grid.length;
-        let numRows = grid[0].length;
-        assert (grid instanceof Array);
-
-        // Two-dimensional array of cell square divs (stepIdx, rowIdx)
-        let cellDivs = this.cellDivs[patIdx] = [];
-
-        function makeCell(i, j)
-        {
-            var cellOn = grid[i][j];
-
-            // The outer cell div is the element reacting to clicks
-            // It's larger and therefore easier to click
-            var cell = document.createElement('div');
-            cell.style['display'] = 'inline-block';
-            cell.title = this.scale[j].toString();
-
-            // 4-step beat separator
-            if (i % 4 == 0)
-            {
-                var sep = document.createElement('div');
-                sep.style['display'] = 'inline-block';
-                sep.style['width'] = '1px';
-                cell.appendChild(sep);
-            }
-
-            // The inner div is the colored/highlighted element
-            var inner = document.createElement('div');
-            inner.className = cellOn? 'cell_on':'cell_off';
-            cell.appendChild(inner);
-
-            // 4-step beat separator
-            if (i % 4 == 3)
-            {
-                var sep = document.createElement('div');
-                sep.style['display'] = 'inline-block';
-                sep.style['width'] = '1px';
-                cell.appendChild(sep);
-            }
-
-            cell.onpointerdown = (evt) => evt.stopPropagation();
-            cell.onpointerup = (evt) => evt.stopPropagation();
-
-            cell.onclick = (evt) =>
-            {
-                console.log('clicked ' + i + ', ' + j);
-                this.send(new model.ToggleCell(
-                    this.nodeId,
-                    patIdx,
-                    i,
-                    j
-                ));
-
-                evt.stopPropagation();
-            };
-
-            if (!(i in cellDivs))
-                cellDivs[i] = [];
-
-            cellDivs[i][j] = inner;
-
-            return cell;
-        }
-
-        function makeBar(barIdx, barLen)
-        {
-            var bar = document.createElement('div');
-            bar.style['display'] = 'inline-block';
-            bar.style['margin'] = '0px 2px';
-
-            for (var j = 0; j < numRows; ++j)
-            {
-                var row = document.createElement('div');
-
-                for (var i = 0; i < barLen; ++i)
-                {
-                    var stepIdx = barIdx * 16 + i;
-                    var cell = makeCell.call(this, stepIdx, numRows - j - 1);
-                    row.appendChild(cell);
-                }
-
-                bar.appendChild(row);
-            }
-
-            return bar;
-        }
-
-        // Remove the old grid div
-        if (this.patDivs[patIdx])
-            this.gridDiv.removeChild(this.patDivs[patIdx]);
-
-        // Create a div for the pattern (initially invisible)
-        let patDiv = this.patDivs[patIdx] = document.createElement('div');
-        patDiv.style.display = 'none';
-        this.gridDiv.appendChild(patDiv);
-
-        // Compute the number of bars
-        var numBars = Math.ceil(numSteps / 16);
-
-        // For each bar of the pattern
-        for (var barIdx = 0; barIdx < numBars; ++barIdx)
-        {
-            var barDiv = document.createElement('div');
-            barDiv.style['display'] = 'inline-block';
-            patDiv.appendChild(barDiv);
-
-            let lastBarLen = (numSteps % 16 == 0)? 16:(numSteps%16);
-            let barLen = (barIdx < numBars - 1)? 16:lastBarLen;
-            var bar = makeBar.call(this, barIdx, barLen);
-            barDiv.appendChild(bar);
-
-            // If this is not the last bar, add a separator
-            if (barIdx < numBars - 1)
-            {
-                var barHeight = numRows * 18;
-                var sep = document.createElement('div');
-                sep.style['display'] = 'inline-block';
-                sep.style['width'] = '3px';
-                sep.style['height'] = (barHeight - 4) + 'px';
-                sep.style['background'] = '#900';
-                sep.style['margin'] = '2px 1px';
-                barDiv.appendChild(sep);
-            }
-        }
-    }
-
-    /**
-     * Select the current or next pattern to play.
-     * This happens when a pattern selection button is clicked.
-     */
-    selectPat(patIdx)
-    {
-        // If audio is playing, queue the next pattern,
-        // otherwise immediately set the next pattern
-        if (this.editor.model.playing)
-        {
-            console.log('sending QueuePattern');
-
-            this.send(new model.QueuePattern(
-                this.nodeId,
-                patIdx
-            ));
-        }
-        else
-        {
-            console.log('sending SetPattern');
-
-            this.send(new model.SetPattern(
-                this.nodeId,
-                patIdx
-            ));
-        }
-    }
-
-    /**
-     * Queue the next pattern by index
-     */
-    queuePattern(patIdx)
-    {
-        // Cancel the previous blink timer
-        if (this.nextPat !== undefined)
-        {
-            clearTimeout(this.blinkTimer);
-            this.patBtns[this.nextPat].className = 'patsel_btn';
-        }
-
-        // If this is already the current pattern, do nothing
-        if (patIdx === this.patIdx)
-        {
-            return;
-        }
-
-        // Queue the pattern
-        this.nextPat = patIdx;
-
-        function blink(state)
-        {
-            this.patBtns[patIdx].className = state? 'patsel_btn_queue':'patsel_btn';
-
-            // Reschedule the blink function
-            this.blinkTimer = setTimeout(evt => blink.call(this, !state), 200);
-        }
-
-        // Schedule the blink function
-        this.blinkTimer = setTimeout(evt => blink.call(this, true), 200);
-    }
-
-    /**
-     * Select a pattern by index
-     */
-    setPattern(patIdx, grid)
-    {
-        assert (grid instanceof Array);
-
-        // Initialize this pattern if it doesn't exist yet
-        if (!(this.patDivs[patIdx]))
-        {
-            this.genGridDOM(patIdx, grid);
-        }
-
-        // Un-highlight the last step of the current pattern
-        this.highlight(undefined);
-
-        // Stop the blinking pattern queued animation
-        clearTimeout(this.blinkTimer);
-
-        // Store the current pattern
-        this.patIdx = patIdx;
-
-        // Update the pattern selection bar, highlight current pattern
-        for (var i = 0; i < this.patBtns.length; ++i)
-        {
-            this.patBtns[i].className = (i == patIdx)? 'patsel_btn_on':'patsel_btn';
-        }
-
-        // Make the pattern visible, hide all other patterns
-        for (let i = 0; i < this.gridDiv.children.length; ++i)
-        {
-            let patDiv = this.gridDiv.children[i];
-            patDiv.style.display = (patDiv === this.patDivs[patIdx])? 'block':'none';
-        }
-    }
+     getRowNames(state)
+     {
+         let scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
+         return scale.map(note => String(note));
+     }
 
     /**
      * Set a grid cell on or off
@@ -2508,47 +2145,7 @@ class MonoSeq extends UINode
 
         row[rowIdx].className = value? 'cell_on':'cell_off';
     }
-
-    /**
-     * Highlight a given step of the current pattern
-     */
-    highlight(stepIdx)
-    {
-        let patIdx = this.patIdx;
-        let cellDivs = this.cellDivs[patIdx];
-        let prevStep = this.curStep;
-        this.curStep = stepIdx;
-
-        // If a step is already highlighted, clear the highlighting
-        if (prevStep !== false && prevStep < cellDivs.length)
-        {
-            for (var rowIdx = 0; rowIdx < cellDivs[prevStep].length; ++rowIdx)
-            {
-                let div = cellDivs[prevStep][rowIdx];
-                div.className = (div.className == 'cell_off')? 'cell_off':'cell_on';
-            }
-        }
-
-        // Highlight the current step
-        if (stepIdx !== undefined)
-        {
-            for (var rowIdx = 0; rowIdx < cellDivs[stepIdx].length; ++rowIdx)
-            {
-                let div = cellDivs[stepIdx][rowIdx];
-                div.className = (div.className == 'cell_off')? 'cell_off':'cell_high';
-            }
-        }
-    }
 }
-
-
-
-
-
-
-
-
-
 
 /**
 Textual notes
