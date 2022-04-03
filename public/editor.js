@@ -1789,6 +1789,9 @@ class Sequencer extends UINode
         // Two-dimensional array of cell square divs (stepIdx, rowIdx)
         let cellDivs = this.cellDivs[patIdx] = [];
 
+        // Get the row names for this sequencer
+        let rowNames = this.getRowNames(state);
+
         function makeCell(i, j)
         {
             var cellOn = grid[i][j];
@@ -1797,7 +1800,7 @@ class Sequencer extends UINode
             // It's larger and therefore easier to click
             var cell = document.createElement('div');
             cell.style['display'] = 'inline-block';
-            //cell.title = this.getRowName(j);
+            cell.title = rowNames[j];
 
             // 4-step beat separator
             if (i % 4 == 0)
