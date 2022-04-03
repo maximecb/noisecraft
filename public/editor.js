@@ -1769,7 +1769,7 @@ class Sequencer extends UINode
      */
     getRowNames(state)
     {
-        return 'row' + rowIdx;
+        throw Error('not implemented');
     }
 
     /**
@@ -2077,7 +2077,7 @@ class MonoSeq extends Sequencer
                 this.nodeId,
                 scaleRoot,
                 scaleName,
-                numOctaves
+                Number(numOctaves)
             ));
         }
 
@@ -2125,11 +2125,11 @@ class MonoSeq extends Sequencer
     /**
      * Get the name of the rows
      */
-     getRowNames(state)
-     {
-         let scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
-         return scale.map(note => String(note));
-     }
+    getRowNames(state)
+    {
+        let scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
+        return scale.map(note => String(note));
+    }
 
     /**
      * Set a grid cell on or off
@@ -2147,6 +2147,52 @@ class MonoSeq extends Sequencer
             row[i].className = 'cell_off';
 
         row[rowIdx].className = value? 'cell_on':'cell_off';
+    }
+}
+
+/**
+ * Multi-gate step sequencer
+ */
+class GateSeq extends Sequencer
+{
+    constructor(id, state, editor)
+    {
+        super(id, state, editor);
+
+        // Root and scale selection boxes
+        var selectNum = document.createElement("select");
+        this.btnDiv.prepend(selectNum);
+
+        function selectChange()
+        {
+            let numRows = selectNum.options[selectNum.selectedIndex].value;
+            this.send(new model.SetNumRows(this.nodeId, Number(numRows)));
+        }
+
+        selectNum.onchange = selectChange.bind(this);
+        selectNum.onpointerdown = evt => evt.stopPropagation();
+
+        // Populate the num octaves selection
+        for (let numRows = 1; numRows <= 32; ++numRows)
+        {
+            var opt = document.createElement("option");
+            opt.setAttribute('value', numRows);
+            opt.appendChild(document.createTextNode(numRows));
+            opt.selected = (numRows == state.numRows);
+            selectNum.appendChild(opt);
+        }
+    }
+
+    /**
+     * Get the name of the rows
+     */
+    getRowNames(state)
+    {
+        let rowNames = []
+        for (let i = 0; i < state.numRows; ++i)
+            rowNames.push('gate' + i);
+
+        return rowNames;
     }
 }
 
@@ -2265,6 +2311,7 @@ const NODE_CLASSES =
     ClockDiv: ClockDiv,
     Clock: ClockNode,
     Const: ConstNode,
+    GateSeq: GateSeq,
     Knob: KnobNode,
     MidiIn: MidiIn,
     MonoSeq: MonoSeq,

@@ -1,4 +1,4 @@
-import { assert, isInt, isPosInt, treeCopy, treeEq, isString, isObject } from './utils.js';
+import { assert, isInt, isPosInt, treeCopy, treeEq, isString, isObject, isNonNegInt } from './utils.js';
 import * as music from './music.js';
 
 // Maximum number of undo steps we support
@@ -1574,6 +1574,7 @@ export class SetScale extends Action
 {
     constructor(nodeId, scaleRoot, scaleName, numOctaves)
     {
+        assert (isNonNegInt(numOctaves));
         super();
         this.nodeId = nodeId;
         this.scaleRoot = scaleRoot;
@@ -1657,6 +1658,7 @@ export class SetNumRows extends Action
 {
     constructor(nodeId, numRows)
     {
+        assert (isNonNegInt(numRows));
         super();
         this.nodeId = nodeId;
         this.numRows = numRows;
@@ -1666,7 +1668,7 @@ export class SetNumRows extends Action
     {
         let node = model.state.nodes[this.nodeId];
 
-        // Tranpose each pattern
+        // Update each pattern
         for (let patIdx = 0; patIdx < node.patterns.length; ++patIdx)
         {
             let oldGrid = node.patterns[patIdx];
@@ -1675,7 +1677,7 @@ export class SetNumRows extends Action
             let newGrid = new Array(oldGrid.length);
             for (let step = 0; step < newGrid.length; ++step)
             {
-                newGrid[step] = new Array(newScale.length);
+                newGrid[step] = new Array(this.numRows);
                 newGrid[step].fill(0);
             }
 
@@ -1683,7 +1685,7 @@ export class SetNumRows extends Action
             for (let step = 0; step < newGrid.length; ++step)
             {
                 // For each row
-                for (let row = 0; row < numRows; ++row)
+                for (let row = 0; row < this.numRows; ++row)
                 {
                     if (!oldGrid[step][row])
                         continue;
@@ -1694,6 +1696,11 @@ export class SetNumRows extends Action
 
             node.patterns[patIdx] = newGrid;
         }
+
+        // Update the outputs, one output per gate
+        node.outNames = [];
+        for (let i = 0; i < this.numRows; ++i)
+            node.outNames[i] = 'gate' + i;
 
         node.numRows = this.numRows;
     }
