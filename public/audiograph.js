@@ -580,9 +580,9 @@ class MidiIn extends AudioNode
 }
 
 /**
- * Monophonic note sequencer
+ * Parent class for sequencer nodes
  */
-class MonoSeq extends AudioNode
+class Sequencer extends AudioNode
 {
     constructor(id, state, sampleRate, send)
     {
@@ -600,20 +600,11 @@ class MonoSeq extends AudioNode
         // Time the last note was triggered
         this.trigTime = 0;
 
-        // Frequency of the note being held
-        this.freq = 0;
-
-        // Current gate state
-        this.gateState = 'off';
-
         // Currently playing pattern
         this.patIdx = state.curPattern;
 
         // Next pattern that is queued for playback
         this.nextPat = undefined;
-
-        // Generate the scale notes
-        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
     }
 
     /**
@@ -622,9 +613,6 @@ class MonoSeq extends AudioNode
     setState(state)
     {
         AudioNode.prototype.setState.call(this, state);
-
-        // Generate the scale notes
-        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
 
         this.patIdx = state.curPattern;
     }
@@ -635,11 +623,6 @@ class MonoSeq extends AudioNode
     setCell(patIdx, stepIdx, rowIdx, value)
     {
         let pattern = this.state.patterns[patIdx];
-        let numRows = pattern[stepIdx].length;
-
-        for (let i = 0; i < numRows; ++i)
-            pattern[stepIdx][i] = 0;
-
         pattern[stepIdx][rowIdx] = value;
     }
 
@@ -652,6 +635,14 @@ class MonoSeq extends AudioNode
 
         this.state.patterns[patIdx] = patData;
         this.nextPat = patIdx;
+    }
+
+    /**
+     * Trigger a note at this row
+     */
+    trigRow(rowIdx, time)
+    {
+        throw Error('each sequencer must implement trigRow');
     }
 
     /**
@@ -683,10 +674,8 @@ class MonoSeq extends AudioNode
                     if (!grid[stepIdx][rowIdx])
                         continue
 
-                    let note = this.scale[rowIdx];
-                    this.freq = note.getFreq();
-                    this.gateState = 'pretrig';
-                    this.trigTime = time;
+                    // Trigger this row
+                    this.trigRow(rowIdx, time);
                 }
 
                 // If this is the last step of this pattern
@@ -715,6 +704,74 @@ class MonoSeq extends AudioNode
 
         // Store the sign of the clock signal for this cycle
         this.clockSgn = (clock > 0);
+    }
+}
+
+/**
+ * Monophonic note sequencer
+ */
+class MonoSeq extends Sequencer
+{
+    constructor(id, state, sampleRate, send)
+    {
+        super(id, state, sampleRate, send);
+
+        // Time the last note was triggered
+        this.trigTime = 0;
+
+        // Frequency of the note being held
+        this.freq = 0;
+
+        // Current gate state
+        this.gateState = 'off';
+
+        // Generate the scale notes
+        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
+    }
+
+    /**
+     * Set/update the entire state for this node
+     */
+    setState(state)
+    {
+        Sequencer.prototype.setState.call(this, state);
+
+        // Generate the scale notes
+        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
+    }
+
+    /**
+     * Set a given cell in a step sequencer
+     */
+    setCell(patIdx, stepIdx, rowIdx, value)
+    {
+        // Clear all other notes at this step
+        let pattern = this.state.patterns[patIdx];
+        let numRows = pattern[stepIdx].length;
+        for (let i = 0; i < numRows; ++i)
+            pattern[stepIdx][i] = 0;
+
+        Sequencer.prototype.setCell.call(this, patIdx, stepIdx, rowIdx, value);
+    }
+
+    /**
+     * Trigger a note at this row
+     */
+    trigRow(rowIdx, time)
+    {
+        let note = this.scale[rowIdx];
+        this.freq = note.getFreq();
+        this.gateState = 'pretrig';
+        this.trigTime = time;
+    }
+
+    /**
+     * Takes the current time and clock signal as input.
+     * Produces frequency and gate signals as output.
+     */
+    update(time, clock, gateTime)
+    {
+        Sequencer.prototype.update.call(this, time, clock, gateTime);
 
         assert (!isNaN(this.freq), 'MonoSeq freq is NaN');
 
@@ -747,6 +804,21 @@ class MonoSeq extends AudioNode
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * Map of node types to classes
