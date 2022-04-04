@@ -1774,9 +1774,7 @@ export class ExtendPattern extends Action
     {
         let node = model.state.nodes[this.nodeId];
         let grid = node.patterns[node.curPattern];
-
-        let scaleNotes = music.genScale(node.scaleRoot, node.scaleName, node.numOctaves);
-        let numRows = scaleNotes.length;
+        let numRows = grid[0].length;
 
         for (let stepIdx = 0; stepIdx < this.numSteps; ++stepIdx)
         {
