@@ -1,4 +1,4 @@
-import { assert, isInt, isPosInt, treeCopy, treeEq, isString, isObject, isNonNegInt } from './utils.js';
+import { assert, isInt, isPosInt, treeCopy, treeEq, isString, isObject } from './utils.js';
 import * as music from './music.js';
 
 // Maximum number of undo steps we support
@@ -610,12 +610,17 @@ export function validateNode(node)
             continue;
 
             default:
-            //console.log(node.type, key);
             if (schema.state.indexOf(key) == -1)
             {
                 throw TypeError(`unknown node property ${key} for ${node.type}`)
             }
         }
+    }
+
+    // Validate sequencer state
+    if ('numRows' in node)
+    {
+        assert (isPosInt(node.numRows) && node.numRows <= 16);
     }
 }
 
@@ -1574,7 +1579,7 @@ export class SetScale extends Action
 {
     constructor(nodeId, scaleRoot, scaleName, numOctaves)
     {
-        assert (isNonNegInt(numOctaves));
+        assert (isPosInt(numOctaves));
         super();
         this.nodeId = nodeId;
         this.scaleRoot = scaleRoot;
@@ -1658,7 +1663,7 @@ export class SetNumRows extends Action
 {
     constructor(nodeId, numRows)
     {
-        assert (isNonNegInt(numRows));
+        assert (isPosInt(numRows));
         super();
         this.nodeId = nodeId;
         this.numRows = numRows;
