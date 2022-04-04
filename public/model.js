@@ -1488,7 +1488,7 @@ export class ToggleCell extends Action
     update(model)
     {
         let node = model.state.nodes[this.nodeId];
-        assert (node.type == 'MonoSeq');
+        assert (node.type == 'MonoSeq' || node.type == 'GateSeq');
         let grid = node.patterns[this.patIdx];
         assert (grid instanceof Array);
         assert (this.stepIdx < grid.length);
@@ -1684,20 +1684,19 @@ export class SetNumRows extends Action
             // For each step
             for (let step = 0; step < newGrid.length; ++step)
             {
-                // For each row
-                for (let row = 0; row < this.numRows; ++row)
+                // For each row in the new grid that maps to a row in the old grid
+                for (let i = 0; i < Math.min(this.numRows, node.numRows); ++i)
                 {
-                    if (!oldGrid[step][row])
-                        continue;
-
-                    newGrid[step][row] = 1;
+                    let newRowIdx = this.numRows - (i + 1);
+                    let oldRowIdx = node.numRows - (i + 1);
+                    newGrid[step][newRowIdx] = oldGrid[step][oldRowIdx];
                 }
             }
 
             node.patterns[patIdx] = newGrid;
         }
 
-        // Update the outputs, one output per gate
+        // Update the outputs, one output per row/gate
         node.outNames = [];
         for (let i = 0; i < this.numRows; ++i)
             node.outNames[i] = 'gate' + i;

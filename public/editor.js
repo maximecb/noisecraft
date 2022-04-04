@@ -2173,7 +2173,7 @@ class GateSeq extends Sequencer
         selectNum.onpointerdown = evt => evt.stopPropagation();
 
         // Populate the num octaves selection
-        for (let numRows = 1; numRows <= 32; ++numRows)
+        for (let numRows = 1; numRows <= 16; ++numRows)
         {
             var opt = document.createElement("option");
             opt.setAttribute('value', numRows);
@@ -2188,11 +2188,9 @@ class GateSeq extends Sequencer
      */
     getRowNames(state)
     {
-        let rowNames = []
-        for (let i = 0; i < state.numRows; ++i)
-            rowNames.push('gate' + i);
-
-        return rowNames;
+        // The output names are reversed relative to
+        // the internal grid ordering, in which row 0 is lowest
+        return state.outNames.slice(0).reverse();
     }
 }
 
@@ -2311,10 +2309,10 @@ const NODE_CLASSES =
     ClockDiv: ClockDiv,
     Clock: ClockNode,
     Const: ConstNode,
-    GateSeq: GateSeq,
     Knob: KnobNode,
     MidiIn: MidiIn,
     MonoSeq: MonoSeq,
+    GateSeq: GateSeq,
     Notes: Notes,
     Scope: Scope,
 }

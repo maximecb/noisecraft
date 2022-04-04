@@ -504,19 +504,19 @@ class Slide extends AudioNode
 /**
  * Two-pole low-pass filter
  */
- class Filter extends AudioNode
- {
-     constructor(id, state, sampleRate, send)
-     {
-         super(id, state, sampleRate, send);
+class Filter extends AudioNode
+{
+    constructor(id, state, sampleRate, send)
+    {
+        super(id, state, sampleRate, send);
 
-         this.filter = new synth.TwoPoleFilter();
-     }
+        this.filter = new synth.TwoPoleFilter();
+    }
 
-     update(input, cutoff, reso)
-     {
-        return this.filter.apply(input, cutoff, reso);
-     }
+    update(input, cutoff, reso)
+    {
+    return this.filter.apply(input, cutoff, reso);
+    }
 }
 
 /**
@@ -597,9 +597,6 @@ class Sequencer extends AudioNode
         // Next step to trigger
         this.nextStep = 0;
 
-        // Time the last note was triggered
-        this.trigTime = 0;
-
         // Currently playing pattern
         this.patIdx = state.curPattern;
 
@@ -669,7 +666,8 @@ class Sequencer extends AudioNode
                     stepIdx: stepIdx
                 });
 
-                for (var rowIdx = 0; rowIdx < this.scale.length; ++rowIdx)
+                // For each row
+                for (var rowIdx = 0; rowIdx < grid[stepIdx].length; ++rowIdx)
                 {
                     if (!grid[stepIdx][rowIdx])
                         continue
@@ -716,17 +714,17 @@ class MonoSeq extends Sequencer
     {
         super(id, state, sampleRate, send);
 
+        // Generate the scale notes
+        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
+
+        // Current gate state
+        this.gateState = 'off';
+
         // Time the last note was triggered
         this.trigTime = 0;
 
         // Frequency of the note being held
         this.freq = 0;
-
-        // Current gate state
-        this.gateState = 'off';
-
-        // Generate the scale notes
-        this.scale = music.genScale(state.scaleRoot, state.scaleName, state.numOctaves);
     }
 
     /**
@@ -759,10 +757,10 @@ class MonoSeq extends Sequencer
      */
     trigRow(rowIdx, time)
     {
-        let note = this.scale[rowIdx];
-        this.freq = note.getFreq();
         this.gateState = 'pretrig';
         this.trigTime = time;
+        let note = this.scale[rowIdx];
+        this.freq = note.getFreq();
     }
 
     /**
@@ -805,20 +803,103 @@ class MonoSeq extends Sequencer
     }
 }
 
+/**
+ * Multi-gate grid sequencer
+ */
+class GateSeq extends Sequencer
+{
+    constructor(id, state, sampleRate, send)
+    {
+        super(id, state, sampleRate, send);
 
+        // Generate the scale notes
+        this.numRows = state.numRows;
 
+        // Current gate states
+        this.gateState = (new Array(this.numRows)).fill('off');
 
+        // Time when the gate was triggered
+        this.trigTime = (new Array(this.numRows)).fill(0);
 
+        // Gate output values, one per row
+        this.gates = (new Array(this.numRows)).fill(0);
+    }
 
+    /**
+     * Set/update the entire state for this node
+     */
+    setState(state)
+    {
+        Sequencer.prototype.setState.call(this, state);
 
+        this.numRows = state.numRows;
+        this.gateState = (new Array(this.numRows)).fill('off');
+        this.trigTime = (new Array(this.numRows)).fill(0);
+        this.gates = (new Array(this.numRows)).fill(0);
+    }
 
+    /**
+     * Set a given cell in a step sequencer
+     */
+    setCell(patIdx, stepIdx, rowIdx, value)
+    {
+        Sequencer.prototype.setCell.call(this, patIdx, stepIdx, rowIdx, value);
+    }
 
+    /**
+     * Trigger a note at this row
+     */
+    trigRow(rowIdx, time)
+    {
+        this.gateState[rowIdx] = 'pretrig';
+        this.trigTime[rowIdx] = time;
+    }
 
+    /**
+     * Takes the current time and clock signal as input.
+     * Produces frequency and gate signals as output.
+     */
+    update(time, clock, gateTime)
+    {
+        Sequencer.prototype.update.call(this, time, clock, gateTime);
 
+        // For each row
+        for (let i = 0; i < this.numRows; ++i)
+        {
+            // The pretrig state serves to force the gate to go to
+            // zero for at least one cycle so that ADSR envelopes
+            // can be retriggered if already active.
+            switch (this.gateState[i])
+            {
+                case 'pretrig':
+                this.gateState[i] = 'on';
+                break;
 
+                case 'on':
+                {
+                    // If we are past the end of the note
+                    if (time - this.trigTime[i] > gateTime)
+                    {
+                        this.gateState[i] = 'off';
+                        this.trigTime[i] = 0;
+                    }
+                }
+                break;
 
+                case 'off':
+                break;
 
+                default:
+                assert (false);
+            }
 
+            this.gates[this.numRows - (i+1)] = (this.gateState[i] == 'on')? 1:0;
+        }
+
+        // Return the gate values (one per row)
+        return this.gates;
+    }
+}
 
 /**
  * Map of node types to classes
@@ -840,4 +921,5 @@ let NODE_CLASSES =
     Filter: Filter,
     MidiIn: MidiIn,
     MonoSeq: MonoSeq,
+    GateSeq: GateSeq,
 };
