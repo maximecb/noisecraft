@@ -1702,6 +1702,27 @@ export class SetNumRows extends Action
             node.outNames[i] = 'gate' + i;
 
         node.numRows = this.numRows;
+
+        // For each node in the graph
+        for (let nodeId in model.state.nodes)
+        {
+            let node = model.state.nodes[nodeId];
+
+            // For each input port
+            for (let dstPort in node.ins)
+            {
+                if (!node.ins[dstPort])
+                    continue;
+
+                let [srcNode, portIdx] = node.ins[dstPort];
+
+                // Remove the connection if it maps to a row that no longer exists
+                if (srcNode == this.nodeId && portIdx >= this.numRows)
+                {
+                    node.ins[dstPort] = null;
+                }
+            }
+        }
     }
 }
 
