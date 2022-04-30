@@ -7,9 +7,9 @@ import bodyParser from 'body-parser';
 import sqlite3 from 'sqlite3';
 import crc from 'crc';
 import crypto from 'crypto';
+import ejs from 'ejs';
 
 // Load the model so we can validate projects
-import { escapeHTML } from './public/utils.js';
 import * as model from './public/model.js';
 
 // Initializing application configuration parameters
@@ -344,11 +344,20 @@ async function insertProject(userId, title, data, crc32, submitTime, submitIP)
 // Serve static file requests
 app.use('/public', express.static('public'));
 
+// Compile the index EJS template
+const indexPath = path.resolve('public/index.html');
+const indexTemplate = ejs.compile(fs.readFileSync(indexPath, 'utf8'));
+
 // Main (index) page
 app.get('/', function(req, res)
 {
     recordHit(req);
+
     res.sendFile(path.resolve('public/index.html'));
+
+    let html = indexTemplate({ pageTitle: 'NoiseCraft'});
+    res.setHeader('content-type', 'text/html');
+    res.send(html);
 });
 
 // Serve projects with numerical ids
@@ -362,33 +371,17 @@ app.get('/:projectId([0-9]+)', async function(req, res)
 
     recordHit(req);
 
-    // Get the path of the index file
-    const indexPath = path.resolve('public/index.html');
+    // Set the title tag in the HTML data based on the project title
+    // We do this so the project title can show up in webpage previews
+    // e.g. links on social media
+    let title = await getTitle(projectId)
+        .catch(err =>{
+            console.error(err);
+        });
 
-    fs.readFile(indexPath, async function(err, fileData)
-    {
-        if (err)
-        {
-            res.sendStatus(404);
-            return;
-        }
-
-        // Set the title tag in the HTML data based on the project title
-        // We do this so the project title can show up in webpage previews
-        // e.g. links on social media
-        let title = await getTitle(projectId)
-            .catch(err =>{
-                console.error(err);
-            });
-
-        title = escapeHTML(title);
-        fileData = String(fileData);
-        fileData = fileData.replace(/<title>.*<\/title>/, `<title>${title} - NoiseCraft</title>`);
-
-        // Send the HTML response back
-        res.setHeader('content-type', 'text/html');
-        res.send(fileData);
-    });
+    let html = indexTemplate({ pageTitle: `${title} - NoiseCraft`});
+    res.setHeader('content-type', 'text/html');
+    res.send(html);
 });
 
 // Help page
