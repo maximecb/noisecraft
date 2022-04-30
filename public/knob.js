@@ -41,8 +41,21 @@ export class Knob extends Eventable
         let knobMoving = false;
         let lastY = null;
 
+        // Last time the knob was clicked
+        let lastClickTime = 0;
+
         function onPointerDown(evt)
         {
+            // Double-clicking triggers the bind MIDI dialog
+            // This hack is necessary because we block mouse events
+            // while the knob is being moved
+            let curTime = Date.now();
+            if (curTime - lastClickTime < 400)
+            {
+                this.midiDialog();
+            }
+            lastClickTime = curTime;
+
             if (knobMoving)
                 return;
 
@@ -100,14 +113,16 @@ export class Knob extends Eventable
             this.setNormVal(normVal);
         }
 
+        /*
         function onDoubleClick(evt)
         {
             evt.stopPropagation();
             this.midiDialog();
         }
+        */
 
         this.div.onpointerdown = onPointerDown.bind(this);
-        this.div.ondblclick = onDoubleClick.bind(this);
+        //this.div.ondblclick = onDoubleClick.bind(this);
 
         // Bind the controller to MIDI
         if (deviceId)
