@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="/public/style.css">
+        <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
+        <link rel="shortcut icon" type="image/x-icon" href="/public/favicon.ico" />
+        <script src="/public/browse.js" type="module"></script>
+        <title>NoiseCraft Stats Page</title>
+    </head>
+    <body>
+
+        <div class="pagecontents">
+            <h1>NoiseCraft Stats</h1>
+
+            <svg width="<%= 4 + (14 * dayCounts.length) %>" height="200" style="display: block; margin: auto">
+                <rect width="100%" height="100%" fill="#444" />
+
+                <text x="4" y="16" font-family="monospace" fill="white"><%= maxDayCount %></text>
+
+                <!-- Transform bars so that y=0 is at the bottom -->
+                <g transform="translate(0,200)">
+                <g transform="scale(1,-1)">
+
+                    <line x1="0" y1="180" x2="100%" y2="180" stroke="#DDD" stroke-dasharray="4" />
+
+                    <% for (let i = 0; i < dayCounts.length; ++i) { %>
+                    <rect x="<%= 4 + (10 + 4) * i %>" height=" <%= 180*dayCounts[i] %>" width="10" fill="#CCC" />
+                    <% } %>
+                </g>
+                </g>
+
+            </svg>
+
+            <p>Total hit count: <%= totalHits %></p>
+
+            <p>User count: <%= userCount %></p>
+
+            <p>Email count: <%= emailCount %></p>
+
+            <p>Total project shared: <%= projectCount %></p>
+
+            <p>Number of days since first upload: <%= numDays %></p>
+
+        </div>
+
+    </body>
+</html>

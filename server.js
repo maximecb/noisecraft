@@ -339,21 +339,55 @@ async function insertProject(userId, title, data, crc32, submitTime, submitIP)
     });
 }
 
+// Run a query that returns a single row with a value,
+// and then extract the value
+function getQueryValue(sqlQuery, vars)
+{
+    if (vars === undefined)
+        vars = [];
+
+    return new Promise((resolve, reject) =>
+    {
+        db.get(
+            sqlQuery,
+            vars,
+            function (err, row)
+            {
+                if (err || !row)
+                {
+                    console.log(err);
+                    reject('db query failed');
+                    return;
+                }
+
+                let keys = Object.keys(row);
+
+                if (keys.length > 1)
+                {
+                    reject('more than 1 output column');
+                    return;
+                }
+
+                resolve(row[keys[0]]);
+            }
+        );
+    });
+}
+
 //============================================================================
 
 // Serve static file requests
 app.use('/public', express.static('public'));
 
-// Compile the index EJS template
-const indexPath = path.resolve('public/index.html');
-const indexTemplate = ejs.compile(fs.readFileSync(indexPath, 'utf8'));
+// Compile the index page EJS template
+const indexTemplate = ejs.compile(
+    fs.readFileSync(path.resolve('public/index.html'), 'utf8')
+);
 
 // Main (index) page
 app.get('/', function(req, res)
 {
     recordHit(req);
-
-    res.sendFile(path.resolve('public/index.html'));
 
     let html = indexTemplate({ pageTitle: 'NoiseCraft'});
     res.setHeader('content-type', 'text/html');
@@ -396,47 +430,57 @@ app.get('/browse', function(req, res)
     res.sendFile(path.resolve('public/browse.html'));
 });
 
-app.get('/stats', function (req, res)
+// Compile the stats page EJS template
+const statsTemplate = ejs.compile(
+    fs.readFileSync(path.resolve('public/stats.html'), 'utf8')
+);
+
+app.get('/stats', async function (req, res)
 {
-    var timestamp = Date.now();
-    var oneHourAgo = timestamp - 1000 * 3600;
-    var tenMinsAgo = timestamp - 1000 * 10 * 60;
+    let timeStamp = Date.now();
 
-    db.all(
-        'SELECT COUNT(*) as count FROM hits ' +
-        'UNION ALL ' +
-        'SELECT COUNT(*) as count FROM (SELECT * FROM hits WHERE time > ?) ' +
-        'UNION ALL ' +
-        'SELECT COUNT(*) as count FROM (SELECT * FROM hits WHERE time > ?) ' +
-        'UNION ALL ' +
-        'SELECT MAX(id) as count from projects ' +
-        'UNION ALL ' +
-        'SELECT COUNT(*) as count FROM users ' +
-        'UNION ALL ' +
-        'SELECT COUNT(*) as count FROM (SELECT * FROM users WHERE email != "")',
-        [oneHourAgo, tenMinsAgo],
-        function (err, rows)
-        {
-            //console.log(err);
-            //console.log(rows);
+    // Compute the number of days since the first project was uploaded
+    let minTime = await getQueryValue('SELECT MIN(time) from hits');
+    let numDays = Math.floor((timeStamp - minTime) / (1000 * 3600 * 24));
 
-            var totalCount = rows[0].count;
-            var lastHourCount = rows[1].count;
-            var tenMinsCount = rows[2].count;
-            var trackCount = rows[3].count;
-            var userCount = rows[4].count;
-            var emailCount = rows[5].count;
+    // Get various stats
+    let totalHits = await getQueryValue('SELECT COUNT(*) FROM hits');
+    let projectCount = await getQueryValue('SELECT COUNT(*) FROM projects');
+    let userCount = await getQueryValue('SELECT COUNT(*) FROM users');
+    let emailCount = await getQueryValue('SELECT COUNT(*) as count FROM (SELECT * FROM users WHERE email != "")');
 
-            res.send(
-                'Last 10 mins: ' + tenMinsCount + '<br>' +
-                'Last hour: ' + lastHourCount + '<br>' +
-                'Total hit count: ' + totalCount + '<br>' +
-                'Projects shared: ' + trackCount + '<br>' +
-                'User count: ' + userCount + '<br>' +
-                'Email count: ' + emailCount + '<br>'
-            );
-        }
-    );
+    let dayCounts = [];
+    let NUM_DAYS = 30;
+    const DAY_IN_MS = 1000 * 3600 * 24;
+
+    for (let i = NUM_DAYS; i >= 0; --i)
+    {
+        let startTime = timeStamp - (i + 1) * DAY_IN_MS;
+        let endTime = timeStamp - i * DAY_IN_MS;
+
+        let dayCount = await getQueryValue(
+            'SELECT COUNT(*) FROM (SELECT * FROM hits WHERE time >= ? AND time <= ?)',
+            [startTime, endTime]
+        )
+
+        dayCounts.push(dayCount);
+    }
+
+    let maxDayCount = Math.max(...dayCounts);
+    dayCounts = dayCounts.map(count => count / maxDayCount);
+
+    let html = statsTemplate({
+        numDays: numDays,
+        totalHits: totalHits,
+        projectCount: projectCount,
+        userCount: userCount,
+        emailCount: emailCount,
+        dayCounts: dayCounts,
+        maxDayCount: maxDayCount,
+    });
+
+    res.setHeader('content-type', 'text/html');
+    res.send(html);
 });
 
 /**
@@ -712,7 +756,6 @@ app.delete('/projects', async function (req, res)
             [projectId]
         );
         */
-
 
         /*
         db.run(
