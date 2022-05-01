@@ -467,7 +467,16 @@ app.get('/stats', async function (req, res)
     }
 
     let maxDayCount = Math.max(...dayCounts);
+    let minDayCount = Math.min(...dayCounts);
+    let meanDayCount = dayCounts.reduce((a,b) => (a+b)) / dayCounts.length;
+    let lastDayCount = dayCounts[dayCounts.length-1];
     dayCounts = dayCounts.map(count => count / maxDayCount);
+
+    // Compute the number of hits in the last hour
+    let hourCount = await getQueryValue(
+        'SELECT COUNT(*) FROM (SELECT * FROM hits WHERE time >= ?)',
+        [timeStamp - 1000 * 3600]
+    );
 
     let html = statsTemplate({
         numDays: numDays,
@@ -477,6 +486,10 @@ app.get('/stats', async function (req, res)
         emailCount: emailCount,
         dayCounts: dayCounts,
         maxDayCount: maxDayCount,
+        minDayCount: minDayCount,
+        meanDayCount: meanDayCount,
+        lastDayCount: lastDayCount,
+        hourCount: hourCount,
     });
 
     res.setHeader('content-type', 'text/html');

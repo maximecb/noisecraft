@@ -15,7 +15,9 @@
             <svg width="<%= 4 + (14 * dayCounts.length) %>" height="200" style="display: block; margin: auto">
                 <rect width="100%" height="100%" fill="#444" />
 
-                <text x="4" y="16" font-family="monospace" fill="white"><%= maxDayCount %></text>
+                <text x="4" y="16" font-family="monospace" fill="white">
+                <%= `max=${maxDayCount}, min=${minDayCount}, mean=${meanDayCount.toFixed(1)}, last=${lastDayCount}` %>
+                </text>
 
                 <!-- Transform bars so that y=0 is at the bottom -->
                 <g transform="translate(0,200)">
@@ -32,6 +34,8 @@
             </svg>
 
             <p>Total hit count: <%= totalHits %></p>
+
+            <p>Hits last hour: <%= hourCount %></p>
 
             <p>User count: <%= userCount %></p>
 
