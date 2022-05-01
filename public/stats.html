@@ -16,7 +16,7 @@
                 <rect width="100%" height="100%" fill="#444" />
 
                 <text x="4" y="16" font-family="monospace" fill="white">
-                <%= `max=${maxDayCount}, min=${minDayCount}, mean=${meanDayCount.toFixed(1)}, last=${lastDayCount}` %>
+                <%= `max=${maxDayCount}, min=${minDayCount}, median=${medDayCount}, last=${lastDayCount}` %>
                 </text>
 
                 <!-- Transform bars so that y=0 is at the bottom -->
@@ -30,8 +30,10 @@
                     <% } %>
                 </g>
                 </g>
-
             </svg>
+            <div style="display: block; margin: auto; text-align: center; margin: 4px;">
+                Hits per day over the last <%= dayCounts.length %> days.
+            </div>
 
             <p>Total hit count: <%= totalHits %></p>
 

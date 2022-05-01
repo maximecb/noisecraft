@@ -450,10 +450,10 @@ app.get('/stats', async function (req, res)
     let emailCount = await getQueryValue('SELECT COUNT(*) as count FROM (SELECT * FROM users WHERE email != "")');
 
     let dayCounts = [];
-    let NUM_DAYS = 30;
+    let NUM_DAYS = 40;
     const DAY_IN_MS = 1000 * 3600 * 24;
 
-    for (let i = NUM_DAYS; i >= 0; --i)
+    for (let i = NUM_DAYS - 1; i >= 0; --i)
     {
         let startTime = timeStamp - (i + 1) * DAY_IN_MS;
         let endTime = timeStamp - i * DAY_IN_MS;
@@ -468,8 +468,9 @@ app.get('/stats', async function (req, res)
 
     let maxDayCount = Math.max(...dayCounts);
     let minDayCount = Math.min(...dayCounts);
-    let meanDayCount = dayCounts.reduce((a,b) => (a+b)) / dayCounts.length;
     let lastDayCount = dayCounts[dayCounts.length-1];
+    let sortedCounts = [...dayCounts].sort();
+    let medDayCount = sortedCounts[Math.floor(dayCounts.length/2)];
     dayCounts = dayCounts.map(count => count / maxDayCount);
 
     // Compute the number of hits in the last hour
@@ -487,7 +488,7 @@ app.get('/stats', async function (req, res)
         dayCounts: dayCounts,
         maxDayCount: maxDayCount,
         minDayCount: minDayCount,
-        meanDayCount: meanDayCount,
+        medDayCount: medDayCount,
         lastDayCount: lastDayCount,
         hourCount: hourCount,
     });
