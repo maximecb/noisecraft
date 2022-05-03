@@ -437,6 +437,22 @@ const statsTemplate = ejs.compile(
 
 app.get('/stats', async function (req, res)
 {
+    // Find the median value in a list of numbers
+    function median(numList)
+    {
+        function compareFn(a, b)
+        {
+            if (a < b)
+                return -1;
+            else if (b > a)
+                return 1;
+            return 0;
+        }
+
+        let sortedNums = [...numList].sort(compareFn);
+        return sortedNums[Math.floor(sortedNums.length/2)];
+    }
+
     let timeStamp = Date.now();
 
     // Compute the number of days since the first project was uploaded
@@ -453,6 +469,7 @@ app.get('/stats', async function (req, res)
     let NUM_DAYS = 40;
     const DAY_IN_MS = 1000 * 3600 * 24;
 
+    // For each day
     for (let i = NUM_DAYS - 1; i >= 0; --i)
     {
         let startTime = timeStamp - (i + 1) * DAY_IN_MS;
@@ -469,14 +486,19 @@ app.get('/stats', async function (req, res)
     let maxDayCount = Math.max(...dayCounts);
     let minDayCount = Math.min(...dayCounts);
     let lastDayCount = dayCounts[dayCounts.length-1];
-    let sortedCounts = [...dayCounts].sort();
-    let medDayCount = sortedCounts[Math.floor(dayCounts.length/2)];
+    let medDayCount = median(dayCounts);
     dayCounts = dayCounts.map(count => count / maxDayCount);
 
-    // Compute the number of hits in the last hour
-    let hourCount = await getQueryValue(
-        'SELECT COUNT(*) FROM (SELECT * FROM hits WHERE time >= ?)',
-        [timeStamp - 1000 * 3600]
+    // Compute the number of unique hits in the last day
+    let uniqueDay = await getQueryValue(
+        'SELECT COUNT(DISTINCT ip) FROM (SELECT * FROM hits WHERE time >= ?)',
+        [timeStamp - 24 * 3600 * 1000]
+    );
+
+    // Compute the number of unique hits in the last hour
+    let uniqueHour = await getQueryValue(
+        'SELECT COUNT(DISTINCT ip) FROM (SELECT * FROM hits WHERE time >= ?)',
+        [timeStamp - 3600 * 1000]
     );
 
     let html = statsTemplate({
@@ -490,7 +512,8 @@ app.get('/stats', async function (req, res)
         minDayCount: minDayCount,
         medDayCount: medDayCount,
         lastDayCount: lastDayCount,
-        hourCount: hourCount,
+        uniqueDay: uniqueDay,
+        uniqueHour: uniqueHour,
     });
 
     res.setHeader('content-type', 'text/html');
