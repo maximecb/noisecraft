@@ -11,7 +11,7 @@
     "crc": "^3.8.0",
     "ejs": "^3.1.7",
     "express": "^4.17.1",
-    "sqlite3": "^4.1.0",
+    "sqlite3": "^5.0.6",
     "vhost": "^3.0.2"
   },
   "devDependencies": {
