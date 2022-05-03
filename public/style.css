@@ -9,10 +9,7 @@ body
     color: white;
 
     /* prevent two finger swipe navigating forward/back */
-    overscroll-behavior: none;
-
-    /* touch actions can cause pointer capture to break */
-    touch-action: none;
+    overscroll-behavior-x: none;
 }
 
 h1
