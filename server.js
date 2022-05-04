@@ -476,7 +476,7 @@ app.get('/stats', async function (req, res)
         let endTime = timeStamp - i * DAY_IN_MS;
 
         let dayCount = await getQueryValue(
-            'SELECT COUNT(*) FROM (SELECT * FROM hits WHERE time >= ? AND time <= ?)',
+            'SELECT COUNT(DISTINCT ip) FROM (SELECT * FROM hits WHERE time >= ? AND time <= ?)',
             [startTime, endTime]
         )
 
