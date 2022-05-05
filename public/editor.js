@@ -1297,7 +1297,7 @@ class ClockDiv extends UINode
         {
             var opt = document.createElement("option");
             opt.setAttribute('value', factor);
-            opt.innerHTML = '1:' + factor;
+            opt.innerHTML = factor + ':1'
             opt.selected = (factor == state.params.factor);
             select.appendChild(opt);
         }
