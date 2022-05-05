@@ -453,7 +453,52 @@ app.get('/stats', async function (req, res)
         return sortedNums[Math.floor(sortedNums.length/2)];
     }
 
+    // Get the current timestamp
     let timeStamp = Date.now();
+
+    // Get the timestamp at the last midnight in the local time zone
+    let date = new Date();
+    date.setHours(0);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+    let lastMidnight = date.getTime()
+
+    const DAY_IN_MS = 1000 * 3600 * 24;
+    let NUM_DAYS = 40;
+    let dayCounts = [];
+    let dayStart = lastMidnight;
+
+    console.log('seconds since midnight: ', (timeStamp - lastMidnight) / 1000);
+
+    // For each day
+    for (let i = 0; i < NUM_DAYS; ++i)
+    {
+        let dayEnd = dayStart + DAY_IN_MS;
+
+        let dayCount = await getQueryValue(
+            'SELECT COUNT(DISTINCT ip) FROM (SELECT * FROM hits WHERE time >= ? AND time <= ?)',
+            [dayStart, dayEnd]
+        )
+
+        dayCounts.push(dayCount);
+
+        // Move to the previous day
+        dayStart -= DAY_IN_MS;
+    }
+
+    dayCounts.reverse();
+    let maxDayCount = Math.max(...dayCounts);
+    let minDayCount = Math.min(...dayCounts);
+    let lastDayCount = dayCounts[dayCounts.length-1];
+    let medDayCount = median(dayCounts);
+    dayCounts = dayCounts.map(count => count / maxDayCount);
+
+    // Compute the number of unique hits in the last hour
+    let uniqueHour = await getQueryValue(
+        'SELECT COUNT(DISTINCT ip) FROM (SELECT * FROM hits WHERE time >= ?)',
+        [timeStamp - 3600 * 1000]
+    );
 
     // Compute the number of days since the first project was uploaded
     let minTime = await getQueryValue('SELECT MIN(time) from hits');
@@ -465,55 +510,18 @@ app.get('/stats', async function (req, res)
     let userCount = await getQueryValue('SELECT COUNT(*) FROM users');
     let emailCount = await getQueryValue('SELECT COUNT(*) as count FROM (SELECT * FROM users WHERE email != "")');
 
-    let dayCounts = [];
-    let NUM_DAYS = 40;
-    const DAY_IN_MS = 1000 * 3600 * 24;
-
-    // For each day
-    for (let i = NUM_DAYS - 1; i >= 0; --i)
-    {
-        let startTime = timeStamp - (i + 1) * DAY_IN_MS;
-        let endTime = timeStamp - i * DAY_IN_MS;
-
-        let dayCount = await getQueryValue(
-            'SELECT COUNT(DISTINCT ip) FROM (SELECT * FROM hits WHERE time >= ? AND time <= ?)',
-            [startTime, endTime]
-        )
-
-        dayCounts.push(dayCount);
-    }
-
-    let maxDayCount = Math.max(...dayCounts);
-    let minDayCount = Math.min(...dayCounts);
-    let lastDayCount = dayCounts[dayCounts.length-1];
-    let medDayCount = median(dayCounts);
-    dayCounts = dayCounts.map(count => count / maxDayCount);
-
-    // Compute the number of unique hits in the last day
-    let uniqueDay = await getQueryValue(
-        'SELECT COUNT(DISTINCT ip) FROM (SELECT * FROM hits WHERE time >= ?)',
-        [timeStamp - 24 * 3600 * 1000]
-    );
-
-    // Compute the number of unique hits in the last hour
-    let uniqueHour = await getQueryValue(
-        'SELECT COUNT(DISTINCT ip) FROM (SELECT * FROM hits WHERE time >= ?)',
-        [timeStamp - 3600 * 1000]
-    );
-
     let html = statsTemplate({
-        numDays: numDays,
-        totalHits: totalHits,
-        projectCount: projectCount,
-        userCount: userCount,
-        emailCount: emailCount,
         dayCounts: dayCounts,
         maxDayCount: maxDayCount,
         minDayCount: minDayCount,
         medDayCount: medDayCount,
         lastDayCount: lastDayCount,
-        uniqueDay: uniqueDay,
         uniqueHour: uniqueHour,
+        numDays: numDays,
+        totalHits: totalHits,
+        projectCount: projectCount,
+        userCount: userCount,
+        emailCount: emailCount,
     });
 
     res.setHeader('content-type', 'text/html');
