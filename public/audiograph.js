@@ -1,4 +1,4 @@
-import { assert, isPosInt } from './utils.js';
+import { assert, computePolyBlep, isPosInt } from './utils.js';
 import { NODE_SCHEMA } from './model.js';
 import * as synth from './synth.js';
 import * as music from './music.js';
@@ -327,12 +327,25 @@ class PulseOsc extends AudioNode
 
     update(freq, duty)
     {
+        // TODO: introducing an adjustable duty cycle means more complexity in offsetting
+        // the PolyBlep residuals. To fix this either update the phase offsets for
+        // computePolyBlep below or remove the duty parameter as an input.
+        duty = 0.5;
+
         let minVal = this.params.minVal;
         let maxVal = this.params.maxVal;
 
-        this.phase += this.sampleTime * freq;
+        let phaseInc = this.sampleTime * freq;
+        this.phase += phaseInc;
         let cyclePos = this.phase % 1;
-        return (cyclePos < duty)? minVal:maxVal;
+
+        let value = (cyclePos < duty) ? 1.0 : -1.0;
+        value += computePolyBlep(cyclePos, phaseInc);
+        value -= computePolyBlep((cyclePos + 0.5) % 1, phaseInc);
+
+        let normVal = (value + 1) / 2;
+        assert(normVal >= 0 && normVal <= 1.0, 'Normalized pulse value out of range');
+        return minVal + normVal * (maxVal - minVal);
     }
 }
 
@@ -354,9 +367,15 @@ class SawOsc extends AudioNode
         let minVal = this.params.minVal;
         let maxVal = this.params.maxVal;
 
-        this.phase += this.sampleTime * freq;
+        let phaseInc = this.sampleTime * freq;
+        this.phase += phaseInc;
         let cyclePos = this.phase % 1;
-        return minVal + cyclePos * (maxVal - minVal);
+
+        let offset = computePolyBlep(cyclePos, phaseInc);
+        
+        let normVal = cyclePos - (offset / 2);
+        assert(normVal >= 0 && normVal <= 1.0, 'Normalized saw value out of range');
+        return minVal + normVal * (maxVal - minVal);
     }
 }
 
