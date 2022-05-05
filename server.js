@@ -488,10 +488,11 @@ app.get('/stats', async function (req, res)
     }
 
     dayCounts.reverse();
+    let daysExceptLast = dayCounts.slice(0, dayCounts.length - 1);
     let maxDayCount = Math.max(...dayCounts);
-    let minDayCount = Math.min(...dayCounts);
-    let lastDayCount = dayCounts[dayCounts.length-1];
+    let minDayCount = Math.min(...daysExceptLast);
     let medDayCount = median(dayCounts);
+    let lastDayCount = dayCounts[dayCounts.length-1];
     dayCounts = dayCounts.map(count => count / maxDayCount);
 
     // Compute the number of unique hits in the last hour
