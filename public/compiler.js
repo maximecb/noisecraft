@@ -459,8 +459,8 @@ export function compile(graph)
 
         if (node.type == 'Noise')
         {
-            // Produce a random value in [-1, 1]
-            addDef(nodeId, '2 * Math.random() - 1');
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update()`);
             continue;
         }
 

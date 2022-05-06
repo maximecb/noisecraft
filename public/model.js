@@ -280,7 +280,10 @@ export const NODE_SCHEMA =
     'Noise': {
         ins: [],
         outs: ['out'],
-        params: [],
+        params: [
+            { name: 'minVal', default: -1 },
+            { name: 'maxVal', default: 1 }
+        ],
         state: [],
         description: 'white noise source',
     },

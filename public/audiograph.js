@@ -314,6 +314,25 @@ class Hold extends AudioNode
 }
 
 /**
+ * White noise source
+ */
+class NoiseOsc extends AudioNode
+{
+    constructor(id, state, sampleRate, send)
+    {
+        super(id, state, sampleRate, send);
+    }
+
+    update()
+    {
+        let minVal = this.params.minVal;
+        let maxVal = this.params.maxVal;
+        let range = maxVal - minVal;
+        return minVal + range * Math.random();
+    }
+}
+
+/**
  * Pulse wave oscillator
  */
 class PulseOsc extends AudioNode
@@ -912,6 +931,7 @@ let NODE_CLASSES =
     Delay: Delay,
     Distort: Distort,
     Hold: Hold,
+    Noise: NoiseOsc,
     Pulse: PulseOsc,
     Saw: SawOsc,
     Sine: SineOsc,
