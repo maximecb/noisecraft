@@ -2144,10 +2144,12 @@ export class Model
         }
 
         // Update the model based on the action
-        action.update(this);
+        let retVal = action.update(this);
 
         // Broadcast the new state and action
         this.broadcast(this.state, action);
+
+        return retVal;
     }
 
     // Add an action to the undo queue
