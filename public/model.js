@@ -288,6 +288,15 @@ export const NODE_SCHEMA =
         description: 'white noise source',
     },
 
+    'Nop': {
+        ins: [
+            { name: '', default: 0 },
+        ],
+        outs: [''],
+        params: [],
+        description: 'pass-through node (no-op)',
+    },
+
     'Notes': {
         ins: [],
         outs: [],

@@ -464,6 +464,12 @@ export function compile(graph)
             continue;
         }
 
+        if (node.type == 'Nop')
+        {
+            addDef(nodeId, inVal(node, 0));
+            continue;
+        }
+
         if (node.type == 'Notes')
         {
             continue;
