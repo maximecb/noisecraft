@@ -667,14 +667,6 @@ class Sequencer extends AudioNode
      */
     update(time, clock, gateTime, pat)
     {
-        if (pat >= 1)
-        {
-            let patNum = ((pat | 0) - 1) % 8;
-            if (patNum != this.nextPat)
-            {
-                this.queuePattern(patNum, this.state.patterns[patNum]);
-            }
-        }
         if (!this.clockSgn && clock > 0)
         {
             // If we are at the beginning of a new sequencer step
@@ -707,7 +699,14 @@ class Sequencer extends AudioNode
                 if (stepIdx === grid.length - 1)
                 {
                     this.nextStep = 0;
-
+                    if (pat >= 1)
+                    {
+                        let patNum = ((pat | 0) - 1) % 8;
+                        if (patNum != this.nextPat)
+                        {
+                            this.queuePattern(patNum, this.state.patterns[patNum]);
+                        }
+                    }
                     if (this.nextPat !== undefined)
                     {
                         // Send the pattern change to the main thread
