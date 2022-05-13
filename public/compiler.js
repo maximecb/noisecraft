@@ -427,7 +427,7 @@ export function compile(graph)
 
             addLine(
                 `let [${outNames}] = ` +
-                `nodes[${nodeId}].update(time, ${inVal(node, 0)}, ${inVal(node, 1)})`
+                `nodes[${nodeId}].update(time, ${inVal(node, 0)}, ${inVal(node, 1)}, ${inVal(node, 2)})`
             );
 
             continue;
@@ -439,7 +439,7 @@ export function compile(graph)
 
             addLine(
                 `let [${outName(nodeId, 0)}, ${outName(nodeId, 1)}] = ` +
-                `nodes[${nodeId}].update(time, ${inVal(node, 0)}, ${inVal(node, 1)})`
+                `nodes[${nodeId}].update(time, ${inVal(node, 0)}, ${inVal(node, 1)}, ${inVal(node, 2)})`
             );
 
             continue;

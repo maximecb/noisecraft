@@ -170,6 +170,7 @@ export const NODE_SCHEMA =
         ins: [
             { name: 'clock', default: 0 },
             { name: 'gateT', default: 0.1 },
+            { name: 'pat', default: 0 }
         ],
         outs: [],
         params: [],
@@ -259,6 +260,7 @@ export const NODE_SCHEMA =
         ins: [
             { name: 'clock', default: 0 },
             { name: 'gateT', default: 0.1 },
+            { name: 'pat', default: 0 }
         ],
         outs: ['freq', 'gate'],
         params: [],
@@ -492,6 +494,14 @@ export function normalizeNode(node)
 
         //console.log(node.type, param.name);
         node.params[param.name] = param.default;
+    }
+    
+    // Initialize all sequencer patterns
+    if (node.type === 'MonoSeq' || node.type === 'GateSeq')
+    {
+        for (let i = 0; i < 8; i += 1) {
+            initPattern(node, i);
+        }
     }
 
     return node;
@@ -913,9 +923,11 @@ export class CreateNode extends Action
             // Currently active pattern
             node.curPattern = 0;
 
-            // Initialize an empty pattern
+            // Initialize all patterns
             node.patterns = [];
-            initPattern(node, 0);
+            for (let i = 0; i < 8; i += 1) {
+                initPattern(node, i);
+            }
         }
 
         // If this is a monophonic  sequencer node
@@ -929,9 +941,11 @@ export class CreateNode extends Action
             // Currently active pattern
             node.curPattern = 0;
 
-            // Initialize an empty pattern
+            // Initialize all patterns
             node.patterns = [];
-            initPattern(node, 0);
+            for (let i = 0; i < 8; i += 1) {
+                initPattern(node, i);
+            }
         }
 
         // Add the node to the state
@@ -1572,11 +1586,7 @@ export class QueuePattern extends Action
     }
 
     update(model)
-    {
-        // Initialize the pattern if it doesn't already exist
-        let node = model.state.nodes[this.nodeId];
-        initPattern(node, this.patIdx);
-    }
+    {}
 
     get undoable()
     {
@@ -1758,11 +1768,8 @@ export class SetPattern extends Action
 
     update(model)
     {
-        // Initialize the pattern if it doesn't already exist
-        let node = model.state.nodes[this.nodeId];
-        initPattern(node, this.patIdx);
-
         // Set the currently active pattern
+        let node = model.state.nodes[this.nodeId];
         node.curPattern = this.patIdx;
     }
 

@@ -665,8 +665,16 @@ class Sequencer extends AudioNode
      * Takes the current time and clock signal as input.
      * Produces frequency and gate signals as output.
      */
-    update(time, clock, gateTime)
+    update(time, clock, gateTime, pat)
     {
+        if (pat >= 1)
+        {
+            let patNum = ((pat | 0) - 1) % 8;
+            if (patNum != this.nextPat)
+            {
+                this.queuePattern(patNum, this.state.patterns[patNum]);
+            }
+        }
         if (!this.clockSgn && clock > 0)
         {
             // If we are at the beginning of a new sequencer step
@@ -786,9 +794,9 @@ class MonoSeq extends Sequencer
      * Takes the current time and clock signal as input.
      * Produces frequency and gate signals as output.
      */
-    update(time, clock, gateTime)
+    update(time, clock, gateTime, pat)
     {
-        Sequencer.prototype.update.call(this, time, clock, gateTime);
+        Sequencer.prototype.update.call(this, time, clock, gateTime, pat);
 
         assert (!isNaN(this.freq), 'MonoSeq freq is NaN');
 
@@ -878,9 +886,9 @@ class GateSeq extends Sequencer
      * Takes the current time and clock signal as input.
      * Produces frequency and gate signals as output.
      */
-    update(time, clock, gateTime)
+    update(time, clock, gateTime, pat)
     {
-        Sequencer.prototype.update.call(this, time, clock, gateTime);
+        Sequencer.prototype.update.call(this, time, clock, gateTime, pat);
 
         // For each row
         for (let i = 0; i < this.numRows; ++i)
