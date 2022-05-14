@@ -53,6 +53,20 @@ export const NODE_SCHEMA =
         description: 'stereo sound output',
     },
 
+    /*
+    'BitCrush': {
+        ins: [
+            { name: '', default: 0 }
+        ],
+        outs: [''],
+        params: [
+            { name: 'bitdepth', default: 8 },
+            { name: 'factor', default: 1 },
+        ],
+        description: 'bitcrusher distortion',
+    },
+    */
+
     'Clock': {
         ins: [],
         outs: [''],
