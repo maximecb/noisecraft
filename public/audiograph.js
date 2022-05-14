@@ -226,7 +226,7 @@ class ClockDiv extends AudioNode
         // Current clock sign at the input
         let curSgn = (clock > 0);
 
-        // If the clock sign just flipped
+        // If the input clock sign just flipped
         if (this.inSgn != curSgn)
         {
             // Count all edges, both rising and falling
