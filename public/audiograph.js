@@ -229,14 +229,10 @@ class ClockDiv extends AudioNode
         // If the clock sign just flipped
         if (this.inSgn != curSgn)
         {
-            // If we're outputting zero, we have to count rising edges,
-            // but if we're outputting one, we have to count falling edges
-            if (curSgn != this.outSgn)
-            {
-                this.clockCnt++;
-            }
+            // Count all edges, both rising and falling
+            this.clockCnt++;
 
-            // If we've reached the current count
+            // If we've reached the division factor
             if (this.clockCnt >= this.params.factor)
             {
                 // Reset the clock count
