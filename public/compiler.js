@@ -299,6 +299,13 @@ export function compile(graph)
             continue;
         }
 
+        if (node.type == 'BitCrush')
+        {
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)})`);
+            continue;
+        }
+
         if (node.type == 'Clock')
         {
             audioNodes[nodeId] = node;
