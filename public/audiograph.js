@@ -621,6 +621,9 @@ class Sequencer extends AudioNode
 
         // Next pattern that is queued for playback
         this.nextPat = undefined;
+        
+        // Is playback just starting?
+        this.playStarted = false;
     }
 
     /**
@@ -672,36 +675,14 @@ class Sequencer extends AudioNode
             // If we are at the beginning of a new sequencer step
             if (this.clockCnt == 0)
             {
-                var grid = this.state.patterns[this.patIdx];
-
                 this.clockCnt = music.CLOCK_PPS;
-                var stepIdx = this.nextStep % grid.length;
-                this.nextStep++;
-
-                // Send the current step back to the main thread
-                this.send({
-                    type: 'SET_CUR_STEP',
-                    nodeId: this.nodeId,
-                    stepIdx: stepIdx
-                });
-
-                // For each row
-                for (var rowIdx = 0; rowIdx < grid[stepIdx].length; ++rowIdx)
+                // If this is the first step of this pattern
+                var stepIdx = this.nextStep;
+                if (stepIdx === 0)
                 {
-                    if (!grid[stepIdx][rowIdx])
-                        continue
-
-                    // Trigger this row
-                    this.trigRow(rowIdx, time);
-                }
-
-                // If this is the last step of this pattern
-                if (stepIdx === grid.length - 1)
-                {
-                    this.nextStep = 0;
                     if (pat >= 1)
                     {
-                        let patNum = ((pat | 0) - 1) % 8;
+                        var patNum = ((pat | 0) - 1) % 8;
                         if (patNum != this.nextPat)
                         {
                             this.queuePattern(patNum, this.state.patterns[patNum]);
@@ -720,6 +701,26 @@ class Sequencer extends AudioNode
                         this.patIdx = this.nextPat;
                         this.nextPat = undefined;
                     }
+                }
+                
+                var grid = this.state.patterns[this.patIdx];
+                this.nextStep = (stepIdx + 1) % grid.length;
+
+                // Send the current step back to the main thread
+                this.send({
+                    type: 'SET_CUR_STEP',
+                    nodeId: this.nodeId,
+                    stepIdx: stepIdx
+                });
+
+                // For each row
+                for (var rowIdx = 0; rowIdx < grid[stepIdx].length; ++rowIdx)
+                {
+                    if (!grid[stepIdx][rowIdx])
+                        continue
+
+                    // Trigger this row
+                    this.trigRow(rowIdx, time);
                 }
             }
 
