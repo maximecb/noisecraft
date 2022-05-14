@@ -1045,16 +1045,11 @@ export class Paste extends Action
         {
             assert (/^\d+$/.test(nodeId));
 
+            // Normalize and validate the node data
             let nodeData = this.nodesData[nodeId];
-            assert (nodeData instanceof Object);
-            assert (typeof nodeData.name === 'string');
-            assert (typeof nodeData.x === 'number');
-            assert (typeof nodeData.y === 'number');
-
-            let schema = NODE_SCHEMA[nodeData.type];
-            assert (schema instanceof Object);
-            assert (nodeData.ins instanceof Array);
-            assert (nodeData.params instanceof Object);
+            nodeData = normalizeNode(nodeData);
+            validateNode(nodeData);
+            this.nodesData[nodeId] = nodeData;
         }
 
         this.x = x;
