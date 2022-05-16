@@ -299,6 +299,13 @@ export function compile(graph)
             continue;
         }
 
+        if (node.type == 'BitCrush')
+        {
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update(${inVal(node, 0)})`);
+            continue;
+        }
+
         if (node.type == 'Clock')
         {
             audioNodes[nodeId] = node;
@@ -459,8 +466,14 @@ export function compile(graph)
 
         if (node.type == 'Noise')
         {
-            // Produce a random value in [-1, 1]
-            addDef(nodeId, '2 * Math.random() - 1');
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update()`);
+            continue;
+        }
+
+        if (node.type == 'Nop')
+        {
+            addDef(nodeId, inVal(node, 0));
             continue;
         }
 

@@ -19,7 +19,7 @@ const serverHTTPPortNo = process.env.HTTP_PORT_NO  || 7773;
 var app = express();
 
 // Create application/json parser
-var jsonParser = bodyParser.json()
+var jsonParser = bodyParser.json({limit: '1mb'});
 
 // Connect to the database
 async function connectDb(dbFilePath)

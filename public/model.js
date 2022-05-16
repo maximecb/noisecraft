@@ -53,6 +53,20 @@ export const NODE_SCHEMA =
         description: 'stereo sound output',
     },
 
+    /*
+    'BitCrush': {
+        ins: [
+            { name: '', default: 0 }
+        ],
+        outs: [''],
+        params: [
+            { name: 'bitdepth', default: 8 },
+            { name: 'factor', default: 1 },
+        ],
+        description: 'bitcrusher distortion',
+    },
+    */
+
     'Clock': {
         ins: [],
         outs: [''],
@@ -280,9 +294,21 @@ export const NODE_SCHEMA =
     'Noise': {
         ins: [],
         outs: ['out'],
-        params: [],
+        params: [
+            { name: 'minVal', default: -1 },
+            { name: 'maxVal', default: 1 }
+        ],
         state: [],
         description: 'white noise source',
+    },
+
+    'Nop': {
+        ins: [
+            { name: '', default: 0 },
+        ],
+        outs: [''],
+        params: [],
+        description: 'pass-through node (no-op)',
     },
 
     'Notes': {
@@ -1033,16 +1059,11 @@ export class Paste extends Action
         {
             assert (/^\d+$/.test(nodeId));
 
+            // Normalize and validate the node data
             let nodeData = this.nodesData[nodeId];
-            assert (nodeData instanceof Object);
-            assert (typeof nodeData.name === 'string');
-            assert (typeof nodeData.x === 'number');
-            assert (typeof nodeData.y === 'number');
-
-            let schema = NODE_SCHEMA[nodeData.type];
-            assert (schema instanceof Object);
-            assert (nodeData.ins instanceof Array);
-            assert (nodeData.params instanceof Object);
+            nodeData = normalizeNode(nodeData);
+            validateNode(nodeData);
+            this.nodesData[nodeId] = nodeData;
         }
 
         this.x = x;
@@ -2141,10 +2162,12 @@ export class Model
         }
 
         // Update the model based on the action
-        action.update(this);
+        let retVal = action.update(this);
 
         // Broadcast the new state and action
         this.broadcast(this.state, action);
+
+        return retVal;
     }
 
     // Add an action to the undo queue
