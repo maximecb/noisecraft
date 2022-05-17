@@ -53,7 +53,6 @@ export const NODE_SCHEMA =
         description: 'stereo sound output',
     },
 
-    /*
     'BitCrush': {
         ins: [
             { name: '', default: 0 }
@@ -65,7 +64,6 @@ export const NODE_SCHEMA =
         ],
         description: 'bitcrusher distortion',
     },
-    */
 
     'Clock': {
         ins: [],

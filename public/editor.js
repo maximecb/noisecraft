@@ -1277,6 +1277,51 @@ class UINode
     }
 }
 
+class BitCrushNode extends UINode
+{
+    constructor(id, state, editor)
+    {
+        super(id, state, editor);
+
+        // Bitdepth selection dropdown menu
+        let label = document.createElement("label");
+        label.style['font-size'] = 14;
+        label.innerHTML = "Bits:";
+        this.centerDiv.append(label);
+
+        let select = document.createElement("select");
+        select.style['margin-top'] = 4;
+        select.style['margin-bottom'] = 4;
+        select.style['margin-left'] = 4;
+        this.centerDiv.append(select);
+
+        // Populate the bitdepth selection
+        for (let bitdepth of [12, 10, 8, 7, 6, 5, 4, 3, 2, 1])
+        {
+            var opt = document.createElement("option");
+            opt.setAttribute('value', bitdepth);
+            opt.innerHTML = '' + bitdepth;
+            opt.selected = (bitdepth == state.params.bitdepth);
+            select.appendChild(opt);
+        }
+
+        function bitdepthChange()
+        {
+            let bitdepth = Number(select.options[select.selectedIndex].value);
+
+            this.send(new model.SetParam(
+                this.nodeId,
+                'bitdepth',
+                bitdepth
+            ));
+        }
+
+        select.onchange = bitdepthChange.bind(this);
+        select.onpointerdown = evt => evt.stopPropagation();
+        select.onclick = evt => evt.stopPropagation();
+    }
+}
+
 /**
  * Clock signal divider
  */
@@ -2306,6 +2351,7 @@ class Scope extends UINode
 // Map of node types to specialized node classes
 const NODE_CLASSES =
 {
+    BitCrush: BitCrushNode,
     ClockDiv: ClockDiv,
     Clock: ClockNode,
     Const: ConstNode,

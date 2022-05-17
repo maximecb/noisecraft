@@ -3,6 +3,8 @@ import { NODE_SCHEMA } from './model.js';
 import * as synth from './synth.js';
 import * as music from './music.js';
 
+const FLOAT_THRESH = 0.9999999999;
+
 /**
  * Stateful graph that generates audio samples
  */
@@ -178,6 +180,46 @@ class ADSRNode extends AudioNode
     update(time, gate, attack, decay, susVal, release)
     {
         return this.env.eval(time, gate, attack, decay, susVal, release)
+    }
+}
+
+/**
+ * BitCrush distortion
+ * See https://github.com/maximecb/noisecraft/issues/81
+ */
+export class BitCrush extends AudioNode
+{
+    constructor(id, state, sampleRate, send)
+    {
+        super(id, state, sampleRate, send);
+        this.reconfigure(state.params.bitdepth);
+    }
+
+    reconfigure(numBits) {
+        console.log(`BitCrush node: ${this.nodeId}, numBits: ${numBits}`);
+        assert(Number.isInteger(numBits) && numBits > 0 && numBits <= 32, `Invalid numBits: ${numBits}`);
+
+        this.nbits = numBits;
+        this.maxInt = 2 ** this.nbits;
+        this.halfMaxInt = this.maxInt / 2;
+        this.invHalfMaxInt = 1 / this.halfMaxInt;
+        this.quantizeDelta = 1 / this.maxInt;
+    }
+
+    update(input)
+    {
+        // Constrain the input to be within [-MAX_FLOAT..MAX_FLOAT]
+        // This also solves an issue if the input value is +1.0, which would result in an asymmetry in the floor() call below
+        if (input > FLOAT_THRESH) input = FLOAT_THRESH;
+        if (input < -FLOAT_THRESH) input = -FLOAT_THRESH;
+
+        let intVal = Math.floor(this.halfMaxInt * (input + 1)); // Range is [0..(maxInt-1)]
+        assert(Number.isInteger(intVal) && intVal >= 0 && intVal < this.maxInt);
+
+        let floatVal = (intVal * this.invHalfMaxInt) - 1 + this.quantizeDelta; // Range is [(-1+quantizeDelta)..(1-quantizeDelta)]
+        assert((input - floatVal) <= this.quantizeDelta);
+
+        return floatVal;
     }
 }
 
@@ -922,6 +964,7 @@ class GateSeq extends Sequencer
 let NODE_CLASSES =
 {
     ADSR: ADSRNode,
+    BitCrush: BitCrush,
     Clock: Clock,
     ClockDiv: ClockDiv,
     Delay: Delay,
