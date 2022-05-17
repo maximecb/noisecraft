@@ -61,6 +61,7 @@ export const NODE_SCHEMA =
         params: [
             { name: 'bitdepth', default: 8 },
             { name: 'factor', default: 1 },
+            { name: 'useAvg', default: 1 }, // 0 = false, 1 = true
         ],
         description: 'bitcrusher distortion',
     },

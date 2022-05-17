@@ -192,21 +192,40 @@ export class BitCrush extends AudioNode
     constructor(id, state, sampleRate, send)
     {
         super(id, state, sampleRate, send);
-        this.reconfigure(state.params.bitdepth);
+        this.configure(state.params.bitdepth, state.params.factor, state.params.useAvg);
     }
 
-    reconfigure(numBits) {
-        console.log(`BitCrush node: ${this.nodeId}, numBits: ${numBits}`);
-        assert(Number.isInteger(numBits) && numBits > 0 && numBits <= 32, `Invalid numBits: ${numBits}`);
+    configure(numBits, factor, useAvg) {
+        console.log(`BitCrush node: ${this.nodeId}, numBits: ${numBits}, factor: ${factor}, useAvg: ${useAvg}`);
 
+        assert(Number.isInteger(numBits) && numBits > 0 && numBits <= 32, `Invalid numBits: ${numBits}`);
         this.nbits = numBits;
         this.maxInt = 2 ** this.nbits;
         this.halfMaxInt = this.maxInt / 2;
         this.invHalfMaxInt = 1 / this.halfMaxInt;
         this.quantizeDelta = 1 / this.maxInt;
+
+        this.factor = factor;
+        this.heldValue = 0;
+        this.heldCount = 0;
+        this.accumulator = 0;
+        this.useAvg = useAvg;
     }
 
     update(input)
+    {
+        if (this.heldCount % this.factor == 0) {
+            this.heldCount = 0;
+            this.heldValue = this.useAvg ? (this.accumulator / this.factor) : input;
+            this.accumulator = 0;
+        }
+        this.heldCount++;
+        this.accumulator += input;
+
+        return this.crushBits(this.heldValue);
+    }
+
+    crushBits(input)
     {
         // Constrain the input to be within [-1.0..FLOAT_THRESH]
         // This solves an issue if the input value is exactly 1.0, which would result in an asymmetry in the floor() call below

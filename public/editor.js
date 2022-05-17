@@ -1283,17 +1283,24 @@ class BitCrushNode extends UINode
     {
         super(id, state, editor);
 
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Bitdepth selection dropdown menu
+        let div = document.createElement('div');
+        div.className = 'node_center';
+
         let label = document.createElement("label");
         label.style['font-size'] = 14;
         label.innerHTML = "Bits:";
-        this.centerDiv.append(label);
+        div.append(label);
 
-        let select = document.createElement("select");
-        select.style['margin-top'] = 4;
-        select.style['margin-bottom'] = 4;
-        select.style['margin-left'] = 4;
-        this.centerDiv.append(select);
+        let bitSelect = document.createElement("select");
+        bitSelect.style['margin-top'] = 4;
+        bitSelect.style['margin-bottom'] = 4;
+        bitSelect.style['margin-left'] = 4;
+        div.append(bitSelect);
+
+        this.centerDiv.appendChild(div);
+        this.centerDiv.appendChild(document.createElement('br'));
 
         // Populate the bitdepth selection
         for (let bitdepth of [12, 10, 8, 7, 6, 5, 4, 3, 2, 1])
@@ -1302,12 +1309,12 @@ class BitCrushNode extends UINode
             opt.setAttribute('value', bitdepth);
             opt.innerHTML = '' + bitdepth;
             opt.selected = (bitdepth == state.params.bitdepth);
-            select.appendChild(opt);
+            bitSelect.appendChild(opt);
         }
 
         function bitdepthChange()
         {
-            let bitdepth = Number(select.options[select.selectedIndex].value);
+            let bitdepth = Number(bitSelect.options[bitSelect.selectedIndex].value);
 
             this.send(new model.SetParam(
                 this.nodeId,
@@ -1316,9 +1323,53 @@ class BitCrushNode extends UINode
             ));
         }
 
-        select.onchange = bitdepthChange.bind(this);
-        select.onpointerdown = evt => evt.stopPropagation();
-        select.onclick = evt => evt.stopPropagation();
+        bitSelect.onchange = bitdepthChange.bind(this);
+        bitSelect.onpointerdown = evt => evt.stopPropagation();
+        bitSelect.onclick = evt => evt.stopPropagation();
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Fs Factor selection dropdown menu
+
+        div = document.createElement('div');
+        div.className = 'node_center';
+
+        label = document.createElement("label");
+        label.style['font-size'] = 14;
+        label.innerHTML = "Fs Factor:";
+        div.append(label);
+
+        let factorSelect = document.createElement("select");
+        factorSelect.style['margin-top'] = 4;
+        factorSelect.style['margin-bottom'] = 4;
+        factorSelect.style['margin-left'] = 4;
+        div.append(factorSelect);
+
+        this.centerDiv.appendChild(div);
+
+        // Populate the Factor selection
+        for (let factor of [1, 2, 4, 8, 16])
+        {
+            var opt = document.createElement("option");
+            opt.setAttribute('value', factor);
+            opt.innerHTML = '' + factor;
+            opt.selected = (factor == state.params.factor);
+            factorSelect.appendChild(opt);
+        }
+
+        function factorChange()
+        {
+            let factor = Number(factorSelect.options[factorSelect.selectedIndex].value);
+
+            this.send(new model.SetParam(
+                this.nodeId,
+                'factor',
+                factor
+            ));
+        }
+
+        factorSelect.onchange = factorChange.bind(this);
+        factorSelect.onpointerdown = evt => evt.stopPropagation();
+        factorSelect.onclick = evt => evt.stopPropagation();
     }
 }
 
