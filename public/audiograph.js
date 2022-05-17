@@ -208,10 +208,10 @@ export class BitCrush extends AudioNode
 
     update(input)
     {
-        // Constrain the input to be within [-MAX_FLOAT..MAX_FLOAT]
-        // This also solves an issue if the input value is +1.0, which would result in an asymmetry in the floor() call below
+        // Constrain the input to be within [-1.0..FLOAT_THRESH]
+        // This solves an issue if the input value is exactly 1.0, which would result in an asymmetry in the floor() call below
         if (input > FLOAT_THRESH) input = FLOAT_THRESH;
-        if (input < -FLOAT_THRESH) input = -FLOAT_THRESH;
+        if (input < -1.0) input = -1.0;
 
         let intVal = Math.floor(this.halfMaxInt * (input + 1)); // Range is [0..(maxInt-1)]
         assert(Number.isInteger(intVal) && intVal >= 0 && intVal < this.maxInt);
