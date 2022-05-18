@@ -182,6 +182,80 @@ class ADSRNode extends AudioNode
 }
 
 /**
+ * Bitcrusher style distortion
+ */
+class BitCrush extends AudioNode
+{
+    constructor(id, state, sampleRate, send)
+    {
+        super(id, state, sampleRate, send);
+        this.counter = 0;
+    }
+
+    update(inVal)
+    {
+
+        //this.params.bitdepth
+        //this.params.factor
+
+
+
+
+
+
+        // No downsampling
+        if (this.params.factor == 1)
+        {
+
+        }
+
+
+
+
+        // No bit depth reduction
+        if (numBits == 32)
+        {
+
+        }
+
+
+
+        let numBits = this.params.numBits;
+
+
+        // Clamp the input in the [-1, 1] range
+        inVal = Math.max(Math.min(inVal, 1), -1);
+
+        // Map the input to the [0, INT16_MAX] range
+        let intVal = Math.floor(65535 * (1 + inVal) / 2);
+
+        // Drop the bits we don't need
+        intVal = intVal >> (16 - numBits);
+
+        // Convert the value to a floating point number
+        let maxVal = (1 << numBits) - 1;
+        let floatVal = intVal / maxVal;
+        let outVal = floatVal * 2 - 1;
+
+
+
+
+
+        if (outVal < -1 || outVal > 1)
+        {
+            console.log(`numBits=${numBits}, maxVal=${maxVal}, outVal=${outVal}`);
+
+            assert (false);
+        }
+        //assert (outVal >= -1 && outVal <= 1);
+
+
+
+        return outVal;
+    }
+}
+
+/**
  * Clock source, with tempo in BPM
  */
 class Clock extends AudioNode
@@ -922,6 +996,7 @@ class GateSeq extends Sequencer
 let NODE_CLASSES =
 {
     ADSR: ADSRNode,
+    BitCrush: BitCrush,
     Clock: Clock,
     ClockDiv: ClockDiv,
     Delay: Delay,
