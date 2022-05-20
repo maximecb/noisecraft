@@ -530,7 +530,7 @@ class Filter extends AudioNode
 
     update(input, cutoff, reso)
     {
-    return this.filter.apply(input, cutoff, reso);
+        return this.filter.apply(input, cutoff, reso);
     }
 }
 
