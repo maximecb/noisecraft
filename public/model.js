@@ -1051,7 +1051,7 @@ export class Paste extends Action
     {
         super();
 
-        this.nodesData = data;
+        this.nodesData = data.nodes;
         assert (this.nodesData instanceof Object);
         assert (Object.keys(this.nodesData).length);
 
@@ -2094,14 +2094,14 @@ export class Model
     {
         console.log('copy nodes');
 
-        let result = {};
+        let data = {
+            nodes: {}
+        };
 
         if (!nodeIds)
-            return result;
+            return data;
 
-        // Start by fully copying node information. This will be the basis of
-        // our returned result, and a way to quickly check if a nodeId is in the
-        // nodeIds array
+        // Start by fully copying node information.
         for (let nodeId of nodeIds)
         {
             let node = this.state.nodes[nodeId];
@@ -2109,14 +2109,14 @@ export class Model
             if (!node)
                 continue;
 
-            result[nodeId] = treeCopy(node);
+            data.nodes[nodeId] = treeCopy(node);
         }
 
         // Filter port connections. We only retain connections that start and
         // end among the nodes being copied
         for (let nodeId of nodeIds)
         {
-            let node = result[nodeId];
+            let node = data.nodes[nodeId];
 
             node.ins = node.ins.map((input) => {
                 // Filter out unexpected values
@@ -2125,14 +2125,17 @@ export class Model
 
                 // Filter out connections outside the copied nodes
                 let [inputNodeId] = input;
-                if (!result[inputNodeId])
+                if (!data.nodes[inputNodeId])
                     return null;
 
                 return input;
             });
         }
 
-        return result;
+        // Reset transient state for the copied nodes
+        resetState(data);
+
+        return data;
     }
 
     // Broadcast an update to all views

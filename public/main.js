@@ -189,25 +189,6 @@ window.onkeydown = function (event)
     }
 }
 
-document.onpaste = function (evt)
-{
-    if (anyInputActive())
-        return;
-
-    try
-    {
-        let clipData = evt.clipboardData.getData('text/plain');
-        let nodeData = JSON.parse(clipData)
-        model.update(new Paste(nodeData, cursor.x, cursor.y));
-        evt.preventDefault();
-    }
-
-    catch (e)
-    {
-        console.log(e);
-    }
-}
-
 document.oncopy = function (evt)
 {
     if (anyInputActive())
@@ -234,6 +215,25 @@ document.oncut = function (evt)
     evt.preventDefault();
 
     editor.deleteSelected();
+}
+
+document.onpaste = function (evt)
+{
+    if (anyInputActive())
+        return;
+
+    try
+    {
+        let clipData = evt.clipboardData.getData('text/plain');
+        let nodeData = JSON.parse(clipData)
+        model.update(new Paste(nodeData, cursor.x, cursor.y));
+        evt.preventDefault();
+    }
+
+    catch (e)
+    {
+        console.log(e);
+    }
 }
 
 function handleMouseEvent(evt)
