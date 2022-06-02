@@ -33,7 +33,17 @@ export function escapeHTML(unsafe)
 export function anyInputActive()
 {
     let ele = document.activeElement;
-    return ele && (ele.tagName === 'INPUT' || ele.tagName === 'SELECT');
+
+    if (!ele)
+        return false;
+
+    let tagName = ele.tagName;
+
+    return (
+        tagName === 'INPUT' ||
+        tagName === 'SELECT' ||
+        tagName === 'TEXTAREA'
+    );
 }
 
 export function makeSvg(elName)
