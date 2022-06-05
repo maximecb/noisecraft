@@ -249,6 +249,7 @@ div.node_in_ports
 div.node_center
 {
     display: inline-block;
+    text-align: center;
 }
 
 div.node_out_ports

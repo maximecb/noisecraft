@@ -1277,6 +1277,102 @@ class UINode
     }
 }
 
+class BitCrushNode extends UINode
+{
+    constructor(id, state, editor)
+    {
+        super(id, state, editor);
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Bitdepth selection dropdown menu
+        let div = document.createElement('div');
+        div.className = 'node_center';
+
+        let label = document.createElement("label");
+        label.style['font-size'] = 14;
+        label.innerHTML = "Bits:";
+        div.append(label);
+
+        let bitSelect = document.createElement("select");
+        bitSelect.style['margin-top'] = 4;
+        bitSelect.style['margin-bottom'] = 4;
+        bitSelect.style['margin-left'] = 4;
+        div.append(bitSelect);
+
+        this.centerDiv.appendChild(div);
+        this.centerDiv.appendChild(document.createElement('br'));
+
+        // Populate the bitdepth selection
+        for (let bitdepth of [12, 10, 8, 7, 6, 5, 4, 3, 2, 1])
+        {
+            var opt = document.createElement("option");
+            opt.setAttribute('value', bitdepth);
+            opt.innerHTML = '' + bitdepth;
+            opt.selected = (bitdepth == state.params.bitdepth);
+            bitSelect.appendChild(opt);
+        }
+
+        function bitdepthChange()
+        {
+            let bitdepth = Number(bitSelect.options[bitSelect.selectedIndex].value);
+
+            this.send(new model.SetParam(
+                this.nodeId,
+                'bitdepth',
+                bitdepth
+            ));
+        }
+
+        bitSelect.onchange = bitdepthChange.bind(this);
+        bitSelect.onpointerdown = evt => evt.stopPropagation();
+        bitSelect.onclick = evt => evt.stopPropagation();
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Fs Factor selection dropdown menu
+
+        div = document.createElement('div');
+        div.className = 'node_center';
+
+        label = document.createElement("label");
+        label.style['font-size'] = 14;
+        label.innerHTML = "Fs Factor:";
+        div.append(label);
+
+        let factorSelect = document.createElement("select");
+        factorSelect.style['margin-top'] = 4;
+        factorSelect.style['margin-bottom'] = 4;
+        factorSelect.style['margin-left'] = 4;
+        div.append(factorSelect);
+
+        this.centerDiv.appendChild(div);
+
+        // Populate the Factor selection
+        for (let factor of [1, 2, 4, 8, 16])
+        {
+            var opt = document.createElement("option");
+            opt.setAttribute('value', factor);
+            opt.innerHTML = '' + factor;
+            opt.selected = (factor == state.params.factor);
+            factorSelect.appendChild(opt);
+        }
+
+        function factorChange()
+        {
+            let factor = Number(factorSelect.options[factorSelect.selectedIndex].value);
+
+            this.send(new model.SetParam(
+                this.nodeId,
+                'factor',
+                factor
+            ));
+        }
+
+        factorSelect.onchange = factorChange.bind(this);
+        factorSelect.onpointerdown = evt => evt.stopPropagation();
+        factorSelect.onclick = evt => evt.stopPropagation();
+    }
+}
+
 /**
  * Clock signal divider
  */
@@ -2306,6 +2402,7 @@ class Scope extends UINode
 // Map of node types to specialized node classes
 const NODE_CLASSES =
 {
+    BitCrush: BitCrushNode,
     ClockDiv: ClockDiv,
     Clock: ClockNode,
     Const: ConstNode,
