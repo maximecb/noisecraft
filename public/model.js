@@ -491,6 +491,18 @@ export function normalizeNode(node)
         }
     }
 
+    // If minVal and maxVal are inverted
+    if ('minVal' in node.params && 'maxVal' in node.params)
+    {
+        if (node.params.minVal > node.params.maxVal)
+        {
+            console.log('flipping minVal and maxVal');
+            let maxVal = node.params.minVal;
+            node.params.minVal = node.params.maxVal;
+            node.params.maxVal = maxVal;
+        }
+    }
+
     // Rename controlNo to controlId
     if ('controlNo' in node.params)
     {
@@ -702,8 +714,6 @@ export function validateParams(nodeType, params)
     // Validate value/minVal/maxVal
     if ('value' in params && 'minVal' in params)
     {
-        //console.log(nodeType, params.value, params.minVal, params.maxVal);
-
         assert (typeof params.value === 'number');
         assert (typeof params.minVal === 'number');
         assert (typeof params.maxVal === 'number');
@@ -712,6 +722,14 @@ export function validateParams(nodeType, params)
             throw RangeError('value cannot be set below minVal');
         if (params.value > params.maxVal)
             throw RangeError('value cannot be set above maxVal');
+    }
+
+    // Validate minVal/maxVal
+    if ('minVal' in params)
+    {
+        assert (typeof params.minVal === 'number');
+        assert (typeof params.maxVal === 'number');
+
         if (params.minVal > params.maxVal)
             throw RangeError('maxVal must be set above minVal');
     }

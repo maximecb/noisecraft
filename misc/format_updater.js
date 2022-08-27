@@ -25,6 +25,10 @@ if (fs.existsSync('examples'))
         let project = JSON.parse(inData);
         model.normalizeProject(project);
         model.reposition(project);
+
+        // Check that we pass validation
+        model.validateProject(project);
+
         let outData = JSON.stringify(project);
 
         fs.writeFileSync(filePath, outData, { encoding: "utf8" });
