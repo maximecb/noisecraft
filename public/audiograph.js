@@ -198,7 +198,10 @@ class Clock extends AudioNode
         let duty = 0.5;
         this.phase += this.sampleTime * freq;
         let cyclePos = this.phase % 1;
-        return (cyclePos < duty)? -1:1;
+
+        // Note that the clock starts high so that it will
+        // trigger immediately upon starting
+        return (cyclePos < duty)? 1:-1;
     }
 }
 
@@ -212,10 +215,12 @@ class ClockDiv extends AudioNode
         super(id, state, sampleRate, send);
 
         // Last clock sign at the input (positive/negative)
-        this.inSgn = false;
+        this.inSgn = true;
 
         // Current clock sign at the output (positive/negative)
-        this.outSgn = false;
+        // We start high to trigger immediately upon starting,
+        // just like the Clock node
+        this.outSgn = true;
 
         // Number of input ticks since the last output tick
         this.clockCnt = 0;
