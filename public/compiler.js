@@ -320,6 +320,13 @@ export function compile(graph)
             continue;
         }
 
+        if (node.type == 'ClockOut')
+        {
+            audioNodes[nodeId] = node;
+            addDef(nodeId, `nodes[${nodeId}].update(time, ${inVal(node, 0)})`);
+            continue;
+        }
+
         if (node.type == 'Const')
         {
             audioNodes[nodeId] = node;

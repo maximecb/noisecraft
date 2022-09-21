@@ -255,6 +255,39 @@ class ClockDiv extends AudioNode
 }
 
 /**
+ * Clock output node
+ */
+class ClockOut extends AudioNode
+{
+    constructor(id, state, sampleRate, send)
+    {
+        super(id, state, sampleRate, send);
+
+        // Last clock sign at the input (positive/negative)
+        this.inSgn = false;
+    }
+
+    update(time, clock)
+    {
+        // Current clock sign at the input
+        let curSgn = (clock > 0);
+
+        // If the input clock sign just went positive (rising edge)
+        if (curSgn && this.inSgn != curSgn)
+        {
+            // Send a clock pulse back to the main thread
+            this.send({
+                type: 'CLOCK_PULSE',
+                nodeId: this.nodeId,
+                time: time
+            });
+        }
+
+        this.inSgn = curSgn;
+    }
+}
+
+/**
  * Delay line node
  */
 class Delay extends AudioNode
@@ -929,6 +962,7 @@ let NODE_CLASSES =
     ADSR: ADSRNode,
     Clock: Clock,
     ClockDiv: ClockDiv,
+    ClockOut: ClockOut,
     Delay: Delay,
     Distort: Distort,
     Hold: Hold,

@@ -65,6 +65,16 @@ class MIDI extends Eventable
 
         return onMidiMessage.bind(this);
     }
+
+    // Send a message to all MIDI devices
+    broadcast(msg, timestamp)
+    {
+        if (!midi)
+            return;
+
+        for (let output of this.midiAccess.outputs.values())
+            output.send(msg, timestamp);
+    }
 }
 
 export const midi = new MIDI();

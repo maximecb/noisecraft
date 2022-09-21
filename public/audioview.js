@@ -27,7 +27,8 @@ export class AudioView
             action instanceof model.SetNodeName ||
             action instanceof model.SetCurStep ||
             action instanceof model.SetPattern ||
-            action instanceof model.SendSamples)
+            action instanceof model.SendSamples ||
+            action instanceof model.ClockPulse)
         {
             return;
         }
@@ -207,6 +208,10 @@ export class AudioView
 
             case 'SEND_SAMPLES':
             this.model.update(new model.SendSamples(msg.nodeId, msg.samples));
+            break;
+
+            case 'CLOCK_PULSE':
+            this.model.update(new model.ClockPulse(msg.nodeId, msg.time));
             break;
         }
     }

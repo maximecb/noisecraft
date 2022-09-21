@@ -243,6 +243,13 @@ export class Editor
             return;
         }
 
+        // Send a clock pulse to a clock output node
+        if (action instanceof model.ClockPulse)
+        {
+            node.clockPulse(action.time);
+            return;
+        }
+
         // If this is a paste action
         if (action instanceof model.Paste)
         {
@@ -1320,6 +1327,63 @@ class ClockDiv extends UINode
 }
 
 /**
+ * Clock output
+ */
+class ClockOut extends UINode
+{
+    constructor(id, state, editor)
+    {
+        super(id, state, editor);
+
+        // Playback time of the last pulse
+        this.lastTime = 0;
+
+        // Timestamp when the last pulse was sent
+        this.lastSent = 0;
+    }
+
+    destroy()
+    {
+    }
+
+    clockPulse(time)
+    {
+        assert (!isNaN(time));
+
+        // Current time in milliseconds (time stamp)
+        let curTime = performance.now();
+
+        // If this is the first pulse
+        if (this.lastTime == 0)
+        {
+            // Send a MIDI start message
+            midi.broadcast([0xFA]);
+
+            // Broadcast a clock pulse
+            midi.broadcast([0xF8], curTime);
+
+            this.lastTime = time;
+            this.lastSent = curTime;
+
+            return;
+        }
+
+        // Playback time delta between this pulse and the last
+        let pulseDt = time - this.lastTime;
+
+        // Compute when the pulse should be sent
+        let sendTime = this.lastSent + pulseDt * 1000;
+        assert (!isNaN(sendTime));
+
+        // Broadcast a clock pulse
+        midi.broadcast([0xF8], sendTime);
+
+        this.lastTime = time;
+        this.lastSent = sendTime;
+    }
+}
+
+/**
  * Constant value node
  */
 class ConstNode extends UINode
@@ -2306,8 +2370,9 @@ class Scope extends UINode
 // Map of node types to specialized node classes
 const NODE_CLASSES =
 {
-    ClockDiv: ClockDiv,
     Clock: ClockNode,
+    ClockDiv: ClockDiv,
+    ClockOut: ClockOut,
     Const: ConstNode,
     Knob: KnobNode,
     MidiIn: MidiIn,

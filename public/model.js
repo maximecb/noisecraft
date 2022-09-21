@@ -91,6 +91,16 @@ export const NODE_SCHEMA =
         description: 'clock signal divider',
     },
 
+    'ClockOut': {
+        unique: true,
+        ins: [
+            { name: 'clock', default: 0 }
+        ],
+        outs: [],
+        params: [],
+        description: 'MIDI output for clock signal',
+    },
+
     'Const': {
         ins: [],
         outs: [''],
@@ -1933,6 +1943,29 @@ export class NoteOn extends Action
         this.nodeId = nodeId;
         this.noteNo = noteNo;
         this.velocity = velocity;
+    }
+
+    update(model)
+    {
+    }
+
+    get undoable()
+    {
+        return false;
+    }
+}
+
+/**
+ * Clock pulse message.
+ * Used by the ClockOut node.
+ */
+export class ClockPulse extends Action
+{
+    constructor(nodeId, time)
+    {
+        super();
+        this.nodeId = nodeId;
+        this.time = time;
     }
 
     update(model)
