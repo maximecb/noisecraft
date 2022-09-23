@@ -180,6 +180,11 @@ export class Editor
                 return;
             }
 
+            if (action.paramName == 'deviceId' || action.paramName == 'controlId')
+            {
+                return;
+            }
+
             // Other SetParam actions will
             // recreate the UI nodes
         }
