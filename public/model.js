@@ -258,11 +258,14 @@ export const NODE_SCHEMA =
         description: 'parameter control knob',
     },
 
+    // MIDI input node
+    // chanNo is the channel to accept input from (null means any channel)
     'MidiIn': {
         ins: [],
         outs: ['freq', 'gate'],
         params: [
             { name: 'octaveNo', default: 3 },
+            { name: 'chanNo', default: null },
         ],
         state: [],
         description: 'MIDI note input (cv/gate)',
@@ -749,6 +752,16 @@ export function validateParams(nodeType, params)
     {
         if (!isPosInt(params.factor))
             throw RangeError('factor must be a positive integer');
+    }
+
+    // MIDI channel number
+    if ('chanNo' in params)
+    {
+        if (params.chanNo != null && !isPosInt(params.chanNo))
+            throw RangeError('chanNo must be null or a positive integer');
+
+        if (params.chanNo != null && (params.chanNo < 1 || params.chanNo > 16))
+            throw RangeError('chanNo must be between 1 and 16 inclusively');
     }
 }
 

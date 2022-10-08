@@ -1155,12 +1155,15 @@ class UINode
             input.type = 'text';
             input.size = 12;
             input.maxLength = 10;
-            input.value = nodeState.params[param.name];
+            input.value = String(nodeState.params[param.name])
             paramDiv.appendChild(input);
 
             input.oninput = function (evt)
             {
-                newParams[param.name] = Number(input.value);
+                if (input.value == 'null')
+                    newParams[param.name] = null;
+                else
+                    newParams[param.name] = Number(input.value);
             }
         }
 
@@ -1553,6 +1556,9 @@ class MidiIn extends UINode
         // Current octave number for keyboard input
         this.octaveNo = state.params.octaveNo;
 
+        // Current MIDI channel number
+        this.chanNo = state.params.chanNo;
+
         this.attachKeyboard();
         this.attachMidi();
     }
@@ -1681,7 +1687,15 @@ class MidiIn extends UINode
     {
         function inputCb(device, msg)
         {
-            var msgType = msg[0] & 0xF0;
+            let msgType = msg[0] & 0xF0;
+            let inChan = (msg[0] & 0x0F) + 1;
+
+            // If we're only receiving from a specific MIDI channel
+            // and the input channel doesn't match, reject this message
+            if (this.chanNo && inChan != this.chanNo)
+            {
+                return;
+            }
 
             // Note on
             if (msgType == 0x90 && msg.length == 3)
