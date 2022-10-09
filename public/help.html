@@ -226,6 +226,12 @@
             NoiseCraft can receive input from MIDI keyboards, sequencers and other types of MIDI devices. The
             <code>MidiIn</code> node, by default, will connect to every MIDI device on your system and receive notes.
             </p>
+            <p>
+            Should you want to receive MIDI signals from multiple devices, either to interface with multiple controllers
+            or external sequencers, or with a program such as ORCA, you can create multiple <code>MidiIn</code>
+            nodes and assign each input node to a different MIDI channel. To do so, double-click on a <code>MidiIn</code>
+            node and set the <code>chanNo</code> value to the MIDI channel you wish to receive from.
+            </p>
 
             <h3>Mapping Controls</h3>
             <p>
@@ -241,6 +247,17 @@
             <p>
             To unmap a MIDI control from a virtual knob, double click the knob node and then click outside of
             the mapping dialog or press the escape key.
+            </p>
+
+            <h3>Clock Signal Output</h3>
+            <p>
+            The <code>ClockOut</code> node allows you to broadcast a clock signal from NoiseCraft to every MIDI
+            device you have connected. This makes it possible to jam with external devices such as drum machines
+            while keeping the
+            rhythm synchronized. Simply connect a <code>Clock</code> node to a <code>ClockOut</code>. The
+            rate of clock pulses coming out of <code>Clock</code> nodes is 24 PPQ (pulses per quarter node) which
+            matches the rate set by the MIDI specification. If you need a different output rate for the clock
+            output, you can use a <code>ClockDiv</code> (clock divider) node.
             </p>
 
             <h3>Supported Devices</h3>
