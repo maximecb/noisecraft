@@ -165,6 +165,28 @@ export class Editor
         // Find the node this action refers to, if any
         let node = action? this.nodes.get(action.nodeId):null;
 
+        // Start playback
+        if (action instanceof model.Play)
+        {
+            console.log('start playback');
+
+            for (let node of this.nodes.values())
+            {
+                node.startPlayback();
+            }
+        }
+
+        // Stop playback
+        if (action instanceof model.Stop)
+        {
+            console.log('stop playback');
+
+            for (let node of this.nodes.values())
+            {
+                node.stopPlayback();
+            }
+        }
+
         // Ignore note on messages
         if (action instanceof model.NoteOn)
         {
@@ -885,6 +907,20 @@ class UINode
     }
 
     /**
+     * Start audio playback
+     */
+    startPlayback()
+    {
+    }
+
+    /**
+     * Stop audio playback
+     */
+    stopPlayback()
+    {
+    }
+
+    /**
      * Setup DOM elements for this node
      */
     genNodeDOM(state)
@@ -1354,40 +1390,43 @@ class ClockOut extends UINode
     {
     }
 
-    clockPulse(time)
+    clockPulse(pulseTime)
     {
-        assert (!isNaN(time));
+        assert (!isNaN(pulseTime));
 
         // Current time in milliseconds (time stamp)
         let curTime = performance.now();
 
-        // If this is the first pulse
-        if (this.lastTime == 0)
-        {
-            // Send a MIDI start message
-            midi.broadcast([0xFA]);
-
-            // Broadcast a clock pulse
-            midi.broadcast([0xF8], curTime);
-
-            this.lastTime = time;
-            this.lastSent = curTime;
-
-            return;
-        }
-
         // Playback time delta between this pulse and the last
-        let pulseDt = time - this.lastTime;
+        let pulseDt = pulseTime - this.lastTime;
 
         // Compute when the pulse should be sent
-        let sendTime = this.lastSent + pulseDt * 1000;
+        let sendTime = this.lastSent? (this.lastSent + pulseDt * 1000):curTime;
         assert (!isNaN(sendTime));
 
         // Broadcast a clock pulse
         midi.broadcast([0xF8], sendTime);
 
-        this.lastTime = time;
+        this.lastTime = pulseTime;
         this.lastSent = sendTime;
+    }
+
+    startPlayback()
+    {
+        // Send a MIDI start message
+        midi.broadcast([0xFA]);
+
+        this.lastTime = 0;
+        this.lastSent = 0;
+    }
+
+    stopPlayback()
+    {
+        // Send a MIDI stop message
+        midi.broadcast([0xFC]);
+
+        this.lastTime = 0;
+        this.lastSent = 0;
     }
 }
 
