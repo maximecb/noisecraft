@@ -377,6 +377,16 @@ export function compile(graph)
             continue;
         }
 
+        if(node.type == 'Fold')
+        {
+          audioNodes[nodeId] = node;
+          addDef(
+            nodeId, 
+            `nodes[${nodeId}].update(${inVal(node, 0)},${inVal(node,1)});`
+          );
+          continue;
+        }
+
         if (node.type == 'Greater')
         {
             addDef(nodeId, inVal(node, 0) + ' > ' + inVal(node, 1));
