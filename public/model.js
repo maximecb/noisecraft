@@ -191,14 +191,14 @@ export const NODE_SCHEMA =
     },
 
     'Fold': {
-      ins: [
-        { name: "in", default: 0 },
-        { name: "rate", default: 1 }
-      ],
-      outs: ["out"],
-      params: [],
-      state: [],
-      description: "wavefolder"
+        ins: [
+            { name: "in", default: 0 },
+            { name: "rate", default: 1 }
+        ],
+        outs: ["out"],
+        params: [],
+        state: [],
+        description: "wavefolder"
     },
 
     'GateSeq': {

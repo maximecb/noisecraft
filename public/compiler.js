@@ -379,12 +379,12 @@ export function compile(graph)
 
         if(node.type == 'Fold')
         {
-          audioNodes[nodeId] = node;
-          addDef(
-            nodeId, 
-            `nodes[${nodeId}].update(${inVal(node, 0)},${inVal(node,1)});`
-          );
-          continue;
+            audioNodes[nodeId] = node;
+            addDef(
+                nodeId, 
+                `nodes[${nodeId}].update(${inVal(node, 0)},${inVal(node,1)});`
+            );
+            continue;
         }
 
         if (node.type == 'Greater')
