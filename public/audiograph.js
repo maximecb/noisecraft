@@ -573,6 +573,55 @@ class Filter extends AudioNode
 }
 
 /**
+ * Wavefolder
+ */
+class Fold extends AudioNode
+{
+    /**
+     * I create a new Wavefold node.
+     *
+     * @param  {Number}  id - id of this node
+     * @param  {Object}  state - initial state
+     * @param  {Number}  sampleRate - audio sample rate
+     * @param  {Function}  send - event handler
+     */
+    constructor(id, state, sampleRate, send)
+    {
+        super(id, state, sampleRate, send);
+        // redundant ctor
+    }
+
+    /**
+     * Distort incoming audio signal by "folding".
+     *
+     * <blockquote style="background-color:whitesmoke">
+     *  assume x is <em>[input]</em> and amp is <em>[rate]</em>
+     *  <pre>
+     *    f(x) = x * amp
+     *    g(x) = 4(abs(0.25x+0.25-round(0.25x+0.25))-0.25)
+     *    g(f(x)) => out
+     *  </pre>
+     * </blockquote>
+     * See {@link  https://www.keithmcmillen.com/blog/simple-synthesis-part-8-wavefolding/}
+     * and {@link https://jatinchowdhury18.medium.com/complex-nonlinearities-episode-6-wavefolding-9529b5fe4102}
+     *
+     * @param  {Sample}  input - signal
+     * @param  {PositiveReal}  rate - amplitude of fold
+     * @returns  {Sample}
+     */
+    update(input, rate)
+    {
+        // Make it so rate 0 means input unaltered because
+        // NoiseCraft knobs default to the [0, 1] range
+        if (rate < 0) rate = 0;
+        rate = rate + 1;
+
+        input = input * rate;
+        return 4 * (Math.abs(0.25 * input + 0.25 - Math.round(0.25 * input + 0.25)) - 0.25);
+    }
+}
+
+/**
  * Midi input node with freq and gate outputs
  */
 class MidiIn extends AudioNode
@@ -974,6 +1023,7 @@ let NODE_CLASSES =
     Scope: Scope,
     Slide: Slide,
     Filter: Filter,
+    Fold: Fold,
     MidiIn: MidiIn,
     MonoSeq: MonoSeq,
     GateSeq: GateSeq,

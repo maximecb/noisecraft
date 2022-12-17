@@ -190,6 +190,17 @@ export const NODE_SCHEMA =
         description: 'classic two-pole low-pass filter',
     },
 
+    'Fold': {
+        ins: [
+            { name: "in", default: 0 },
+            { name: "rate", default: 1 }
+        ],
+        outs: ["out"],
+        params: [],
+        state: [],
+        description: "wavefolder"
+    },
+
     'GateSeq': {
         ins: [
             { name: 'clock', default: 0 },
