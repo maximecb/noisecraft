@@ -575,7 +575,7 @@ class Filter extends AudioNode
 /**
  * Wavefolder
  */
-class Fold extends AudioNode 
+class Fold extends AudioNode
 {
     /**
      * I create a new Wavefold node.
@@ -585,7 +585,7 @@ class Fold extends AudioNode
      * @param  {Number}  sampleRate - audio sample rate
      * @param  {Function}  send - event handler
      */
-    constructor(id, state, sampleRate, send) 
+    constructor(id, state, sampleRate, send)
     {
         super(id, state, sampleRate, send);
         // redundant ctor
@@ -609,9 +609,13 @@ class Fold extends AudioNode
      * @param  {PositiveReal}  rate - amplitude of fold
      * @returns  {Sample}
      */
-    update(input, rate) 
+    update(input, rate)
     {
-        if (rate < 1) rate = 1;
+        // Make it so rate 0 means input unaltered because
+        // NoiseCraft knobs default to the [0, 1] range
+        if (rate < 0) rate = 0;
+        rate = rate + 1;
+
         input = input * rate;
         return 4 * (Math.abs(0.25 * input + 0.25 - Math.round(0.25 * input + 0.25)) - 0.25);
     }
