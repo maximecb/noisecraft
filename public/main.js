@@ -308,6 +308,11 @@ function saveModelFile()
     // takes the user away from the current page.
     let a = document.createElement('a');
 
+    // Generate a default save file name
+    let saveFileName =`${inputProjectTitle.value || 'untitled_project'}.ncft`;
+    saveFileName = saveFileName.toLowerCase();
+    saveFileName = saveFileName.replace(/[^a-z0-9.]/gi, "_");
+
     // This is what the browser will name the download by default.
     //
     // If the browser is configured to automatically save downloads in a fixed
@@ -319,7 +324,7 @@ function saveModelFile()
     // If the browser is configured to prompt the user for a save location, this
     // will be the default name in the save dialog. The user can usually change
     // the name if they would like.
-    a.download = `${inputProjectTitle.value || 'Untitled Project'}.ncft`;
+    a.download = saveFileName;
 
     // This is the binary large object (blob) we would like to send to the user.
     let blob = new Blob(
