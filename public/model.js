@@ -5,7 +5,7 @@ import * as music from './music.js';
 export const MAX_UNDO_STEPS = 400;
 
 // Number of pixels to pad the canvas along the edges
-export const EDGE_PADDING = 200;
+export const EDGE_PADDING = 100;
 
 // Min/max username length
 export const MIN_USERNAME_LENGTH = 2;
