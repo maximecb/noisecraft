@@ -796,30 +796,10 @@ app.delete('/projects', async function (req, res)
 
         console.log(`delete projectId=${projectId}`);
 
-        /*
         db.run(
             'DELETE FROM projects WHERE id == ?;',
             [projectId]
         );
-        */
-
-        /*
-        db.run(
-            `UPDATE projects SET featured = ? WHERE id == ?;`,
-            [featured, projectId],
-            function (err, rows)
-            {
-                if (err)
-                {
-                    console.log(err);
-                    return res.sendStatus(400);
-                }
-
-                res.setHeader('Content-Type', 'application/json');
-                res.send(JSON.stringify(featured));
-            }
-        );
-        */
 
         return res.send('ok');
     }
