@@ -193,7 +193,7 @@ export const NODE_SCHEMA =
     'Fold': {
         ins: [
             { name: "in", default: 0 },
-            { name: "rate", default: 1 }
+            { name: "rate", default: 0 }
         ],
         outs: ["out"],
         params: [],
