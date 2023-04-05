@@ -549,6 +549,13 @@ export class Editor
         }
     }
 
+    createCycleDialog()
+    {
+        var dialog = new Dialog('Cycle in Component Graph');
+
+        dialog.appendChild(document.createTextNode("Your connection has been prevented, as it would create a cycle (or infinite loop) in the graph."));
+    }
+
     // Start dragging/moving nodes
     startDrag(nodeId, mousePos)
     {
@@ -921,6 +928,33 @@ class UINode
     }
 
     /**
+     * Generate model.ConnectNodes instance
+     */
+    generateConnectAction(side, portIdx)
+    {
+        let editor = this.editor;
+
+        if (side == 'dst')
+        {
+            return new model.ConnectNodes(
+                editor.edge.srcNode.nodeId,
+                editor.edge.srcPort,
+                this.nodeId,
+                portIdx
+            );
+        }
+        else
+        {
+            return new model.ConnectNodes(
+                this.nodeId,
+                portIdx,
+                editor.edge.dstNode.nodeId,
+                editor.edge.dstPort
+            );
+        }
+    }
+
+    /**
      * Setup DOM elements for this node
      */
     genNodeDOM(state)
@@ -1071,24 +1105,14 @@ class UINode
                 return;
             }
 
-            if (side == 'dst')
-            {
-                editor.model.update(new model.ConnectNodes(
-                    editor.edge.srcNode.nodeId,
-                    editor.edge.srcPort,
-                    this.nodeId,
-                    portIdx
-                ));
+            let connectAction = this.generateConnectAction(side, portIdx);
+            
+            if (editor.model.detectCycles(connectAction)) {
+                editor.createCycleDialog();
+                return;
             }
-            else
-            {
-                editor.model.update(new model.ConnectNodes(
-                    this.nodeId,
-                    portIdx,
-                    editor.edge.dstNode.nodeId,
-                    editor.edge.dstPort
-                ));
-            }
+
+            editor.model.update(connectAction);
 
             // Done connecting
             editor.edge = null;
