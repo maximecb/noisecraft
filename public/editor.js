@@ -1,5 +1,4 @@
 import { assert, anyInputActive, makeSvg, setSvg, getBrightColor } from './utils.js';
-import { detectCycles } from './compiler.js';
 import { Dialog } from './dialog.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
@@ -158,18 +157,6 @@ export class Editor
 
         // Initialize the editor size to fill the window
         this.resize();
-    }
-
-    detectCycles(action)
-    {
-        // Slightly wasteful duplication allows us to avoid polluting the model's state before we've finished detection
-        let clone = new Model();
-        clone.deserialize(this.model.serialize());
-
-        // Simulate updating the model with the ConnectNodes action
-        action.update(clone);
-
-        return detectCycles(clone.state);
     }
 
     // Update the GUI view
@@ -562,13 +549,6 @@ export class Editor
         }
     }
 
-    createCycleDialog()
-    {
-        var dialog = new Dialog('Cycle in Component Graph');
-
-        dialog.appendChild(document.createTextNode("Your connection has been prevented, as it would create a cycle (or infinite loop) in the graph."));
-    }
-
     // Start dragging/moving nodes
     startDrag(nodeId, mousePos)
     {
@@ -941,33 +921,6 @@ class UINode
     }
 
     /**
-     * Generate model.ConnectNodes instance
-     */
-    generateConnectAction(side, portIdx)
-    {
-        let editor = this.editor;
-
-        if (side == 'dst')
-        {
-            return new model.ConnectNodes(
-                editor.edge.srcNode.nodeId,
-                editor.edge.srcPort,
-                this.nodeId,
-                portIdx
-            );
-        }
-        else
-        {
-            return new model.ConnectNodes(
-                this.nodeId,
-                portIdx,
-                editor.edge.dstNode.nodeId,
-                editor.edge.dstPort
-            );
-        }
-    }
-
-    /**
      * Setup DOM elements for this node
      */
     genNodeDOM(state)
@@ -1117,15 +1070,25 @@ class UINode
             {
                 return;
             }
-            
-            let connectAction = this.generateConnectAction(side, portIdx);
 
-            if (editor.detectCycles(connectAction)) {
-                editor.createCycleDialog();
-                return;
+            if (side == 'dst')
+            {
+                editor.model.update(new model.ConnectNodes(
+                    editor.edge.srcNode.nodeId,
+                    editor.edge.srcPort,
+                    this.nodeId,
+                    portIdx
+                ));
             }
-
-            editor.model.update(connectAction);
+            else
+            {
+                editor.model.update(new model.ConnectNodes(
+                    this.nodeId,
+                    portIdx,
+                    editor.edge.dstNode.nodeId,
+                    editor.edge.dstPort
+                ));
+            }
 
             // Done connecting
             editor.edge = null;
