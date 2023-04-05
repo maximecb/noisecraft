@@ -1,4 +1,5 @@
 import { assert, isInt, isPosInt, treeCopy, treeEq, isString, isObject } from './utils.js';
+import { detectCycles } from './compiler.js';
 import * as music from './music.js';
 
 // Maximum number of undo steps we support
@@ -2020,6 +2021,18 @@ export class Model
     addView(view)
     {
         this.views.push(view);
+    }
+
+    detectCycles(action)
+    {
+        // Slightly wasteful duplication allows us to avoid polluting the model's state before we've finished detection
+        let clone = new Model();
+        clone.deserialize(this.serialize());
+
+        // Simulate updating the model with the ConnectNodes action
+        action.update(clone);
+
+        return detectCycles(clone.state);
     }
 
     // Reinitialize the state for a brand new project
