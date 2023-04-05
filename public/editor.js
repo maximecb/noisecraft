@@ -1,5 +1,5 @@
 import { assert, anyInputActive, makeSvg, setSvg, getBrightColor } from './utils.js';
-import { Dialog } from './dialog.js';
+import { Dialog, errorDialog } from './dialog.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
 import * as music from './music.js';
@@ -921,6 +921,33 @@ class UINode
     }
 
     /**
+     * Generate model.ConnectNodes instance
+     */
+    generateConnectAction(side, portIdx)
+    {
+        let editor = this.editor;
+
+        if (side == 'dst')
+        {
+            return new model.ConnectNodes(
+                editor.edge.srcNode.nodeId,
+                editor.edge.srcPort,
+                this.nodeId,
+                portIdx
+            );
+        }
+        else
+        {
+            return new model.ConnectNodes(
+                this.nodeId,
+                portIdx,
+                editor.edge.dstNode.nodeId,
+                editor.edge.dstPort
+            );
+        }
+    }
+
+    /**
      * Setup DOM elements for this node
      */
     genNodeDOM(state)
@@ -1071,24 +1098,14 @@ class UINode
                 return;
             }
 
-            if (side == 'dst')
-            {
-                editor.model.update(new model.ConnectNodes(
-                    editor.edge.srcNode.nodeId,
-                    editor.edge.srcPort,
-                    this.nodeId,
-                    portIdx
-                ));
+            let connectAction = this.generateConnectAction(side, portIdx);
+
+            if (editor.model.detectCycles(connectAction)) {
+                errorDialog('This connection would create a cycle in the node graph.');
+                return;
             }
-            else
-            {
-                editor.model.update(new model.ConnectNodes(
-                    this.nodeId,
-                    portIdx,
-                    editor.edge.dstNode.nodeId,
-                    editor.edge.dstPort
-                ));
-            }
+
+            editor.model.update(connectAction);
 
             // Done connecting
             editor.edge = null;
