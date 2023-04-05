@@ -1,5 +1,5 @@
 import { assert, anyInputActive, makeSvg, setSvg, getBrightColor } from './utils.js';
-import { Dialog } from './dialog.js';
+import { Dialog, errorDialog } from './dialog.js';
 import { NODE_SCHEMA } from './model.js';
 import * as model from './model.js';
 import * as music from './music.js';
@@ -547,13 +547,6 @@ export class Editor
 
             dialog.appendChild(subDiv);
         }
-    }
-
-    createCycleDialog()
-    {
-        var dialog = new Dialog('Cycle in Component Graph');
-
-        dialog.appendChild(document.createTextNode("Your connection has been prevented, as it would create a cycle (or infinite loop) in the graph."));
     }
 
     // Start dragging/moving nodes
@@ -1106,9 +1099,9 @@ class UINode
             }
 
             let connectAction = this.generateConnectAction(side, portIdx);
-            
+
             if (editor.model.detectCycles(connectAction)) {
-                editor.createCycleDialog();
+                errorDialog('This connection would create a cycle in the node graph.');
                 return;
             }
 
