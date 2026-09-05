@@ -814,7 +814,9 @@ app.delete('/projects', async function (req, res)
 
 //============================================================================
 
-const server = app.listen(serverHTTPPortNo, () =>
+// Loopback only: traffic must come through the nginx proxy.
+// 0.0.0.0 (the default) accepts connections from anywhere; 127.0.0.1 does not.
+const server = app.listen(serverHTTPPortNo, '127.0.0.1', () =>
 {
     let address = server.address().address;
     let port = server.address().port;
