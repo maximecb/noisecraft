@@ -57,7 +57,6 @@ db.run(`CREATE table IF NOT EXISTS projects (
 db.run(`CREATE table IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     username TEXT NOT NULL,
-    email TEXT,
     pwd_hash TEXT NOT NULL,
     pwd_salt TEXT NOT NULL,
     reg_time BIGINT,
@@ -105,7 +104,7 @@ function cryptoHash(str)
 Add a new user to the database
 Note: this function does not check for duplicates
 */
-async function addUser(username, password, email, ip)
+async function addUser(username, password, ip)
 {
     // TODO: assert valid characters only, no whitespace at start or end
 
@@ -117,9 +116,9 @@ async function addUser(username, password, email, ip)
     return new Promise((resolve, reject) => {
         db.run(
             'INSERT INTO users ' +
-            '(username, email, pwd_hash, pwd_salt, reg_time, reg_ip) ' +
-            'VALUES (?, ?, ?, ?, ?, ?);',
-            [username, email, pwd_hash, pwd_salt, reg_time, ip],
+            '(username, pwd_hash, pwd_salt, reg_time, reg_ip) ' +
+            'VALUES (?, ?, ?, ?, ?);',
+            [username, pwd_hash, pwd_salt, reg_time, ip],
             function (err)
             {
                 if (err)
@@ -509,7 +508,6 @@ app.get('/stats', async function (req, res)
     let totalHits = await getQueryValue('SELECT COUNT(*) FROM hits');
     let projectCount = await getQueryValue('SELECT COUNT(*) FROM projects');
     let userCount = await getQueryValue('SELECT COUNT(*) FROM users');
-    let emailCount = await getQueryValue('SELECT COUNT(*) as count FROM (SELECT * FROM users WHERE email != "")');
 
     let html = statsTemplate({
         dayCounts: dayCounts,
@@ -522,7 +520,6 @@ app.get('/stats', async function (req, res)
         totalHits: totalHits,
         projectCount: projectCount,
         userCount: userCount,
-        emailCount: emailCount,
     });
 
     res.setHeader('content-type', 'text/html');
@@ -532,7 +529,7 @@ app.get('/stats', async function (req, res)
 /**
 POST /register
 Register a new user account
-Arguments: username, password, email
+Arguments: username, password
 */
 app.post('/register', jsonParser, async function (req, res)
 {
@@ -540,13 +537,10 @@ app.post('/register', jsonParser, async function (req, res)
     {
         let username = req.body.username;
         let password = req.body.password;
-        let email = req.body.email
 
-        // Validate the username, password and email
+        // Validate the username and password
         model.validateUserName(username);
         if (password.length > 64)
-            return res.sendStatus(400);
-        if (email.length > 64)
             return res.sendStatus(400);
 
         // Check that the username is available
@@ -554,7 +548,7 @@ app.post('/register', jsonParser, async function (req, res)
 
         // Add the new user to the database
         let submitIP = getClientIP(req);
-        let userId = await addUser(username, password, email, submitIP);
+        let userId = await addUser(username, password, submitIP);
 
         return res.send(JSON.stringify({
             userId: userId,

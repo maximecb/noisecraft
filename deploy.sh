@@ -10,7 +10,6 @@ cp start_server.sh deploy
 cp server.js deploy
 cp package.json deploy
 cp -R public deploy
-cp -R misc deploy
 
 # Bundle all the JS scripts
 npm run build

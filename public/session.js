@@ -211,10 +211,10 @@ Returns a promise that produces the username and password
 */
 export async function register()
 {
-    let [username, password, email] = await registerForm();
+    let [username, password] = await registerForm();
 
     // Send a register request to the server
-    let result = await registerRequest(username, password, email);
+    let result = await registerRequest(username, password);
 
     return [username, password];
 }
@@ -222,13 +222,12 @@ export async function register()
 /**
 Send a register request to the server
 */
-async function registerRequest(username, password, email)
+async function registerRequest(username, password)
 {
     return new Promise((resolve, reject) => {
         let json = JSON.stringify({
             username: username,
             password: password,
-            email: email,
         });
 
         var xhr = new XMLHttpRequest()
@@ -292,16 +291,6 @@ async function registerForm()
     paramDiv.appendChild(passElem2);
     dialog.appendChild(paramDiv);
 
-    var paramDiv = document.createElement('div');
-    paramDiv.className = 'form_div';
-    let emailElem = document.createElement('input');
-    emailElem.type = 'text';
-    emailElem.size = 30;
-    emailElem.maxLength = 32;
-    paramDiv.appendChild(document.createTextNode('E-mail (optional) '));
-    paramDiv.appendChild(emailElem);
-    dialog.appendChild(paramDiv);
-
     var registerBtn = document.createElement('button');
     registerBtn.className = 'form_btn';
     registerBtn.appendChild(document.createTextNode('Register'));
@@ -355,13 +344,12 @@ async function registerForm()
             let username = nameElem.value;
             let password = passElem.value;
             let password2 = passElem2.value;
-            let email = emailElem.value;
 
             if (password != password2)
                 return;
 
             dialog.close();
-            resolve([username, password, email]);
+            resolve([username, password]);
         }
 
         dialog.on('enter', registerBtn.onclick);
