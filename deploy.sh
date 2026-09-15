@@ -6,15 +6,16 @@ mkdir deploy
 mkdir deploy/public
 mkdir deploy/misc
 
-cp start_server.sh deploy
 cp server.js deploy
 cp package.json deploy
+cp package-lock.json deploy
 cp -R public deploy
 
 # Bundle all the JS scripts
 npm run build
 
-# Remote deployment
-SERVER_ADDR='noisecraft.app'
-rsync -avz deploy "${SERVER_ADDR}:noisecraft"
-ssh "${SERVER_ADDR}" "cd noisecraft/deploy && npm install && pm2 stop noisecraft && cp database.db db_backup.db && pm2 start noisecraft"
+# Remote deployment.
+# The noisecraft-prod host is an SSH alias, user and port live in ~/.ssh/config
+SERVER_ADDR='noisecraft-prod'
+rsync -avz deploy/ "${SERVER_ADDR}:/srv/noisecraft/"
+ssh "${SERVER_ADDR}" "cd /srv/noisecraft && npm ci --omit=dev && sudo systemctl restart noisecraft"
