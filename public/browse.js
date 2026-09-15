@@ -6,6 +6,12 @@ let latestDiv = document.getElementById('latest_div');
 // Project ids received while browsing
 let projectIds = {};
 
+// Number of projects returned by the server for each list request
+const CHUNK_SIZE = 40;
+
+// Height of a project row in pixels, must match div.project_row in style.css
+const ROW_HEIGHT = 24;
+
 // Generate a string for how much time has passed
 function timeAgo(oldTime, curTime)
 {
@@ -74,7 +80,7 @@ function makeFeatStar(projectId, featured)
 }
 
 // Fill a chunk div with project listings
-function fillChunk(chunkDiv, fromIdx, rows)
+function fillChunk(chunkDiv, rows)
 {
     var curTime = Date.now();
 
@@ -92,6 +98,7 @@ function fillChunk(chunkDiv, fromIdx, rows)
         //projectIds[projectId] = true;
 
         var rowDiv = document.createElement('div');
+        rowDiv.className = 'project_row';
 
         // Link to the project
         rowDiv.appendChild(document.createTextNode(projectId + '. '));
@@ -116,8 +123,8 @@ function fillChunk(chunkDiv, fromIdx, rows)
     }
 }
 
-// Populate a div with a chunk of projects to display
-function populate(sectionDiv, fromIdx, queryStr, chunkDiv)
+// Populate a chunk div with the projects starting at fromIdx
+function populate(chunkDiv, fromIdx, queryStr)
 {
     console.log('Populating from', fromIdx);
 
@@ -131,56 +138,71 @@ function populate(sectionDiv, fromIdx, queryStr, chunkDiv)
         if (this.readyState == 4 && this.status == 200)
         {
             let rows = JSON.parse(this.responseText);
-            fillChunk(chunkDiv, fromIdx, rows);
+            fillChunk(chunkDiv, rows);
 
-            // Create a new chunk to receive the next batch
-            if (rows.length > 0)
-            {
-                createChunk(
-                    sectionDiv,
-                    fromIdx + rows.length,
-                    queryStr
-                );
-            }
+            // Size the chunk to its actual rows
+            chunkDiv.style.minHeight = '';
         }
     };
 
     xhr.send();
 }
 
-// Create a chunk of project listings to be populated
-function createChunk(sectionDiv, fromIdx, queryStr)
+// Create empty placeholder chunks for the whole list, sized so that the
+// scrollbar reflects the full list. Each chunk is populated when it gets
+// close to the visible part of the list.
+function createChunks(listDiv, count, queryStr)
 {
-    //console.log('creating chunk, from', fromIdx);
-
-    // Create a div for this chunk
-    var chunkDiv = document.createElement('div');
-    sectionDiv.appendChild(chunkDiv);
-
-    function visCheck()
+    let observer = new IntersectionObserver(entries =>
     {
-        var rect = chunkDiv.getBoundingClientRect();
-        var elemTop = rect.top;
-
-        // If the top of the chunk is almost visible
-        if (elemTop < window.innerHeight + 400)
+        for (let entry of entries)
         {
-            // Populate the chunk
-            populate(
-                sectionDiv,
-                fromIdx,
-                queryStr,
-                chunkDiv
-            );
+            if (!entry.isIntersecting)
+                continue;
 
-            window.removeEventListener("scroll", visCheck);
+            let chunkDiv = entry.target;
+            observer.unobserve(chunkDiv);
+            populate(chunkDiv, parseInt(chunkDiv.dataset.fromIdx), queryStr);
         }
-    }
+    },
+    {
+        // Start loading chunks 400px before they become visible
+        root: listDiv,
+        rootMargin: '400px 0px',
+    });
 
-    window.addEventListener("scroll", visCheck);
-    visCheck();
+    for (let fromIdx = 0; fromIdx < count; fromIdx += CHUNK_SIZE)
+    {
+        let numRows = Math.min(CHUNK_SIZE, count - fromIdx);
+
+        let chunkDiv = document.createElement('div');
+        chunkDiv.dataset.fromIdx = fromIdx;
+        chunkDiv.style.minHeight = (numRows * ROW_HEIGHT) + 'px';
+        listDiv.appendChild(chunkDiv);
+
+        observer.observe(chunkDiv);
+    }
 }
 
-// Create the first chunk for the featured and latest project sections
-createChunk(featuredDiv, 0, '?featured=1');
-createChunk(latestDiv, 0, '');
+// Get the number of projects in a list, then create its chunks
+function initList(listDiv, queryStr)
+{
+    let xhr = new XMLHttpRequest()
+    xhr.open("GET", `list_count${queryStr}`, true);
+
+    // Request response handler
+    xhr.onreadystatechange = function()
+    {
+        if (this.readyState == 4 && this.status == 200)
+        {
+            let count = JSON.parse(this.responseText);
+            createChunks(listDiv, count, queryStr);
+        }
+    };
+
+    xhr.send();
+}
+
+// Create the featured and latest project lists
+initList(featuredDiv, '?featured=1');
+initList(latestDiv, '');

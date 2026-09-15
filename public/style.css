@@ -112,6 +112,132 @@ div.pagecontents
     margin-bottom: 18px;
 }
 
+/* Browse page: fills the window, with two independently scrolling lists */
+div.browse_page
+{
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    /* 800px column, or 95% of the width on narrow screens such as phones */
+    max-width: min(800px, 95%);
+    height: 100vh;
+    height: 100dvh;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 18px 0 18px 0;
+}
+
+div.browse_page h1
+{
+    margin: 0 0 18px 0;
+}
+
+div.browse_page p
+{
+    margin: 0;
+}
+
+div.browse_section h2
+{
+    margin: 18px 0 8px 0;
+}
+
+div.browse_section
+{
+    display: flex;
+    flex-direction: column;
+    /* Small enough that both lists fit on one screen on phones */
+    min-height: 150px;
+}
+
+#featured_section
+{
+    flex: 45 1 0;
+}
+
+#latest_section
+{
+    flex: 55 1 0;
+}
+
+div.project_list
+{
+    flex: 1 1 0;
+    min-height: 0;
+    /* Always show the scrollbar */
+    overflow-y: scroll;
+    padding: 0 8px;
+    background: #181818;
+    border: 1px solid #444;
+}
+
+/*
+On very short screens (e.g. phones in landscape), both lists can't fit, so
+the page scrolls normally, and each list gets a fixed height. This leaves room
+above and below each list to drag the page itself.
+*/
+@media (max-height: 520px)
+{
+    div.browse_page
+    {
+        height: auto;
+    }
+
+    #featured_section, #latest_section
+    {
+        flex: none;
+        min-height: 0;
+    }
+
+    div.project_list
+    {
+        flex: none;
+        height: 70vh;
+    }
+}
+
+/* Fixed row height, so lists can be sized before their rows are loaded */
+div.project_row
+{
+    height: 24px;
+    line-height: 24px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Custom scrollbars stay visible even with macOS overlay scrollbars */
+div.project_list::-webkit-scrollbar
+{
+    width: 12px;
+}
+
+div.project_list::-webkit-scrollbar-track
+{
+    background: #262626;
+}
+
+div.project_list::-webkit-scrollbar-thumb
+{
+    background: #777;
+    border: 2px solid #262626;
+    border-radius: 6px;
+}
+
+div.project_list::-webkit-scrollbar-thumb:hover
+{
+    background: #999;
+}
+
+/* Firefox only: in Chrome, scrollbar-color would disable the styles above */
+@supports (-moz-appearance: none)
+{
+    div.project_list
+    {
+        scrollbar-color: #777 #262626;
+    }
+}
+
 /* code literal */
 code
 {

@@ -269,7 +269,7 @@ async function getAccess(userId)
     });
 }
 
-// Check that a user has sufficient access
+// Check that a user has sufficient access, throws if not
 async function checkAccess(userId, sessionId, access)
 {
     // Check that the session is valid
@@ -282,10 +282,12 @@ async function checkAccess(userId, sessionId, access)
     switch (access)
     {
         case 'admin':
-        return (userAccess == 'admin');
+        if (userAccess != 'admin')
+            throw 'insufficient access';
+        return;
 
         default:
-        throw TypeError('invalid access level:', access);
+        throw TypeError('invalid access level: ' + access);
     }
 }
 
@@ -795,6 +797,28 @@ app.post(['/play', '/play/:projectId([0-9]+)'], async function (req, res)
     }
 })
 
+// GET /list_count
+// Get the number of shared projects, so the browse page can size its lists
+app.get('/list_count', async function (req, res)
+{
+    let featured = !!req.query.featured;
+
+    try
+    {
+        let count = await getQueryValue(
+            'SELECT COUNT(*) FROM projects' + (featured? ' WHERE featured == 1':'')
+        );
+
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify(count));
+    }
+    catch (e)
+    {
+        console.log(e);
+        return res.sendStatus(500);
+    }
+})
+
 // GET /list
 // List shared projects
 app.get('/list/:from', jsonParser, function (req, res)
@@ -836,7 +860,16 @@ app.post('/featured/:id', jsonParser, async function (req, res)
     let featured = req.body.featured;
 
     // Check that the user has admin access
-    await checkAccess(userId, sessionId, 'admin');
+    try
+    {
+        await checkAccess(userId, sessionId, 'admin');
+    }
+    catch (e)
+    {
+        console.log('featured request denied');
+        console.log(e);
+        return res.sendStatus(403);
+    }
 
     if (isNaN(projectId) || projectId < 1)
         return res.sendStatus(400);
