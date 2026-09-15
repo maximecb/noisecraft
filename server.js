@@ -39,36 +39,18 @@ async function connectDb(dbFilePath)
 // Wait until we're connected to the database
 let db = await connectDb(dbFilePath);
 
-// Setup the database tables
-db.run(`CREATE table IF NOT EXISTS hits (
-    time UNSIGNED BIGINT,
-    ip STRING NOT NULL);`
-);
-db.run(`CREATE table IF NOT EXISTS projects (
-    id INTEGER PRIMARY KEY,
-    user_id INTEGER,
-    title TEXT NOT NULL,
-    data BLOB,
-    crc32 UNSIGNED INT,
-    featured UNSIGNED INT DEFAULT 0,
-    submit_time BIGINT,
-    submit_ip STRING NOT NULL);`
-);
-db.run(`CREATE table IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY,
-    username TEXT NOT NULL,
-    pwd_hash TEXT NOT NULL,
-    pwd_salt TEXT NOT NULL,
-    reg_time BIGINT,
-    reg_ip STRING NOT NULL,
-    access STRING NOT NULL DEFAULT 'default');`
-);
-db.run(`CREATE table IF NOT EXISTS sessions (
-    user_id INTEGER,
-    session_id TEXT NOT NULL,
-    login_ip STRING NOT NULL,
-    login_time BIGINT);`
-);
+// Promise wrapper for running database queries
+function dbRun(sqlQuery, vars = [])
+{
+    return new Promise((resolve, reject) => {
+        db.run(sqlQuery, vars, function (err)
+        {
+            if (err)
+                return reject(err);
+            resolve(this);
+        });
+    });
+}
 
 // Get the IP address of a client as a string
 function getClientIP(req)
@@ -83,13 +65,48 @@ function getClientIP(req)
     return String(req.connection.remoteAddress);
 }
 
-function recordHit(req) {
-    db.run(
-        'INSERT INTO hits VALUES (?, ?);',
-        Date.now(),
-        getClientIP(req)
-    );
+/**
+Hash an IP address, keeping only the low 22 bits of the SHA256 digest.
+Each hash value is shared by ~1000 IPv4 addresses, so the original address
+can't be recovered, but we can still spot many registrations from one address.
+*/
+function hashIP(ip)
+{
+    // Normalize IPv4-mapped IPv6 addresses (e.g. ::ffff:1.2.3.4)
+    ip = String(ip).replace(/^::ffff:(?=\d+\.\d+\.\d+\.\d+$)/i, '');
+
+    let digest = crypto.createHash('sha256').update(ip, 'utf-8').digest();
+    return digest.readUInt32BE(digest.length - 4) & 0x3FFFFF;
 }
+
+// Setup the database tables
+await dbRun(`CREATE table IF NOT EXISTS projects (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER,
+    title TEXT NOT NULL,
+    data BLOB,
+    crc32 UNSIGNED INT,
+    featured UNSIGNED INT DEFAULT 0,
+    submit_time BIGINT);`
+);
+await dbRun(`CREATE table IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY,
+    username TEXT NOT NULL,
+    pwd_hash TEXT NOT NULL,
+    pwd_salt TEXT NOT NULL,
+    reg_time BIGINT,
+    reg_ip_hash STRING NOT NULL,
+    access STRING NOT NULL DEFAULT 'default');`
+);
+await dbRun(`CREATE table IF NOT EXISTS sessions (
+    user_id INTEGER,
+    session_id TEXT NOT NULL,
+    login_time BIGINT);`
+);
+await dbRun(`CREATE table IF NOT EXISTS plays (
+    time UNSIGNED BIGINT NOT NULL,
+    project_id INTEGER);`
+);
 
 // Hash a string using SHA512
 function cryptoHash(str)
@@ -104,7 +121,7 @@ function cryptoHash(str)
 Add a new user to the database
 Note: this function does not check for duplicates
 */
-async function addUser(username, password, ip)
+async function addUser(username, password, ipHash)
 {
     // TODO: assert valid characters only, no whitespace at start or end
 
@@ -116,9 +133,9 @@ async function addUser(username, password, ip)
     return new Promise((resolve, reject) => {
         db.run(
             'INSERT INTO users ' +
-            '(username, pwd_hash, pwd_salt, reg_time, reg_ip) ' +
+            '(username, pwd_hash, pwd_salt, reg_time, reg_ip_hash) ' +
             'VALUES (?, ?, ?, ?, ?);',
-            [username, pwd_hash, pwd_salt, reg_time, ip],
+            [username, pwd_hash, pwd_salt, reg_time, ipHash],
             function (err)
             {
                 if (err)
@@ -179,7 +196,7 @@ async function lookupUser(username)
 }
 
 // Create a new session
-async function createSession(userId, sessionId, loginTime, loginIP)
+async function createSession(userId, sessionId, loginTime)
 {
     return new Promise((resolve, reject) =>
     {
@@ -195,9 +212,9 @@ async function createSession(userId, sessionId, loginTime, loginIP)
             // Insert the new session into the table
             db.run(
                 'INSERT INTO sessions ' +
-                '(user_id, session_id, login_ip, login_time) ' +
-                'VALUES (?, ?, ?, ?);',
-                [userId, sessionId, loginIP, loginTime],
+                '(user_id, session_id, login_time) ' +
+                'VALUES (?, ?, ?);',
+                [userId, sessionId, loginTime],
                 function (err)
                 {
                     if (err)
@@ -318,15 +335,15 @@ async function checkDupes(crc32)
 }
 
 // Insert the project into the database
-async function insertProject(userId, title, data, crc32, submitTime, submitIP)
+async function insertProject(userId, title, data, crc32, submitTime)
 {
     return new Promise((resolve, reject) => {
         // Insert the project into the database
         db.run(
             'INSERT INTO projects ' +
-            '(user_id, title, data, crc32, featured, submit_time, submit_ip) ' +
-            'VALUES (?, ?, ?, ?, ?, ?, ?);',
-            [userId, title, data, crc32, 0, submitTime, submitIP],
+            '(user_id, title, data, crc32, featured, submit_time) ' +
+            'VALUES (?, ?, ?, ?, ?, ?);',
+            [userId, title, data, crc32, 0, submitTime],
             function (err)
             {
                 if (err)
@@ -386,8 +403,6 @@ const indexTemplate = ejs.compile(
 // Main (index) page
 app.get('/', function(req, res)
 {
-    recordHit(req);
-
     let html = indexTemplate({ pageTitle: 'NoiseCraft'});
     res.setHeader('content-type', 'text/html');
     res.send(html);
@@ -401,8 +416,6 @@ app.get('/:projectId([0-9]+)', async function(req, res)
     // The projectId must be a positive integer
     if (isNaN(projectId) || projectId < 1)
         return res.sendStatus(400);
-
-    recordHit(req);
 
     // Set the title tag in the HTML data based on the project title
     // We do this so the project title can show up in webpage previews
@@ -434,6 +447,58 @@ const statsTemplate = ejs.compile(
     fs.readFileSync(path.resolve('public/stats.html'), 'utf8')
 );
 
+// Time zone used for the stats page, regardless of the server's time zone
+const STATS_TIME_ZONE = 'America/New_York';
+
+const DAY_IN_MS = 1000 * 3600 * 24;
+
+// Get the calendar date (year, month, day) of a timestamp in STATS_TIME_ZONE
+function getZonedDate(time)
+{
+    let parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: STATS_TIME_ZONE,
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+    }).formatToParts(time);
+
+    let get = type => parseInt(parts.find(p => p.type == type).value);
+    return { year: get('year'), month: get('month'), day: get('day') };
+}
+
+// Get the offset of STATS_TIME_ZONE from UTC at a given timestamp, in ms
+function getZoneOffset(time)
+{
+    let parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: STATS_TIME_ZONE,
+        hourCycle: 'h23',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+    }).formatToParts(time);
+
+    let get = type => parseInt(parts.find(p => p.type == type).value);
+    let asUTC = Date.UTC(
+        get('year'), get('month') - 1, get('day'),
+        get('hour'), get('minute'), get('second')
+    );
+
+    return asUTC - (time - time % 1000);
+}
+
+// Get the timestamp of midnight in STATS_TIME_ZONE for a calendar date.
+// Out of range days are normalized, e.g. day 0 is the last day of the
+// previous month. Accounts for daylight saving time.
+function getZonedMidnight(year, month, day)
+{
+    let utcMidnight = Date.UTC(year, month - 1, day);
+    let guess = utcMidnight - getZoneOffset(utcMidnight);
+    return utcMidnight - getZoneOffset(guess);
+}
+
 app.get('/stats', async function (req, res)
 {
     // Find the median value in a list of numbers
@@ -443,7 +508,7 @@ app.get('/stats', async function (req, res)
         {
             if (a < b)
                 return -1;
-            else if (b > a)
+            else if (a > b)
                 return 1;
             return 0;
         }
@@ -455,35 +520,28 @@ app.get('/stats', async function (req, res)
     // Get the current timestamp
     let timeStamp = Date.now();
 
-    // Get the timestamp at the last midnight in the local time zone
-    let date = new Date();
-    date.setHours(0);
-    date.setMinutes(0);
-    date.setSeconds(0);
-    date.setMilliseconds(0);
-    let lastMidnight = date.getTime()
+    // Get the timestamp at the last midnight in eastern time
+    let today = getZonedDate(timeStamp);
+    let lastMidnight = getZonedMidnight(today.year, today.month, today.day);
 
-    const DAY_IN_MS = 1000 * 3600 * 24;
     let NUM_DAYS = 40;
     let dayCounts = [];
-    let dayStart = lastMidnight;
 
     console.log('seconds since midnight: ', (timeStamp - lastMidnight) / 1000);
 
-    // For each day
+    // For each day, starting from today and moving back.
+    // Days can be 23 or 25 hours long because of daylight saving time.
     for (let i = 0; i < NUM_DAYS; ++i)
     {
-        let dayEnd = dayStart + DAY_IN_MS;
+        let dayStart = getZonedMidnight(today.year, today.month, today.day - i);
+        let dayEnd = getZonedMidnight(today.year, today.month, today.day - i + 1);
 
         let dayCount = await getQueryValue(
-            'SELECT COUNT(DISTINCT ip) FROM (SELECT * FROM hits WHERE time >= ? AND time <= ?)',
+            'SELECT COUNT(*) FROM plays WHERE time >= ? AND time < ?',
             [dayStart, dayEnd]
         )
 
         dayCounts.push(dayCount);
-
-        // Move to the previous day
-        dayStart -= DAY_IN_MS;
     }
 
     dayCounts.reverse();
@@ -492,20 +550,33 @@ app.get('/stats', async function (req, res)
     let minDayCount = Math.min(...daysExceptLast);
     let medDayCount = median(dayCounts);
     let lastDayCount = dayCounts[dayCounts.length-1];
-    dayCounts = dayCounts.map(count => count / maxDayCount);
+    // Avoid dividing by zero when there are no plays yet
+    dayCounts = dayCounts.map(count => count / Math.max(maxDayCount, 1));
 
-    // Compute the number of unique hits in the last hour
-    let uniqueHour = await getQueryValue(
-        'SELECT COUNT(DISTINCT ip) FROM (SELECT * FROM hits WHERE time >= ?)',
+    // Compute the number of plays in the last hour
+    let playsHour = await getQueryValue(
+        'SELECT COUNT(*) FROM plays WHERE time >= ?',
         [timeStamp - 3600 * 1000]
     );
 
-    // Compute the number of days since the first project was uploaded
-    let minTime = await getQueryValue('SELECT MIN(time) from hits');
-    let numDays = Math.floor((timeStamp - minTime) / (1000 * 3600 * 24));
+    // Compute the number of calendar days in eastern time
+    // since the first project was uploaded
+    let minTime = await getQueryValue('SELECT MIN(submit_time) from projects');
+    let firstDay = (minTime === null)? today:getZonedDate(minTime);
+    let numDays = Math.round(
+        (Date.UTC(today.year, today.month - 1, today.day) -
+        Date.UTC(firstDay.year, firstDay.month - 1, firstDay.day)) / DAY_IN_MS
+    );
+
+    // Current date and time in eastern time, for display
+    let currentTime = new Date(timeStamp).toLocaleString('en-US', {
+        timeZone: STATS_TIME_ZONE,
+        dateStyle: 'full',
+        timeStyle: 'long',
+    });
 
     // Get various stats
-    let totalHits = await getQueryValue('SELECT COUNT(*) FROM hits');
+    let totalPlays = await getQueryValue('SELECT COUNT(*) FROM plays');
     let projectCount = await getQueryValue('SELECT COUNT(*) FROM projects');
     let userCount = await getQueryValue('SELECT COUNT(*) FROM users');
 
@@ -515,9 +586,10 @@ app.get('/stats', async function (req, res)
         minDayCount: minDayCount,
         medDayCount: medDayCount,
         lastDayCount: lastDayCount,
-        uniqueHour: uniqueHour,
+        currentTime: currentTime,
+        playsHour: playsHour,
         numDays: numDays,
-        totalHits: totalHits,
+        totalPlays: totalPlays,
         projectCount: projectCount,
         userCount: userCount,
     });
@@ -547,8 +619,8 @@ app.post('/register', jsonParser, async function (req, res)
         await checkAvail(username);
 
         // Add the new user to the database
-        let submitIP = getClientIP(req);
-        let userId = await addUser(username, password, submitIP);
+        let ipHash = hashIP(getClientIP(req));
+        let userId = await addUser(username, password, ipHash);
 
         return res.send(JSON.stringify({
             userId: userId,
@@ -592,9 +664,8 @@ app.post('/login', jsonParser, async function (req, res)
         let sessionId = cryptoHash(String(Date.now()) + String(Math.random()));
 
         var loginTime = Date.now();
-        var loginIP = getClientIP(req);
 
-        await createSession(id, sessionId, loginTime, loginIP);
+        await createSession(id, sessionId, loginTime);
 
         console.log(`login from user "${username}" with access "${access}"`);
 
@@ -656,7 +727,6 @@ app.post('/projects', jsonParser, async function (req, res)
         await checkDupes(crc32);
 
         var submitTime = Date.now();
-        var submitIP = getClientIP(req);
 
         // Insert the project in the database
         let projectId = await insertProject(
@@ -664,8 +734,7 @@ app.post('/projects', jsonParser, async function (req, res)
             title,
             data,
             crc32,
-            submitTime,
-            submitIP
+            submitTime
         );
 
         console.log(
@@ -687,6 +756,42 @@ app.post('/projects', jsonParser, async function (req, res)
         console.log('submit request failed');
         console.log(e);
         return res.sendStatus(400);
+    }
+})
+
+/**
+POST /play/:projectId?
+Record that playback was started, sent by the client the first time it
+hits play on a loaded project. The projectId is omitted for projects that
+weren't loaded from the server. We store only a timestamp and projectId.
+*/
+app.post(['/play', '/play/:projectId([0-9]+)'], async function (req, res)
+{
+    let projectId = null;
+
+    if (req.params.projectId !== undefined)
+    {
+        projectId = parseInt(req.params.projectId);
+
+        if (!Number.isSafeInteger(projectId) || projectId < 1)
+            return res.sendStatus(400);
+    }
+
+    try
+    {
+        await dbRun(
+            'INSERT INTO plays (time, project_id) VALUES (?, ?);',
+            [Date.now(), projectId]
+        );
+
+        return res.sendStatus(204);
+    }
+
+    catch (e)
+    {
+        console.log('failed to record play');
+        console.log(e);
+        return res.sendStatus(500);
     }
 })
 

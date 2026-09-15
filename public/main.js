@@ -32,6 +32,12 @@ let titleView = new TitleView(model);
 // Most recent location of a mouse or touch event
 let cursor = { x: 0, y: 0 };
 
+// Id of the project loaded from the server, if any
+let loadedProjectId = null;
+
+// Whether we've recorded a play for the currently loaded project
+let playRecorded = false;
+
 document.body.onload = async function ()
 {
     //browserWarning();
@@ -47,7 +53,7 @@ document.body.onload = async function ()
         let data = await sharing.getProject(projectId);
 
         // Try to import the project
-        importModel(data);
+        importModel(data, projectId);
 
         return;
     }
@@ -74,7 +80,7 @@ document.body.onload = async function ()
         let data = await sharing.getProject(projectId);
 
         // Try to import the project
-        importModel(data);
+        importModel(data, parseInt(projectId));
 
         return;
     }
@@ -241,12 +247,16 @@ function handleMouseEvent(evt)
     cursor = editor.getMousePos(evt);
 }
 
-function importModel(serializedModelData)
+function importModel(serializedModelData, projectId = null)
 {
     // Stop playback to avoid glitching
     stopPlayback();
 
     model.deserialize(serializedModelData);
+
+    // A newly loaded project gets its own play recorded
+    loadedProjectId = Number.isInteger(projectId)? projectId:null;
+    playRecorded = false;
 }
 
 function openModelFile()
@@ -360,6 +370,28 @@ function startPlayback()
 
     // Send the play action to the model
     model.update(new Play());
+
+    recordPlay();
+}
+
+// Let the server know the first time playback is started for a project.
+// This is fire-and-forget, and errors must never interfere with playback.
+function recordPlay()
+{
+    if (playRecorded)
+        return;
+
+    playRecorded = true;
+
+    try
+    {
+        let url = '/play' + (loadedProjectId? '/' + loadedProjectId:'');
+        navigator.sendBeacon(url);
+    }
+    catch (e)
+    {
+        console.log(e);
+    }
 }
 
 function stopPlayback()
