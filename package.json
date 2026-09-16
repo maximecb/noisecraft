@@ -7,12 +7,10 @@
     "url": "git+https://github.com/maximecb/noisecraft.git"
   },
   "dependencies": {
-    "body-parser": "^1.19.0",
     "crc": "^3.8.0",
     "ejs": "^3.1.7",
     "express": "^4.17.1",
-    "sqlite3": "^5.0.6",
-    "vhost": "^3.0.2"
+    "sqlite3": "^5.0.6"
   },
   "devDependencies": {
     "esbuild": "^0.14.10",

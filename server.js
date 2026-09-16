@@ -3,7 +3,6 @@
 import express from 'express';
 import path from 'path'
 import fs from 'fs';
-import bodyParser from 'body-parser';
 import sqlite3 from 'sqlite3';
 import crc from 'crc';
 import crypto from 'crypto';
@@ -18,8 +17,11 @@ const serverHTTPPortNo = process.env.HTTP_PORT_NO  || 7773;
 
 var app = express();
 
+// Don't advertise the server framework in response headers
+app.disable('x-powered-by');
+
 // Create application/json parser
-var jsonParser = bodyParser.json({limit: '1mb'});
+var jsonParser = express.json({limit: '1mb'});
 
 // Connect to the database
 async function connectDb(dbFilePath)
