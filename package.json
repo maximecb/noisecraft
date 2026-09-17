@@ -22,5 +22,8 @@
     "start": "node server.js",
     "watch": "nodemon server.js",
     "build": "esbuild public/main.js public/audioworklet.js public/help.js public/browse.js --bundle --outdir=deploy/public"
+  },
+  "overrides": {
+    "tar": "^7.5.22"
   }
 }
