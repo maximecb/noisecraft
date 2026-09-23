@@ -531,6 +531,12 @@ app.get('/stats', async function (req, res)
     let NUM_DAYS = 40;
     let dayCounts = [];
 
+    // Timestamp of the first play we have data for
+    let firstPlayTime = await getQueryValue('SELECT MIN(time) FROM plays');
+
+    // Counts for the days we have data for (days ending after the first play)
+    let dataDayCounts = [];
+
     console.log('seconds since midnight: ', (timeStamp - lastMidnight) / 1000);
 
     // For each day, starting from today and moving back.
@@ -546,13 +552,19 @@ app.get('/stats', async function (req, res)
         )
 
         dayCounts.push(dayCount);
+
+        if (firstPlayTime !== null && dayEnd > firstPlayTime)
+            dataDayCounts.push(dayCount);
     }
 
     dayCounts.reverse();
-    let daysExceptLast = dayCounts.slice(0, dayCounts.length - 1);
+    dataDayCounts.reverse();
     let maxDayCount = Math.max(...dayCounts);
-    let minDayCount = Math.min(...daysExceptLast);
-    let medDayCount = median(dayCounts);
+    // Ignore days before we have data when computing the min and median.
+    // The last day is excluded from the min since it isn't over yet.
+    let daysExceptLast = dataDayCounts.slice(0, dataDayCounts.length - 1);
+    let minDayCount = (daysExceptLast.length > 0)? Math.min(...daysExceptLast):0;
+    let medDayCount = (dataDayCounts.length > 0)? median(dataDayCounts):0;
     let lastDayCount = dayCounts[dayCounts.length-1];
     // Avoid dividing by zero when there are no plays yet
     dayCounts = dayCounts.map(count => count / Math.max(maxDayCount, 1));
@@ -584,6 +596,16 @@ app.get('/stats', async function (req, res)
     let projectCount = await getQueryValue('SELECT COUNT(*) FROM projects');
     let userCount = await getQueryValue('SELECT COUNT(*) FROM users');
 
+    // Date the last account was created in eastern time, as YYYY-MM-DD
+    let maxRegTime = await getQueryValue('SELECT MAX(reg_time) FROM users');
+    let lastRegDate = 'N/A';
+    if (maxRegTime !== null)
+    {
+        let regDay = getZonedDate(maxRegTime);
+        let pad = n => String(n).padStart(2, '0');
+        lastRegDate = `${regDay.year}-${pad(regDay.month)}-${pad(regDay.day)}`;
+    }
+
     let html = statsTemplate({
         dayCounts: dayCounts,
         maxDayCount: maxDayCount,
@@ -596,6 +618,7 @@ app.get('/stats', async function (req, res)
         totalPlays: totalPlays,
         projectCount: projectCount,
         userCount: userCount,
+        lastRegDate: lastRegDate,
     });
 
     res.setHeader('content-type', 'text/html');

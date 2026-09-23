@@ -16,7 +16,7 @@
                 <rect width="100%" height="100%" fill="#444" />
 
                 <text x="4" y="16" font-family="monospace" fill="white">
-                <%= `max=${maxDayCount}, min=${minDayCount}, median=${medDayCount}, last=${lastDayCount}` %>
+                <%= `max=${maxDayCount}, min=${minDayCount}, median=${medDayCount}, current=${lastDayCount}` %>
                 </text>
 
                 <!-- Transform bars so that y=0 is at the bottom -->
@@ -42,6 +42,8 @@
             <p>Total play count: <%= totalPlays %></p>
 
             <p>User count: <%= userCount %></p>
+
+            <p>Last account created: <%= lastRegDate %></p>
 
 
             <p>Total project shared: <%= projectCount %></p>
